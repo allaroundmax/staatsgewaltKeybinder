@@ -172,8 +172,8 @@ Start:
 	IniRead, admin, settings.ini, settings, admin, 0
 	IniRead, autoCook, settings.ini, settings, autoCook, 0
 	IniRead, autoEquip, settings.ini, settings, autoEquip, 0
-	IniRead, autoJailGate, settings.ini, settings, autoJailGate, 0
 	IniRead, autoGate, settings.ini, settings, autoGate, 0
+	IniRead, autoExecute, settings.ini, settings, autoExecute, 0
 	IniRead, autoFish, settings.ini, settings, autoFish, 0
 	
 	IniRead, smsSound, settings.ini, sounds, smsSound, 0
@@ -857,8 +857,8 @@ SettingsGUI:
 	Gui, Settings: Add, CheckBox, x420 y60 w190 h20 vadmin checked%admin%, Admin-Modus
 	Gui, Settings: Add, CheckBox, x420 y90 w190 h20 vautoCook checked%autoCook%, Schnelles Kochen
 	Gui, Settings: Add, CheckBox, x420 y120 w190 h20 vautoEquip checked%autoEquip%, Schnelles Ausrüsten
-	Gui, Settings: Add, CheckBox, x420 y150 w190 h20 vautoJailGate checked%autoJailGate%, Auto-/auf System (Knast)
-	Gui, Settings: Add, CheckBox, x420 y180 w190 h20 vautoGate checked%autoGate%, Auto-/auf System (PDs)
+	Gui, Settings: Add, CheckBox, x420 y150 w190 h20 vautoExecute checked%autoExecute%, Schnell O-Amt WTD
+	Gui, Settings: Add, CheckBox, x420 y180 w190 h20 vautoGate checked%autoGate%, Schnelles Tor-System
 	Gui, Settings: Add, CheckBox, x420 y210 w190 h20 vautoFish checked%autoFish%, Schnelles Angeln
 	
 	/*
@@ -971,7 +971,7 @@ SettingsGuiClose:
 	IniWrite, % admin, settings.ini, settings, admin
 	IniWrite, % autoCook, settings.ini, settings, autoCook
 	IniWrite, % autoEquip, settings.ini, settings, autoEquip
-	IniWrite, % autoJailGate, settings.ini, settings, autoJailGate
+	IniWrite, % autoExecute, settings.ini, settings, autoExecute
 	IniWrite, % autoGate, settings.ini, settings, autoGate
 	IniWrite, % autoFish, settings.ini, settings, autoFish
 
@@ -2473,7 +2473,7 @@ handleChatMessage(message, index, arr) {
 			}
 		}
 	} else if (RegExMatch(message, "^\*\* (.*) (\S+): Der Spieler (\S+) \(ID: (\d+)\) (.*)\. \*\*", line_)) {
-		if (line_2 != getUserName()) {
+		if (line_2 != getUserName() && autoExecute) {
 			wantedIA := line_3
 			wantedContracter := line_2
 			wantedIAReason := line_5
@@ -2481,7 +2481,7 @@ handleChatMessage(message, index, arr) {
 			SetTimer, WantedIATimer, 1
 		}
 	} else if (RegExMatch(message, "^\*\* (.*) (\S+): Ich konnte bei dem Spieler (\S+) \(ID: (\d+)\) (\S+) festgellen. \*\*", line_)) {
-		if (line_2 != getUserName()) {
+		if (line_2 != getUserName() && autoExecute) {
 			wantedIA := line_3
 			wantedContracter := line_2
 			wantedIAReason := line_5
@@ -6145,12 +6145,14 @@ autoAcceptEmergencyLabel:
 				chat := readChatLine(0)
 				
 				if (!RegExMatch(chat, "^Der Spieler benötigt kein Streifenwagen\.$")) {
+					Sleep, 100
 					SendChat("/d HQ: übernehme Notruf-ID " . emergency2 . " von " . emergency1)
 					
 					IniRead, Services, stats.ini, Übernahmen, Services, 0
 					Services ++
 					IniWrite, %services%, stats.ini, Übernahmen, Services
 					
+					Sleep, 100
 					SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(services) . COLOR_WHITE . " Notrufe übernommen.")
 					break
 				}
@@ -6172,7 +6174,8 @@ autoAcceptEmergencyLabel:
 			gk(emergency1, emergency2, true)
 		
 			if (oldStore != currentStore) {
-				SendChat("/d HQ: Übernehme Ladenüberfall- von " . emergency3 . "(" . getPlayerIdByName(emergency3) . ") - GK: " . emergency1 . " (" . emergency2 . ")")
+				Sleep, 100
+				SendChat("/d HQ: Übernehme Ladenüberfall von " . emergency3 . "(" . getPlayerIdByName(emergency3) . ") - GK: " . emergency1 . " (" . emergency2 . ")")
 				
 				IniRead, storerobs, stats.ini, Übernahmen, storerobs, 0
 				storerobs ++
@@ -6183,6 +6186,7 @@ autoAcceptEmergencyLabel:
 				oldStore := emergency1
 			}
 			
+			Sleep, 100
 			SendClientMessage(prefix . "Möchtest du den Verbrecher suchen? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' zum Bestätigen!")
 			
 			KeyWait, X, D, T10
@@ -12353,7 +12357,7 @@ MainTimer:
 				}
 			}	
 		}
-	} else if (isPlayerAtJailGate() && auotJailGate) {
+	} else if (isPlayerAtJailGate() && autoGate) {
 		if (jailgateTimeout_) {
 			SendClientMessage(prefix . "Möchtest du ins Staatsgefängnis? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen.")
 			
