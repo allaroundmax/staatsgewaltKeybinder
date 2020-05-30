@@ -155,7 +155,7 @@ Start:
 	}
 	
 	IniRead, autoLock, settings.ini, settings, autoLock, 0
-	IniRead, autoEngine, settings.ini, settings, autoautoEngine, 0
+	IniRead, autoEngine, settings.ini, settings, autoEngine, 0
 	IniRead, autoFill, settings.ini, settings, autoFill, 0
 	IniRead, autoLotto, settings.ini, settings, autoLotto, 0
 	IniRead, antiSpam, settings.ini, settings, antiSpam, 0
@@ -618,7 +618,9 @@ Start:
 		SetTimer, TicketTimer, 1000
 	}
 	
-	SetTimer, LottoTimer, 2000
+	if (autoLotto) {
+		SetTimer, LottoTimer, 2000
+	}
 	
 	if (refillInfo) {
 		SetTimer, TankTimer, 5000
@@ -890,7 +892,7 @@ SettingsGUI:
 	Gui, Settings: Add, CheckBox, x210 y420 w190 h20 vmemberInfo checked%memberInfo%, Member begrüßen?
 	Gui, Settings: Add, CheckBox, x210 y450 w190 h20 vafkInfo checked%afkInfo%, AFK-Chatmeldung
 	
-	Gui, Settings: Add, CheckBox, x420 y360 w190 h20 vspotifyPublic checked%spotifyPublic%, Spotify-Tracks (öffnentlich)
+	Gui, Settings: Add, CheckBox, x420 y360 w190 h20 vspotifyPublic checked%spotifyPublic%, Spotify-Tracks (public)
 	Gui, Settings: Add, CheckBox, x420 y390 w190 h20 vspotifyPrivacy checked%spotifyPrivacy%, Spotify-Tracks (privat)
 	Gui, Settings: Add, CheckBox, x420 y420 w190 h20 vrefillInfo checked%refillInfo%, Tank-Warnungen
 	
@@ -991,6 +993,7 @@ SettingsGuiClose:
 	IniWrite, % spotifyPrivacy, settings.ini, infos, spotifyPrivacy
 	IniWrite, % refillInfo, settings.ini, infos, refillInfo
 	IniWrite, % escInfo, settings.ini, infos, escInfo
+	IniWrite, % afkInfo, settings.ini, infos, afkInfo
 
 	IniWrite, %lottoNumber%, settings.ini, Einstellungen, Lottozahl
 	IniWrite, %keybinderFrac%, settings.ini, Einstellungen, keybinderFrac
@@ -6495,7 +6498,10 @@ pauseLabel:
 		SetTimer, MainTimer, off	
 		SetTimer, TimeoutTimer, off
 		SetTimer, SecondTimer, off
-		SetTimer, LottoTimer, Off
+		
+		if (autoLotto) {
+			SetTimer, LottoTimer, off 
+		} 
 		
 		if (wantedInfo) {
 			SetTimer, WantedTimer, off
@@ -6528,9 +6534,12 @@ pauseLabel:
 		SetTimer, MainTimer, 200
 		SetTimer, TimeoutTimer, 1000
 		SetTimer, SecondTimer, 1000
-		SetTimer, LottoTimer, 2000
-		
+	
 		IniRead, bossmode, settings.ini, settings, bossmode, 1
+		
+		if (autoLotto) {
+			SetTimer, LottoTimer, 2000
+		}		
 		
 		if (autoUncuff) {
 			SetTimer, UncuffTimer, 500
@@ -12501,6 +12510,8 @@ LottoTimer:
 				}
 			}
 		}
+	} else {
+		SetTimer, LottoTimer, off
 	}
 }
 return
