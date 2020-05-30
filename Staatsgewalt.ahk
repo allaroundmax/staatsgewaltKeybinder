@@ -823,24 +823,26 @@ SettingsGUI:
 	
 	Gui, Settings: Add, GroupBox, x10 y10 w600 h230, Allgemeine Einstellungen
 		
-	Gui, Settings: Add, CheckBox, x20 y30 w170 h20 vlockSystem Checked%lockSystem%, Auto-Lock
-	Gui, Settings: Add, CheckBox, x20 y60 w170 h20 vmotorSystem Checked%motorSystem%, Motor aus bei 'F'
-	Gui, Settings: Add, CheckBox, x20 y90 w170 h20 vfillSystem Checked%fillSystem%, Tanksystem
-	Gui, Settings: Add, CheckBox, x20 y120 w170 h20 vlottoSystem Checked%lottoSystem%, Auto. Lotto
-	Gui, Settings: Add, CheckBox, x20 y150 w170 h20 vantispamSystem Checked%antispamSystem%, Spamschutz
-	Gui, Settings: Add, CheckBox, x20 y180 w170 h20 vautoUncuff Checked%autoUncuff%, Uncuff bei explosion
-	Gui, Settings: Add, CheckBox, x20 y210 w170 h20 vautoFrisk Checked%autoFrisk%, Durchsuchen bei Cuff
+	Gui, Settings: Add, CheckBox, x20 y30 w185 h20 vlockSystem Checked%lockSystem%, /lock beim Einsteigen
+	Gui, Settings: Add, CheckBox, x20 y60 w185 h20 vmotorSystem Checked%motorSystem%, /motor beim Aussteigen
+	Gui, Settings: Add, CheckBox, x20 y90 w185 h20 vfillSystem Checked%fillSystem%, Tanken mit 'X'
+	Gui, Settings: Add, CheckBox, x20 y120 w185 h20 vlottoSystem Checked%lottoSystem%, Lotto spielen mit 'X'
+	Gui, Settings: Add, CheckBox, x20 y150 w185 h20 vantispamSystem Checked%antispamSystem%, Spamschutz
+	Gui, Settings: Add, CheckBox, x20 y180 w185 h20 vautoUncuff Checked%autoUncuff%, Uncuff bei explosion
+	Gui, Settings: Add, CheckBox, x20 y210 w185 h20 vautoFrisk Checked%autoFrisk%, Durchsuchen bei Cuff
 	
-	Gui, Settings: Add, CheckBox, x190 y30 w200 h20 vtakeSystem Checked%takeSystem%, Auto. Take System
-	Gui, Settings: Add, CheckBox, x190 y60 w200 h20 vautoWanteds Checked%autoWanteds%, Auto. Wanted System
-	Gui, Settings: Add, CheckBox, x190 y90 w200 h20 vcustomsSystem Checked%customsSystem%, Zollsystem
-	Gui, Settings: Add, CheckBox, x190 y120 w200 h20 vautoLocal Checked%autoLocal%, Schnelle Ketteneinnahme
-	Gui, Settings: Add, CheckBox, x190 y150 w200 h20 vbossmode Checked%bossmode%, Schnelles Use-System
-	Gui, Settings: Add, CheckBox, x190 y180 w200 h20 vfishMode Checked%fishMode%, Billigsten Fisch wegwerfen?
-	Gui, Settings: Add, CheckBox, x190 y210 w200 h20 vhealSystem Checked%healSystem%, Healsystem
+	Gui, Settings: Add, CheckBox, x210 y30 w185 h20 vtakeSystem Checked%takeSystem%, Auto. Take System
+	Gui, Settings: Add, CheckBox, x210 y60 w185 h20 vautoWanteds Checked%autoWanteds%, Auto. Wanted System
+	Gui, Settings: Add, CheckBox, x210 y90 w185 h20 vcustomsSystem Checked%customsSystem%, Zollsystem
+	Gui, Settings: Add, CheckBox, x210 y120 w185 h20 vautoLocal Checked%autoLocal%, Schnelle Ketteneinnahme
+	Gui, Settings: Add, CheckBox, x210 y150 w185 h20 vbossmode Checked%bossmode%, Schnelles Use-System
+	Gui, Settings: Add, CheckBox, x210 y180 w185 h20 vfishMode Checked%fishMode%, Billigsten Fisch wegwerfen?
+	Gui, Settings: Add, CheckBox, x210 y210 w185 h20 vhealSystem Checked%healSystem%, Healsystem
 	
 	Gui, Settings: Add, CheckBox, x400 y30 w110 h20 vchatlogSaver Checked%chatlogSaver%, Chatlog-Save
 	Gui, Settings: Add, CheckBox, x530 y30 w70 h20 vadmin Checked%admin%, Admin
+	
+	/*
 	Gui, Settings: Add, Text, x400 y60 w150 h20, Lottozahl (0 Rand, 101 = ID)
 	Gui, Settings: Add, Edit, x560 y60 w40 h20 vlottoNumber, %lottoNumber%	
 	Gui, Settings: Add, Text, x400 y90 w110 h20, Primärfarbe
@@ -852,6 +854,7 @@ SettingsGUI:
 	Gui, Settings: Add, Text, x400 y180 w110 h20, Eigener prefix
 	Gui, Settings: Add, Edit, x530 y180 w70 h20 vownprefix, %ownprefix%
 	Gui, Settings: Add, CheckBox, x400 y210 w120 h20 vcookSystem Checked%cookSystem%, Auto. Kochen
+	*/
 		
 	Gui, Settings: Add, GroupBox, x10 y250 w600 h80, Sounds
 	Gui, Settings: Add, CheckBox, x20 y270 w170 h20 vsmsSound Checked%smsSound%, SMS Sound
