@@ -154,25 +154,26 @@ Start:
 		SetParam("window", "GTA:SA:MP")
 	}
 	
-	IniRead, lockSystem, settings.ini, Einstellungen, Locksystem, 1
-	IniRead, motorSystem, settings.ini, Einstellungen, Motorsystem, 1
-	IniRead, fillSystem, settings.ini, Einstellungen, Tanksystem, 0
-	IniRead, lottoSystem, settings.ini, Einstellungen, Lottosystem, 1
-	IniRead, antispamSystem, settings.ini, Einstellungen, Antispamsystem, 1
-	IniRead, autoUncuff, settings.ini, Einstellungen, AutoUncuff, 0
-	IniRead, autoFrisk, settings.ini, Einstellungen, autoFrisk, 0
-	IniRead, takeSystem, settings.ini, Einstellungen, Takesystem, 1
-	IniRead, autoWanteds, settings.ini, Einstellungen, AutoWanteds, 1
-	IniRead, customsSystem, settings.ini, Einstellungen, Zollsystem, 1
+	IniRead, autoLock, settings.ini, settings, autoLock, 0
+	IniRead, autoEngine, settings.ini, settings, autoautoEngine, 0
+	IniRead, autoFill, settings.ini, settings, autoFill, 0
+	IniRead, autoLotto, settings.ini, settings, autoLotto, 0
+	IniRead, antiSpam, settings.ini, settings, antiSpam, 0
+	IniRead, autoUncuff, settings.ini, settings, autoUncuff, 0
+	IniRead, autoFrisk, settings.ini, settings, autoFrisk, 0
+	IniRead, autoTake, settings.ini, settings, autoTake, 0
+	IniRead, autoWanted, settings.ini, settings, autoWanted, 0
+	IniRead, autoCustoms, settings.ini, settings, autoCustoms, 0
+	IniRead, autoLocal, settings.ini, settings, autoLocal, 0
+	IniRead, autoUse, settings.ini, settings, autoUse, 1
+	IniRead, fishMode, settings.ini, settings, fishMode, 0
+	IniRead, autoHeal, settings.ini, settings, autoHeal, 0
+	IniRead, chatlogSaver, settings.ini, settings, chatlogSaver, 0
+	IniRead, admin, settings.ini, settings, admin, 0
+	
+	
 	IniRead, lottoNumber, settings.ini, Einstellungen, Lottozahl, 0
-	IniRead, bossmode, settings.ini, Einstellungen, bossmode, 1
-	IniRead, fishMode, settings.ini, Einstellungen, FischModus, 0
-	IniRead, healSystem, settings.ini, Einstellungen, Healsystem, 1
 	IniRead, cookSystem, settings.ini, Einstellungen, cookSystem, 1
-	IniRead, chatlogSaver, settings.ini, Einstellungen, Chatlog, 1
-	IniRead, admin, settings.ini, Einstellungen, Admin, 0
-	IniRead, comhelper, settings.ini, Einstellungen, comhelper, 0
-	IniRead, autoLocal, settings.ini, Einstellungen, Ketteneinnahme, 1
 	IniRead, primaryColor, settings.ini, Einstellungen, Primärfarbe, %A_Space%
 	IniRead, secondaryColor, settings.ini, Einstellungen, Sekundärfarbe, %A_Space%
 	IniRead, keybinderFrac, settings.ini, Einstellungen, keybinderFrac, %A_Space%
@@ -593,13 +594,12 @@ Start:
 	SetTimer, ChatTimer, 200	
 	SetTimer, MainTimer, 200
 	SetTimer, ArrestTimer, 100
-	SetTimer, UncuffTimer, 500
 	SetTimer, TimeoutTimer, 1000
 	SetTimer, SecondTimer, 1000
 	SetTimer, WantedTimer, 1000
 	
-	if (bossmode) {
-		SetTimer, SyncTimer, 600000
+	if (autoUncuff) {
+		SetTimer, UncuffTimer, 500
 	}
 	
 	if (chatlogSaver) {
@@ -615,6 +615,10 @@ Start:
 	if (refillWarning) {
 		SetTimer, TankTimer, 5000
 	}	
+	
+	if (bossmode) {
+		SetTimer, SyncTimer, 600000
+	}
 	
 	Gui, Color, white
 	Gui, Font, s32 CDefault, Verdana
@@ -821,26 +825,27 @@ SettingsGUI:
 			
 	Gui, Settings: Add, Button, x480 y760 w130 h40 gSettingsGuiClose, Schließen
 	
-	Gui, Settings: Add, GroupBox, x10 y10 w600 h230, Allgemeine Einstellungen
-		
-	Gui, Settings: Add, CheckBox, x20 y30 w185 h20 vlockSystem Checked%lockSystem%, /lock beim Einsteigen
-	Gui, Settings: Add, CheckBox, x20 y60 w185 h20 vmotorSystem Checked%motorSystem%, /motor beim Aussteigen
-	Gui, Settings: Add, CheckBox, x20 y90 w185 h20 vfillSystem Checked%fillSystem%, Tanken mit 'X'
-	Gui, Settings: Add, CheckBox, x20 y120 w185 h20 vlottoSystem Checked%lottoSystem%, Lotto spielen mit 'X'
-	Gui, Settings: Add, CheckBox, x20 y150 w185 h20 vantispamSystem Checked%antispamSystem%, Spamschutz
-	Gui, Settings: Add, CheckBox, x20 y180 w185 h20 vautoUncuff Checked%autoUncuff%, Uncuff bei explosion
-	Gui, Settings: Add, CheckBox, x20 y210 w185 h20 vautoFrisk Checked%autoFrisk%, Durchsuchen bei Cuff
+	Gui, Settings: Add, GroupBox, x10 y10 w640 h230, Allgemeine Einstellungen
 	
-	Gui, Settings: Add, CheckBox, x210 y30 w185 h20 vtakeSystem Checked%takeSystem%, Auto. Take System
-	Gui, Settings: Add, CheckBox, x210 y60 w185 h20 vautoWanteds Checked%autoWanteds%, Auto. Wanted System
-	Gui, Settings: Add, CheckBox, x210 y90 w185 h20 vcustomsSystem Checked%customsSystem%, Zollsystem
-	Gui, Settings: Add, CheckBox, x210 y120 w185 h20 vautoLocal Checked%autoLocal%, Schnelle Ketteneinnahme
-	Gui, Settings: Add, CheckBox, x210 y150 w185 h20 vbossmode Checked%bossmode%, Schnelles Use-System
-	Gui, Settings: Add, CheckBox, x210 y180 w185 h20 vfishMode Checked%fishMode%, Billigsten Fisch wegwerfen?
-	Gui, Settings: Add, CheckBox, x210 y210 w185 h20 vhealSystem Checked%healSystem%, Healsystem
+	Gui, Settings: Add, CheckBox, x20 y30 w190 h20 vautoLock checked%autoLock%, /lock beim Einsteigen
+	Gui, Settings: Add, CheckBox, x20 y60 w190 h20 vautoEngine checked%autoEngine%, /motor beim Aussteigen
+	Gui, Settings: Add, CheckBox, x20 y90 w190 h20 vautoFill checked%autoFill%, Schnelles Tanken
+	Gui, Settings: Add, CheckBox, x20 y120 w190 h20 vautoLotto checked%autoLotto%, Auto-Lotto System
+	Gui, Settings: Add, CheckBox, x20 y150 w190 h20 vantiSpam checked%antiSpam%, Spamschutz System
+	Gui, Settings: Add, CheckBox, x20 y180 w190 h20 vautoUncuff checked%autoUncuff%, Uncuff bei Explosion
+	Gui, Settings: Add, CheckBox, x20 y210 w190 h20 vautoFrisk checked%autoFrisk%, Durchsuchen bei Cuff
+
+	Gui, Settings: Add, CheckBox, x210 y30 w190 h20 vautoTake checked%autoTake%, Auto-Drogen/Mats Take
+	Gui, Settings: Add, CheckBox, x210 y60 w190 h20 vautoWanted checked%autoWanted%, Auto-Wanted Vergabe
+	Gui, Settings: Add, CheckBox, x210 y90 w190 h20 vautoCustoms checked%autoCustoms%, Schnelles Zollöffnen
+	Gui, Settings: Add, CheckBox, x210 y120 w190 h20 vautoLocal checked%autoLocal%, Schnelle Ketteneinnahme
+	Gui, Settings: Add, CheckBox, x210 y150 w190 h20 vautoUse checked%autoUse%, Pak/Fische auf W A S D
+	Gui, Settings: Add, CheckBox, x210 y180 w190 h20 vfishMode checked%fishMode%, Billigsten Fisch wegwerfen
+	Gui, Settings: Add, CheckBox, x210 y210 w185 h20 vautoHeal checked%autoHeal%, Schnelles Healen
+
+	Gui, Settings: Add, CheckBox, x420 y30 w190 h20 vchatlogSaver checked%chatlogSaver%, Chatlogs abspeichern
+	Gui, Settings: Add, CheckBox, x420 y60 w190 h20 vadmin checked%admin%, Admin-Modus
 	
-	Gui, Settings: Add, CheckBox, x400 y30 w110 h20 vchatlogSaver Checked%chatlogSaver%, Chatlog-Save
-	Gui, Settings: Add, CheckBox, x530 y30 w70 h20 vadmin Checked%admin%, Admin
 	
 	/*
 	Gui, Settings: Add, Text, x400 y60 w150 h20, Lottozahl (0 Rand, 101 = ID)
@@ -922,7 +927,7 @@ SettingsGUI:
 	Gui, Settings: Add, Edit, x150 y710 w75 h20 vucSkin, %ucSkin%
 	Gui, Settings: Add, CheckBox, x266 y710 w110 h20 vequipArmour Checked%equipArmour%, Schutzweste
 	
-	Gui, Settings: Show, h810 w620, %projectName% - Einstellungen - Version %version%
+	Gui, Settings: Show, h810 w660, %projectName% - Einstellungen - Version %version%
 }
 return
 
@@ -930,26 +935,27 @@ SettingsGuiClose:
 {
 	Gui, Settings: Submit, NoHide
 
-	IniWrite, %lockSystem%, settings.ini, Einstellungen, Locksystem
-	IniWrite, %motorSystem%, settings.ini, Einstellungen, Motorsystem
-	IniWrite, %fillSystem%, settings.ini, Einstellungen, Tanksystem
-	IniWrite, %lottoSystem%, settings.ini, Einstellungen, Lottosystem
-	IniWrite, %antispamSystem%, settings.ini, Einstellungen, Antispamsystem
-	IniWrite, %autoUncuff%, settings.ini, Einstellungen, AutoUncuff
-	IniWrite, %autoFrisk%, settings.ini, Einstellungen, autoFrisk
-	
-	IniWrite, %takeSystem%, settings.ini, Einstellungen, Takesystem
-	IniWrite, %autoWanteds%, settings.ini, Einstellungen, AutoWanteds
-	IniWrite, %customsSystem%, settings.ini, Einstellungen, Zollsystem
+	IniWrite, % autoLock, settings.ini, settings, autoLock
+	IniWrite, % autoEngine, settings.ini, settings, autoEngine
+	IniWrite, % autoFill, settings.ini, settings, autoFill
+	IniWrite, % autoLotto, settings.ini, settings, autoLotto
+	IniWrite, % antiSpam, settings.ini, settings, antiSpam
+	IniWrite, % autoUncuff, settings.ini, settings, autoUncuff
+	IniWrite, % autoFrisk, settings.ini, settings, autoFrisk
+	IniWrite, % autoTake, settings.ini, settings, autoTake
+	IniWrite, % autoWanted, settings.ini, settings, autoWanted
+	IniWrite, % autoCustoms, settings.ini, settings, autoCustoms
+	IniWrite, % autoLocal, settings.ini, settings, autoLocal
+	IniWrite, % autoUse, settings.ini, settings, autoUse
+	IniWrite, % fishMode, settings.ini, settings, fishMode
+	Iniwrite, % autoHeal, settings.ini, settings, autoHeal
+	Iniwrite, % chatlogSaver, settings.ini, settings, chatlogSaver
+	IniWrite, % admin, settings.ini, settings, admin
+
 	IniWrite, %lottoNumber%, settings.ini, Einstellungen, Lottozahl
-	IniWrite, %bossmode%, settings.ini, Einstellungen, bossmode
-	IniWrite, %fishMode%, settings.ini, Einstellungen, FischModus
-	IniWrite, %healSystem%, settings.ini, Einstellungen, Healsystem
 	IniWrite, %cookSystem%, settings.ini, Einstellungen, cookSystem
 	
-	IniWrite, %chatlogSaver%, settings.ini, Einstellungen, Chatlog
-	IniWrite, %admin%, settings.ini, Einstellungen, Admin	
-	IniWrite, %autoLocal%, settings.ini, Einstellungen, Ketteneinnahme
+
 	IniWrite, %keybinderFrac%, settings.ini, Einstellungen, keybinderFrac
 	IniWrite, %ownprefix%, settings.ini, Einstellungen, Ownprefix
 	IniWrite, %primaryColor%, settings.ini, Einstellungen, Primärfarbe
@@ -2486,7 +2492,7 @@ handleChatMessage(message, index, arr) {
 			}
 		}
 	} else if (RegExMatch(message, "^WARNUNG: Hör auf zu Spamen, sonst wirst du gekickt!$")) {
-		if (antispamSystem) {
+		if (antiSpam) {
 			blockChatInput()
 			
 			SendClientMessage(prefix . "Das Antispam System wurde " . COLOR_GREEN . "aktiviert" . COLOR_WHITE . ".")
@@ -3637,9 +3643,9 @@ return
 ~A::
 ~W::
 {
-	IniRead, bossmode, settings.ini, settings, bossmode, 1
+	IniRead, autoUse, settings.ini, settings, autoUse, 1
 	
-	if (isBlocked() || isPlayerInAnyVehicle() || !bossmode || isPaintball) {
+	if (isBlocked() || isPlayerInAnyVehicle() || !autoUse || isPaintball) {
 		return
 	}
 	
@@ -5195,7 +5201,7 @@ arrestLabel:
 			
 			checkResult := check(name)
 			
-			if (checkResult != -1 && autoWanteds) {
+			if (checkResult != -1 && autoWanted) {
 				if (checkResult[1] || checkResult[2]) {
 					if (!admin || comhelper) {
 						Sleep, 700
@@ -5326,7 +5332,7 @@ checkLabel:
 	
 	Sleep, 300
 
-	if (autoWanteds) {
+	if (autoWanted) {
 		if (checkResult[1] || checkResult[2]) {
 			if (!admin || comhelper) {
 				Sleep, 1000
@@ -5806,7 +5812,7 @@ motorSystemLabel:
 			if (getVehicleEngineState()) {
 				SendChat("/motor")
 			} else {
-				if (lockSystem) {
+				if (autoLock) {
 					if (!getVehicleLockState()) {
 						SendChat("/lock")
 					}
@@ -5832,11 +5838,11 @@ return
 	}
 	
 	if (isPlayerInAnyVehicle()) {
-		if (motorSystem && isPlayerDriver() && getVehicleEngineState()) {
+		if (autoEngine && isPlayerDriver() && getVehicleEngineState()) {
 			SendChat("/motor")
 		}
 	} else {
-		if (lockSystem) {
+		if (autoLock) {
 			Loop {
 				if (isPlayerDriver() && !getVehicleLockState()) {
 					Sleep, 200
@@ -6481,22 +6487,21 @@ pauseLabel:
 	Suspend, permit
 	Suspend
 	
+	IniRead, autoUse, settings.ini, settings, autoUse, 1
+	
 	if (A_IsSuspended) {
 		SendClientMessage(prefix . "Du hast den Keybinder {CC0000}deaktiviert{FFFFFF}.")
 		
 		SetTimer, ChatTimer, off 
-		SetTimer, MainTimer, off		
-		SetTimer, UncuffTimer, off
+		SetTimer, MainTimer, off	
 		SetTimer, TimeoutTimer, off
 		SetTimer, SecondTimer, off
 		SetTimer, WantedTimer, off
 		SetTimer, LottoTimer, Off
 		
-		IniRead, bossmode, settings.ini, settings, bossmode, 1
-		
-		if (bossmode) {
-			SetTimer, SyncTimer, off
-		}
+		if (autoUncuff) {
+			SetTimer, UncuffTimer, off
+		}		
 		
 		if (chatlogSaver) {
 			SetTimer, ChatlogSaveTimer, off
@@ -6505,8 +6510,13 @@ pauseLabel:
 		if (refillWarning) {
 			SetTimer, TankTimer, Off
 		}
+		
 		if (admin) {
 			SetTimer, TicketTimer, Off
+		}
+		
+		if (autoUse) {
+			SetTimer, SyncTimer, off
 		}
 	} else {
 		SendClientMessage(prefix . "Du hast den Keybinder {00AA31}aktiviert{FFFFFF}.")
@@ -6514,7 +6524,6 @@ pauseLabel:
 		SetTimer, TempoTimer, 100
 		SetTimer, ChatTimer, 200
 		SetTimer, MainTimer, 200
-		SetTimer, UncuffTimer, 500
 		SetTimer, TimeoutTimer, 1000
 		SetTimer, SecondTimer, 1000
 		SetTimer, WantedTimer, 1000
@@ -6522,19 +6531,24 @@ pauseLabel:
 		
 		IniRead, bossmode, settings.ini, settings, bossmode, 1
 		
-		if (bossmode) {
-			SetTimer, SyncTimer, 120000
+		if (autoUncuff) {
+			SetTimer, UncuffTimer, 500
 		}
 		
 		if (chatlogSaver) {
 			SetTimer, ChatlogSaveTimer, 1000
 		}
+		
 		iF (refillWarning) {
 			SetTimer, TankTimer, 1000
 		}
-				
+		
 		if (admin) {
 			SetTimer, TicketTimer, 1000
+		}
+		
+		if (autoUse) {
+			SetTimer, SyncTimer, 600000
 		}
 	}
 return
@@ -6635,17 +6649,19 @@ return
 
 :?:/bossmode::
 {
-	IniRead, bossmode, settings.ini, settings, bossmode, 1
+	IniRead, autoUse, settings.ini, settings, autoUse, 1
 	
-	if (bossmode == 0) {
-		bossmode := 1
-		SendClientMessage(prefix . "Bossmodus wurde " . COLOR_GREEN . "aktiviert" . COLOR_WHITE . ".")
+	if (autoUse == 0) {
+		autoUse := 1
+		
+		SendClientMessage(prefix . "Heal-Modus wurde " . COLOR_GREEN . "aktiviert" . COLOR_WHITE . ".")
 	} else {
-		bossmode := 0
-		SendClientMessage(prefix . "Bossmodus wurde " . COLOR_RED . "deaktiviert" . COLOR_WHITE . ".")
+		autoUse := 0
+	
+		SendClientMessage(prefix . "Heal-Modus wurde " . COLOR_RED . "deaktiviert" . COLOR_WHITE . ".")
 	}
 	
-	IniWrite, %bossmode%, settings.ini, settings, bossmode
+	IniWrite, %autoUse%, settings.ini, settings, autoUse
 }
 return
 
@@ -8514,13 +8530,13 @@ return
 		
 		SendClientMessage(prefix . "Du wirfst nun den Fisch mit dem geringsten " . csecond . "LBS/HP-Wert {FFFFFF}weg.")
 		
-		IniWrite, %fishMode%, settings.ini, Einstellungen, FischModus
+		IniWrite, %fishMode%, settings.ini, settings, fishMode
 	} else if (fishType == "2") {
 		fishMode := 1
 		
 		SendClientMessage(prefix . "Du wirfst nun den Fisch mit dem geringsten " . csecond . "Geldwert {FFFFFF}weg.")
 		
-		IniWrite, %fishMode%, settings.ini, Einstellungen, FischModus
+		IniWrite, %fishMode%, settings.ini, settings, fishMode
 	}
 }
 return
@@ -12008,7 +12024,6 @@ MainTimer:
 		return
 	}
 	
-	
 	WinGetTitle, spotifytrack, ahk_exe Spotify.exe
 		
 	if (oldSpotifyTrack != spotifytrack && spotifytrack != "") {
@@ -12021,7 +12036,7 @@ MainTimer:
 		}
 	}	
 	
-	if (isPlayerInANyVehicle()) {
+	if (isPlayerInAnyVehicle()) {
 		if (oldVehicleName != getVehicleModelName()) {
 			oldVehicleName := getVehicleModelName()
 		}
@@ -12214,74 +12229,68 @@ MainTimer:
 		}	
 	}
 	
-	if (isPlayerOnGasStation()) {
-		if (fillSystem) {
-			if (fillTimeout_) {
-				if (isPlayerInAnyVehicle() && isPlayerDriver()) {
-					SendClientMessage(prefix . "Möchtest du dein Fahrzeug betanken? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen!")
-					
-					KeyWait, X, D, T10
-					
-					if (!ErrorLevel && !isBlocked()) {
-						fillTimeout_ := false
-						refillCar()
-						fillTimeout := 0
-					} else {
-						fillTimeout_ := true
-					}
-				}
-			}
-			
-			if (canisterTimeout_) {
-				if (!isPlayerInAnyVehicle()) {
-					SendClientMessage(prefix . "Möchtest du dir einen Kanister kaufen? Du kanst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen!")
+	if (isPlayerOnGasStation() && autoFill) {
+		if (fillTimeout_) {
+			if (isPlayerInAnyVehicle() && isPlayerDriver()) {
+				SendClientMessage(prefix . "Möchtest du dein Fahrzeug betanken? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen!")
 				
-					KeyWait, X, D, T10
-					
-					if (!ErrorLevel && !isBlocked()) {
-						canisterTimeout_ := false
-						SendChat("/kanister")
-						canisterTimeout := 0
-					} else {
-						canisterTimeout_ := true
-					}
-				}
-			}
-		}
-	} else if (isPlayerOnMaut()) {
-		if (customsSystem) {
-			if (mautTimeout_) {
-				SendClientMessage(prefix . "Möchtest du den Zoll öffnen? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen!")
-					
 				KeyWait, X, D, T10
-					
+				
 				if (!ErrorLevel && !isBlocked()) {
-					mautTimeout_ := false
-					openMaut()
-					mautTimeout := 0
+					fillTimeout_ := false
+					refillCar()
+					fillTimeout := 0
 				} else {
-					mautTimeout_ := true
+					fillTimeout_ := true
 				}
 			}
 		}
-	} else if (isPlayerOnHeal()) {
-		if (healSystem) {
-			if (healTimeout_) {
-				if (getPlayerHealth() < 100 || getPlayerArmor() < 100) {
-					SendClientMessage(prefix . "Möchtest du dich heilen? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen!")
-					
-					KeyWait, X, D, T10
-					
-					if (!ErrorLevel && !isBlocked()) {
-						healTimeout_ := false
-						healPlayer()
-						healTimeout := 0
-					} else {
-						healTimeout_ := true
-					}
+		
+		if (canisterTimeout_) {
+			if (!isPlayerInAnyVehicle()) {
+				SendClientMessage(prefix . "Möchtest du dir einen Kanister kaufen? Du kanst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen!")
+			
+				KeyWait, X, D, T10
+				
+				if (!ErrorLevel && !isBlocked()) {
+					canisterTimeout_ := false
+					SendChat("/kanister")
+					canisterTimeout := 0
+				} else {
+					canisterTimeout_ := true
 				}
-			}	
+			}
 		}
+	} else if (isPlayerOnMaut() && autoCustoms) {
+		if (mautTimeout_) {
+			SendClientMessage(prefix . "Möchtest du den Zoll öffnen? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen!")
+				
+			KeyWait, X, D, T10
+				
+			if (!ErrorLevel && !isBlocked()) {
+				mautTimeout_ := false
+				openMaut()
+				mautTimeout := 0
+			} else {
+				mautTimeout_ := true
+			}
+		}
+	} else if (isPlayerOnHeal() && autoHeal) {
+		if (healTimeout_) {
+			if (getPlayerHealth() < 100 || getPlayerArmor() < 100) {
+				SendClientMessage(prefix . "Möchtest du dich heilen? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen!")
+				
+				KeyWait, X, D, T10
+				
+				if (!ErrorLevel && !isBlocked()) {
+					healTimeout_ := false
+					healPlayer()
+					healTimeout := 0
+				} else {
+					healTimeout_ := true
+				}
+			}
+		}	
 	} else if (isOnCookPoint()) {
 		if (cookSystem) {
 			if (cookTimeout_) {
@@ -12308,20 +12317,18 @@ MainTimer:
 				}
 			}
 		}
-	} else if (isPlayerOnLocal()) {
-		if (autoLocal) {
-			if (localTimeout_) {
-				SendClientMessage(prefix . "Möchtest du die Kette einnehmen? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen!")
-				
-				KeyWait, X, D, T10
-				
-				if (!ErrorLevel && !isBlocked()) {
-					localTimeout_ := false
-					addLocalToStats()
-					localTimeout := 0
-				} else {
-					localTimeout_ := true
-				}
+	} else if (isPlayerOnLocal() && autoLocal) {
+		if (localTimeout_) {
+			SendClientMessage(prefix . "Möchtest du die Kette einnehmen? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen!")
+			
+			KeyWait, X, D, T10
+			
+			if (!ErrorLevel && !isBlocked()) {
+				localTimeout_ := false
+				addLocalToStats()
+				localTimeout := 0
+			} else {
+				localTimeout_ := true
 			}
 		}
 	} else if (isPlayerOnEquip()) {
@@ -12355,7 +12362,7 @@ MainTimer:
 		} else {
 			if (healTimeout_) {
 				if (getPlayerHealth() < 100 || getPlayerArmor() < 100) {
-					SendClientMessage(prefix . "Möchtest du dich heilen? Du kannst mit '" . csecond - "X" . COLOR_WHITE . "' bestätigen!")
+					SendClientMessage(prefix . "Möchtest du dich heilen? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen!")
 					
 					KeyWait, X, D, T10
 					
@@ -12419,62 +12426,62 @@ return
 
 UncuffTimer:
 {
-	if (IsPlayerInAnyVehicle()) {
-		if (IsPlayerDriver()) {
-			if (getVehicleHealth() < 250) {
-				if (!autoUncuff) {
+	if (autoUncuff) {
+		if (IsPlayerInAnyVehicle()) {
+			if (IsPlayerDriver()) {
+				if (getVehicleHealth() < 250) {
 					SendClientMessage(prefix . "Möchtest du alle Personen im Fahrzeug entcuffen? Drücke '" . csecond . "X" . COLOR_WHITE . "' zum Bestätigen.")
 					
 					KeyWait, X, D, T5
 					
-					if (ErrorLevel || isInChat() || IsDialogOpen() || IsPlayerInMenu()) {
-						return
+					if (!ErrorLevel || isBlocked()) {				
+						passenger := GetSeatIDs()
+						passenger_length := passenger.MaxIndex()
+						
+						Loop, %passenger_length% {
+							if (passenger[A_Index] != -1) {
+								SendChat("/uncuff " . passenger[A_Index])
+							}
+						}
 					}
 				}
-				
-				passenger := GetSeatIDs()
-				passenger_length := passenger.MaxIndex()
-				
-				Loop, %passenger_length% {
-					if (passenger[A_Index] != -1) {
-						SendChat("/uncuff " . passenger[A_Index])
-					}
-				}
-				
-				Sleep, 5000
 			}
 		}
+	} else {
+		SetTimer, UncuffTimer, off
 	}
 }
 return
 
 ChatlogSaveTimer:
-{
-	IniRead, chatlogSaver, settings.ini, Einstellungen, Chatlog, 1
-	
-	WinWait, GTA:SA:MP, , 1
-	
-	if (ErrorLevel) {
-		return
+{	
+	if (chatlogSaver) {
+		WinWait, GTA:SA:MP, , 1
+		
+		if (ErrorLevel) {
+			return
+		}
+		
+		WinWaitClose, GTA:SA:MP, , 1
+		
+		if (ErrorLevel) {
+			return
+		}
+		
+		FileCreateDir, %A_MyDocuments%\GTA San Andreas User Files\SAMP\ChatlogBackups
+		FormatTime, time, %A_Now%, dd.MM.yy - HH.mm
+		FileCopy, %A_MyDocuments%\GTA San Andreas User Files\SAMP\chatlog.txt, %A_MyDocuments%\GTA San Andreas User Files\SAMP\ChatlogBackups\chatlog %time% Uhr.txt, 0
+		
+		TrayTip, %projectName%, Chatlog wurde abgespeichert!
+	} else {
+		SetTimer, ChatlogSaveTimer, off
 	}
-	
-	WinWaitClose, GTA:SA:MP, , 1
-	
-	if (ErrorLevel) {
-		return
-	}
-	
-	FileCreateDir, %A_MyDocuments%\GTA San Andreas User Files\SAMP\ChatlogBackups
-	FormatTime, time, %A_Now%, dd.MM.yy - HH.mm
-	FileCopy, %A_MyDocuments%\GTA San Andreas User Files\SAMP\chatlog.txt, %A_MyDocuments%\GTA San Andreas User Files\SAMP\ChatlogBackups\chatlog %time% Uhr.txt, 0
-	
-	TrayTip, Staatsgewalt, Chatlog wurde abgespeichert!
 }
 return
 
 LottoTimer:
 {
-	if (lottoSystem) {
+	if (autoLotto) {
 		if (A_Min == 0 && A_Hour != oldHour) {
 			SendChat("/lotto")
 			
@@ -13393,7 +13400,7 @@ startFish() {
 }
 
 check(name) {
-	global takeSystem
+	global autoTake
 	global admin
 	global checkingPlayers
 	
@@ -13409,18 +13416,21 @@ check(name) {
 	
 	Sleep, 200
 	
-	chat := readChatLine(0)
+	chat1 := readChatLine(0)
+	chat2 := readChatLine(1)
+	chat3 := readChatLine(2)
 	
-	if (RegExMatch(chat, "Dieser Spieler ist zu weit entfernt!")) {
+	if (RegExMatch(chat1 . chat2 . chat3, "Dieser Spieler ist zu weit entfernt!")) {
 		return -1
 	}
 	
-	if (takeSystem) {
+	if (autoTake) {
 		i := 0
 		
 		Loop {
-			if (i > 10)
+			if (i > 10) {
 				break
+			}
 			
 			chat := readChatLine(i)
 			
@@ -13434,8 +13444,9 @@ check(name) {
 				Loop {
 					j--
 					
-					if (j < 0)
+					if (j < 0) {
 						break
+					}
 					
 					chat := readChatLine(j)
 					
