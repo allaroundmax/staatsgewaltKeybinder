@@ -2411,12 +2411,10 @@ handleChatMessage(message, index, arr) {
 		if (message_1 == getUserName() || agent_ID == agentID) {
 			for index, grabName in grabList {
 				if (name == message_2) {
-					SendClientMessage("[DEBUG]: " . grabName . " befindet sich schon in der Cuffliste!")
 					return
 				}
 			}
 			
-			SendClientMessage("[DEBUG]: " . message_2 . " wurde in die Cuffliste aufgenommen!")
 			grabList.Push(message_2)
 		}
 	} else if (RegExMatch(message, "^\* Du hast (\S+)'s Handschellen entfernt\.$", message_)) {
@@ -2424,13 +2422,11 @@ handleChatMessage(message, index, arr) {
 	
 		for index, grabName in grabList {
 			if (grabName == message_1) {
-				SendClientMessage(prefix . "[DEBUG] " . COLOR_RED . "Index: " . index . ", Name: " . grabName)
 				toRemove.Push(index)
 			}
 		}
 	
 		for i, id in toRemove {
-			SendClientMessage(prefix . "[DEBUG] " . COLOR_RED . "I: " . i . ", ID: " . id)
 			grabList.RemoveAt(id)
 		}
 	} else if (RegExMatch(message, "^\* (\S+) hat seine Kevlarweste (.*)$", message_)) {
@@ -2484,7 +2480,7 @@ handleChatMessage(message, index, arr) {
 	
 			SetTimer, WantedIATimer, 1
 		}
-	} else if (RegExMatch(message, "^\*\* (.*) (\S+): Ich konnte bei dem Spieler (\S+) \(ID: (\d+)\) (\d+) feststellen\. \*\*", line_)) {
+	} else if (RegExMatch(message, "^\*\* (.*) (\S+): Ich konnte bei dem Spieler (\S+) \(ID: (\d+)\) (\S+) festgellen. \*\*", line_)) {
 		if (line_2 != getUserName()) {
 			wantedIA := line_3
 			wantedContracter := line_2
@@ -2858,25 +2854,21 @@ handleChatMessage(message, index, arr) {
 			
 			for index, grabName in grabList {
 				if (name == message_2) {
-					SendClientMessage("[DEBUG]: " . grabName . " befindet sich schon in der Cuffliste!")
 					return
 				}
 			}
 			
-			SendClientMessage("[DEBUG]: " . message_2 . " wurde in die Cuffliste aufgenommen!")
 			grabList.Push(message_2)
 		} else {
 			for index, partner in partners {
 				if (getFullName(partner) == message_1) {
 					for index2, grabname in grabList {
 						if (message_2 == grabName) {
-							SendClientMessage("[DEBUG]: " . grabName . " befindet sich bereits in der Cuffliste!")
 							return
 						}
 					}
 					
 					grabList.Push(message_2)
-					SendClientMessage("[DEBUG]: " . message_2 . " wurde in die Cuffliste aufgenommen!")
 				}
 			}
 		}
@@ -2886,13 +2878,11 @@ handleChatMessage(message, index, arr) {
 		for index, grabName in grabList {
 			if (message_1 == grabName) {
 				toRemove.Push(index)
-				SendClientMessage("[DEBUG]: " . grabName . " wurde aus der Cuffliste entfernt (Schritt 1)!")
 			}
 		}
 	
 		for index, grabID in toRemove {
 			grabList.RemoveAt(grabID)
-			SendClientMessage("[DEBUG]: Slot-" . grabID . " wurde aus der Cuffliste entfernt (Schritt 1)!")
 		}
 	} else if (RegExMatch(message, "^\* Der Staat übernimmt die Kosten\.$", message_)) {
 		if (REgExMatch(arr[index - 1], "^\* Du hast (.*) Liter getankt für (.*)\$\.$", line0_)) {
@@ -2924,13 +2914,11 @@ handleChatMessage(message, index, arr) {
 			for index, grabName in grabList {
 				if (line0_1 == grabName) {
 					toRemove.Push(index)
-					SendClientMessage("[DEBUG]: " . grabName . " wurde aus der Cuffliste entfernt (Schritt 1)!")
 				}
 			}
 		
 			for index, grabID in toRemove {
 				grabList.RemoveAt(grabID)
-				SendClientMessage("[DEBUG]: Slot-" . grabID . " wurde aus der Cuffliste entfernt (Schritt 1)!")
 			}			
 		}
 	} else if (RegExMatch(message, "^HQ: (.*) wurde eingesperrt, Haftzeit: (\d+) Minuten, Geldstrafe: (.*)\$$", line0_)) {		
@@ -2989,13 +2977,11 @@ handleChatMessage(message, index, arr) {
 			for index, grabName in grabList {
 				if (line0_1 == grabName) {
 					toRemove.Push(index)
-					SendClientMessage("[DEBUG]: " . grabName . " wurde aus der Cuffliste entfernt (Schritt 1)!")
 				}
 			}
 		
 			for index, grabID in toRemove {
 				grabList.RemoveAt(grabID)
-				SendClientMessage("[DEBUG]: Slot-" . grabID . " wurde aus der Cuffliste entfernt (Schritt 1)!")
 			}				
 		}
 	} else if (RegExMatch(message, "^HQ: Haftzeit: (\d+) Minuten, Geldstrafe: (.*)\$\.$", line0_)) {
@@ -3036,13 +3022,11 @@ handleChatMessage(message, index, arr) {
 			for index, grabName in grabList {
 				if (line1_3 == grabName) {
 					toRemove.Push(index)
-					SendClientMessage("[DEBUG]: " . grabName . " wurde aus der Cuffliste entfernt (Schritt 1)!")
 				}
 			}
 		
 			for index, grabID in toRemove {
 				grabList.RemoveAt(grabID)
-				SendClientMessage("[DEBUG]: Slot-" . grabID . " wurde aus der Cuffliste entfernt (Schritt 1)!")
 			}				
 		}
 	} else if (RegExMatch(message, "^HQ: (.+) " . getUsername() . " hat das Marihuana in (.+) gefunden und zerstört\.$", chat_)) {
@@ -3171,25 +3155,7 @@ handleChatMessage(message, index, arr) {
 				}
 			}
 		}
-	}
-	/*
-	} else if (RegExMatch(message, "^ Zeuge: (\S+)$")) {
-		message3 := arr[index - 3]
-		
-		if (RegExMatch(message3, "^ Name: (\S+)$", message3_)) {
-			if (!noAfind) {
-				playerToFind := message3_1
-				autoFindMode := 2
-			
-				findPlayer()
-				findInfo(playerToFind)
-				
-				SendClientMessage("DBUG")
-			}
-		}
-	} 
-	*/
-	else if (RegExMatch(message, "SMS: (.+), Sender: (\S+) \((\d+)\)", message_)) {
+	} else if (RegExMatch(message, "SMS: (.+), Sender: (\S+) \((\d+)\)", message_)) {
 		if (message_2 != getUserName()) {		
 	
 			if (smsSound) {
@@ -3932,7 +3898,7 @@ openCustomsLabel:
 		return
 	}
 	
-	if (isPlayerOnMaut()) {
+	if (isPlayerAtMaut()) {
 		openMaut()
 	} else {
 		SendClientMessage(prefix . "Du bist an keiner Zollstation.")
@@ -4725,8 +4691,10 @@ return
 		return
 	}
 	
-	SendChat("/a " . getFullName(playerToFind) . " (ID: " getPlayerIdByName(getFullName(playerToFind)) . ") ESC Flucht / Buguse vor Cops!!!")
-
+	if (escInfo) {
+		SendChat("/a " . getFullName(playerToFind) . " (ID: " getPlayerIdByName(getFullName(playerToFind)) . ") ESC Flucht / Buguse vor Cops!!!")	
+	}
+	
 	giveWanteds(playerToFind, "ESC-Flucht", 4)
 }
 return
@@ -5744,19 +5712,16 @@ grabLabel:
 						if (getVehicleType() == 1 || getVehicleType == 5) {
 							if (seatID[2] == -1) {
 								SendChat("/grab " . grabName . " 1")
-								SendClientMessage("DEBUG: Versuche " . grabName . " auf Sitz 1 zu ziehen.")
 								return
 							}
 							
 							if (seatID[3] == -1) {
 								SendChat("/grab " . grabName . " 2")
-								SendClientMessage("DEBUG: Versuche " . grabName . " auf Sitz 2 zu ziehen.")
 								return
 							}
 							
 							if (seatID[3] == -1) {
 								SendChat("/grab " . grabName . " 3")
-								SendClientMessage("DEBUG: Versuche " . grabName . " auf Sitz 3 zu ziehen.")
 								return
 							}
 							
@@ -5764,7 +5729,6 @@ grabLabel:
 						} else if (getVehicleType() == 4) {
 							if (seatID[2] == -1) {
 								SendChat("/grab " . grabName . " 1")
-								SendClientMessage("DEBUG: Versuche " . grabName . " auf Sitz 1 zu ziehen.")
 								return
 							}
 							
@@ -5772,6 +5736,7 @@ grabLabel:
 						}
 					}
 					
+					SendInput, t/grab{space}
 					SendClientMessage(prefix . "Es sind keine gecufften Spieler in deiner Nähe.")
 					return
 				}
@@ -6207,7 +6172,7 @@ autoAcceptEmergencyLabel:
 			gk(emergency1, emergency2, true)
 		
 			if (oldStore != currentStore) {
-				SendChat("/d HQ: Übernehme Ladenüberfall- von " . emergency4 . "(" . getPlayerIdByName(emergency4) . ") - GK: " . emergency1 . " (" . emergency3 . ")")
+				SendChat("/d HQ: Übernehme Ladenüberfall- von " . emergency3 . "(" . getPlayerIdByName(emergency3) . ") - GK: " . emergency1 . " (" . emergency2 . ")")
 				
 				IniRead, storerobs, stats.ini, Übernahmen, storerobs, 0
 				storerobs ++
@@ -8621,7 +8586,7 @@ return
 			SendClientMessage(prefix . "Du hast kein Lagerfeuer, geh in ein Restaurant.")
 		}
 	} else {
-		if (isOnCookPoint()) {
+		if (isPlayerAtCookPoint()) {
 			Loop, 5 {
 				SendChat("/cook fish " . A_Index)
 			
@@ -8802,7 +8767,7 @@ return
 		return
 	}		
 	
-	if (!isPlayerOnLocal()) {
+	if (!isPlayerAtLocal()) {
 		SendClientMessage(prefix . "Fehler: Du bist nicht in der Nähe einer Restaurant-Kette.")
 	} else if (IsPlayerInAnyVehicle()) {
 		SendClientMessage(prefix . "Fehler: Du darfst dich in keinem Fahrzeug befinden.")
@@ -9584,7 +9549,7 @@ return
 	if (!isPlayerInAnyVehicle() || !isPlayerDriver()) {
 		SendClientMessage(prefix . "Fehler: Du bist nicht der Fahrer eines Fahrzeuges.")
 		return
-	} else if (!isPlayerOnGasStation()) {
+	} else if (!isPlayerAtGasStation()) {
 		SendClientMessage(prefix . "Fehler: Du bist nicht in der Nähe einer Tankstelle.")
 		return
 	} else {
@@ -11463,6 +11428,11 @@ ArrestTimer:
 			
 			if (suspectID != -1) {
 				SendChat("/arrest " . arrestName)
+				Sleep, 200 
+				
+				if (InStr(readChatLine(0) . readChatLine(1) . readChatLine(2), "Du bist nicht in der Nähe eines Gefängnisses.")) {
+					SendChat("/arrest " . arrestName)
+				}
 			}
 		}
 		
@@ -12238,7 +12208,7 @@ MainTimer:
 		}	
 	}
 	
-	if (isPlayerOnGasStation() && autoFill) {
+	if (isPlayerAtGasStation() && autoFill) {
 		if (fillTimeout_) {
 			if (isPlayerInAnyVehicle() && isPlayerDriver()) {
 				SendClientMessage(prefix . "Möchtest du dein Fahrzeug betanken? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen!")
@@ -12270,7 +12240,7 @@ MainTimer:
 				}
 			}
 		}
-	} else if (isPlayerOnMaut() && autoCustoms) {
+	} else if (isPlayerAtMaut() && autoCustoms) {
 		if (mautTimeout_) {
 			SendClientMessage(prefix . "Möchtest du den Zoll öffnen? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen!")
 				
@@ -12284,7 +12254,7 @@ MainTimer:
 				mautTimeout_ := true
 			}
 		}
-	} else if (isPlayerOnHeal() && autoHeal) {
+	} else if (isPlayerAtHeal() && autoHeal) {
 		if (healTimeout_) {
 			if (getPlayerHealth() < 100 || getPlayerArmor() < 100) {
 				SendClientMessage(prefix . "Möchtest du dich heilen? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen!")
@@ -12300,7 +12270,7 @@ MainTimer:
 				}
 			}
 		}	
-	} else if (isOnCookPoint() && autoCook) {
+	} else if (isPlayerAtCookPoint() && autoCook) {
 		if (cookTimeout_) {
 			SendClientMessage(prefix . "Möchtest du deine Fische kochen? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen!")
 			
@@ -12324,7 +12294,7 @@ MainTimer:
 				cookTimeout_ := true
 			}
 		}
-	} else if (isPlayerOnLocal() && autoLocal) {
+	} else if (isPlayerAtLocal() && autoLocal) {
 		if (localTimeout_) {
 			SendClientMessage(prefix . "Möchtest du die Kette einnehmen? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen!")
 			
@@ -12338,7 +12308,7 @@ MainTimer:
 				localTimeout_ := true
 			}
 		}
-	} else if (isPlayerOnEquip() && autoEquip) {
+	} else if (isPlayerAtEquip() && autoEquip) {
 		if (!hasEquip) {
 			if (equipTimeout_) {
 				SendClientMessage(prefix . "Möchtest du dich ausrüsten? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen!")
@@ -12383,7 +12353,7 @@ MainTimer:
 				}
 			}	
 		}
-	} else if (isPlayerOnJailGate() && auotJailGate) {
+	} else if (isPlayerAtJailGate() && auotJailGate) {
 		if (jailgateTimeout_) {
 			SendClientMessage(prefix . "Möchtest du ins Staatsgefängnis? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen.")
 			
@@ -12397,7 +12367,7 @@ MainTimer:
 				jailgateTimeout_ := true
 			}
 		}
-	} else if (isPlayerOnPDGate() && autoGate) {
+	} else if (isPlayerAtPDGate() && autoGate) {
 		if (gateTimeout_) {
 			if (!getPlayerInteriorId()) {
 				SendClientMessage(prefix . "Möchtest du das Tor öffnen? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen.")
@@ -12413,7 +12383,7 @@ MainTimer:
 				}
 			}
 		}
-	} else if (isPlayerOnFishPoint() && autoFish) {
+	} else if (isPlayerAtFishPoint() && autoFish) {
 		if (fishTimeout_) {
 			SendClientMessage(prefix . "Möchtest du fischen? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen.")
 				
@@ -12773,11 +12743,11 @@ findInfo(name) {
 	playerScore := getPlayerScoreById(playerID)
 	
 	SendClientMessage(prefix . "Die Suche nach " . player . " (ID: " . playerID . ") wurde gestartet.")
-	if (playerScore <= 5) {
-		SendClientMessage(prefix . "Level: " . COLOR_RED . playerScore)
-	} else {
-		SendClientMessage(prefix . "Level: " . COLOR_GREEN . playerScore)
-	}
+	; if (playerScore <= 5) {
+	; 	SendClientMessage(prefix . "Level: " . COLOR_RED . playerScore)
+	; } else {
+	;	SendClientMessage(prefix . "Level: " . COLOR_GREEN . playerScore)
+	;}
 		
 	Sleep, 200
 	
@@ -14199,7 +14169,7 @@ isConnected() {
     return true
 }
 
-isPlayerOnGasStation() {
+isPlayerAtGasStation() {
 	global
 	
 	if (isPlayerInRangeOfPoint(700, -1930, 0, 30) ; Verona Beach
@@ -14226,7 +14196,7 @@ isPlayerOnGasStation() {
 	}
 }
 
-isPlayerOnMaut() {
+isPlayerAtMaut() {
 	global
 	
 	if (isPlayerInRangeOfPoint(1733.47, 546.37, 26, 10) ; Zoll 1
@@ -14259,7 +14229,7 @@ isPlayerOnMaut() {
 	}
 }
 
-isPlayerOnEquip() {
+isPlayerAtEquip() {
 	global
 	
 	if (IsPlayerInRangeOfPoint(255, 77, 1003, 5)) {
@@ -14269,7 +14239,7 @@ isPlayerOnEquip() {
 	}
 }
 
-isPlayerOnHeal() {
+isPlayerAtHeal() {
 	global
 	
 	if (IsPlayerInRangeOfPoint(225, 121, 999, 5) 
@@ -14285,7 +14255,7 @@ isPlayerOnHeal() {
 	}
 }
 
-isOnCookPoint() {
+isPlayerAtCookPoint() {
 	global
 	
 	if (IsPlayerInRangeOfPoint(376.3651, -61.0868, 1001.5078, 3) 
@@ -14298,7 +14268,7 @@ isOnCookPoint() {
 	}
 }
 
-isPlayerOnLocal() {
+isPlayerAtLocal() {
 	global
 	
 	if (IsPlayerInRangeOfPoint(792.6970, -1626.2189, 13.3906, 3.1) ; Kette BS (Marina)
@@ -14311,7 +14281,7 @@ isPlayerOnLocal() {
 	}
 }
 
-isPlayerOnJailGate() {
+isPlayerAtJailGate() {
 	global
 	
 	if (IsPlayerInRangeOfPoint(2349.8623, -2007.0856, 13.5433, 5)
@@ -14324,7 +14294,7 @@ isPlayerOnJailGate() {
 	}
 }
 
-isPlayerOnPDGate() {
+isPlayerAtPDGate() {
 	global
 	
 	if (IsPlayerInRangeOfPoint(246.3596, 72.3406, 1003.6406, 7)
@@ -14339,7 +14309,7 @@ isPlayerOnPDGate() {
 	}
 }
 
-isPlayerOnFishPoint() {
+isPlayerAtFishPoint() {
 	global
 	
 	if (IsPlayerInRangeOfPoint(1610.3545, 599.4703, 7.7813, 2)
