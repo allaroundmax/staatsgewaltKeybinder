@@ -11665,7 +11665,7 @@ return
 
 TimeoutTimer:
 {
-	if (!fillTimeout) {
+	if (!fillTimeout_) {
 		fillTimeout ++
 	
 		if (fillTimeout >= 9) {
@@ -11673,7 +11673,7 @@ TimeoutTimer:
 		}
 	}
 	
-	if (!canisterTimeout) {
+	if (!canisterTimeout_) {
 		canisterTimeout ++
 		
 		if (canisterTimeout >= 9) {
@@ -11681,7 +11681,7 @@ TimeoutTimer:
 		}
 	}
 	
-	if (!mautTimeout) {
+	if (!mautTimeout_) {
 		mautTimeout ++
 		
 		if (mautTimeout >= 9) {
@@ -11689,7 +11689,7 @@ TimeoutTimer:
 		}
 	}
 	
-	if (!healTimeout_) {
+	if (!equipTimeout_) {
 		healTimeout ++
 		
 		if (healTimeout >= 9) {
