@@ -172,6 +172,9 @@ Start:
 	IniRead, admin, settings.ini, settings, admin, 0
 	IniRead, autoCook, settings.ini, settings, autoCook, 0
 	IniRead, autoEquip, settings.ini, settings, autoEquip, 0
+	IniRead, autoJailGate, settings.ini, settings, autoJailGate, 0
+	IniRead, autoGate, settings.ini, settings, autoGate, 0
+	IniRead, autoFish, settings.ini, settings, autoFish, 0
 	
 	IniRead, smsSound, settings.ini, sounds, smsSound, 0
 	IniRead, callSound, settings.ini, sounds, callSound, 0
@@ -191,6 +194,7 @@ Start:
 	IniRead, spotifyPublic, settings.ini, infos, spotifyPublic, 0
 	IniRead, refillInfo, settings.ini, infos, refillInfo, 0
 	IniRead, escInfo, settings.ini, infos, escInfo, 0
+	IniRead, afkInfo, settings.ini, infos, afkInfo, 0
 	
 	IniRead, lottoNumber, settings.ini, Einstellungen, Lottozahl, 0
 	IniRead, primaryColor, settings.ini, Einstellungen, Primärfarbe, %A_Space%
@@ -198,9 +202,6 @@ Start:
 	IniRead, keybinderFrac, settings.ini, Einstellungen, keybinderFrac, %A_Space%
 	IniRead, ownprefix, settings.ini, Einstellungen, Ownprefix, %A_Space%	
 	IniRead, ownRank, settings.ini, Einstellungen, ownRank, 0
-	
-
-	
 	IniRead, maxKMH, settings.ini, Einstellungen, MaxKMH, 0
 	IniRead, taxes, settings.ini, Steuern, Steuersatz, 1			
 	IniRead, commitmentUnix, settings.ini, UnixTime, commitmentUnix, 0
@@ -829,7 +830,7 @@ SettingsGUI:
 	} else {
 		Gui, Settings: Add, Button, x10 y760 w130 h40 gOverlaySettingsGUI, Overlays
 	}
-			
+	
 	Gui, Settings: Add, Button, x480 y760 w130 h40 gSettingsGuiClose, Schließen
 	
 	Gui, Settings: Add, GroupBox, x10 y10 w640 h230, Allgemeine Einstellungen
@@ -854,6 +855,9 @@ SettingsGUI:
 	Gui, Settings: Add, CheckBox, x420 y60 w190 h20 vadmin checked%admin%, Admin-Modus
 	Gui, Settings: Add, CheckBox, x420 y90 w190 h20 vautoCook checked%autoCook%, Schnelles Kochen
 	Gui, Settings: Add, CheckBox, x420 y120 w190 h20 vautoEquip checked%autoEquip%, Schnelles Ausrüsten
+	Gui, Settings: Add, CheckBox, x420 y150 w190 h20 vautoJailGate checked%autoJailGate%, Auto-/auf System (Knast)
+	Gui, Settings: Add, CheckBox, x420 y180 w190 h20 vautoGate checked%autoGate%, Auto-/auf System (PDs)
+	Gui, Settings: Add, CheckBox, x420 y210 w190 h20 vautoFish checked%autoFish%, Schnelles Angeln
 	
 	/*
 	Gui, Settings: Add, Text, x400 y60 w150 h20, Lottozahl (0 Rand, 101 = ID)
@@ -884,6 +888,7 @@ SettingsGUI:
 	Gui, Settings: Add, CheckBox, x210 y360 w190 h20 vpaketInfo checked%paketInfo%, Paket Danksagung
 	Gui, Settings: Add, CheckBox, x210 y390 w190 h20 vlaserInfo checked%laserInfo%, Radarkontrollenansage
 	Gui, Settings: Add, CheckBox, x210 y420 w190 h20 vmemberInfo checked%memberInfo%, Member begrüßen?
+	Gui, Settings: Add, CheckBox, x210 y450 w190 h20 vafkInfo checked%afkInfo%, AFK-Chatmeldung
 	
 	Gui, Settings: Add, CheckBox, x420 y360 w190 h20 vspotifyPublic checked%spotifyPublic%, Spotify-Tracks (öffnentlich)
 	Gui, Settings: Add, CheckBox, x420 y390 w190 h20 vspotifyPrivacy checked%spotifyPrivacy%, Spotify-Tracks (privat)
@@ -963,6 +968,10 @@ SettingsGuiClose:
 	Iniwrite, % chatlogSaver, settings.ini, settings, chatlogSaver
 	IniWrite, % admin, settings.ini, settings, admin
 	IniWrite, % autoCook, settings.ini, settings, autoCook
+	IniWrite, % autoEquip, settings.ini, settings, autoEquip
+	IniWrite, % autoJailGate, settings.ini, settings, autoJailGate
+	IniWrite, % autoGate, settings.ini, settings, autoGate
+	IniWrite, % autoFish, settings.ini, settings, autoFish
 
 	IniWrite, % smsSound, settings.ini, sounds, smsSound
 	IniWrite, % callSound, settings.ini, sounds, callSound
@@ -12036,40 +12045,42 @@ MainTimer:
 		}
 	} 
 	
-	if (!WinExist("GTA:SA:MP")) {
-		IsPlayerIngame := false
-	} else if (WinExist("GTA:SA:MP")) {
-		IsPlayerIngame := true
-	}
-		
-	if (!WinActive("GTA:SA:MP") || IsPlayerInMenu()) {
-		if (IsPlayerIngame) {
-			if (IsAFKStart == 0 && IsAFKEnd == 0) {
-				IsAFKStart := getUnixTimestamp(A_Now)
-			}
+	if (afkInfo) {
+		if (!WinExist("GTA:SA:MP")) {
+			IsPlayerIngame := false
+		} else if (WinExist("GTA:SA:MP")) {
+			IsPlayerIngame := true
 		}
-		
-		return 
-	} else {
-		if (IsPlayerIngame) {
-			if (IsAFKStart > 0 && IsAFKEnd == 0) {
-				IsAFKEnd := getUnixTimeStamp(A_Now) 
-				
-				if ((IsAFKEnd - IsAFKStart) < 300) {
-					afkColor := COLOR_YELLOW
-				} else if ((IsAFKEnd - IsAFKStart) >= 300 && (IsAFKEnd - IsAFKStart) < 1800) {
-					afkColor := COLOR_ORANGE
-				} else if ((IsAFKEnd - IsAFKStart) >= 1800) {
-					afkColor := COLOR_RED
+			
+		if (!WinActive("GTA:SA:MP") || IsPlayerInMenu()) {
+			if (IsPlayerIngame) {
+				if (IsAFKStart == 0 && IsAFKEnd == 0) {
+					IsAFKStart := getUnixTimestamp(A_Now)
 				}
-				
-				SendClientMessage(prefix . afkColor . "AFK-Zeit: " . formatTime(IsAFKEnd - IsAFKStart))
-				
-				IsAFKStart := 0
-				IsAFKEnd := 0
 			}
-		}
-	}	
+			
+			return 
+		} else {
+			if (IsPlayerIngame) {
+				if (IsAFKStart > 0 && IsAFKEnd == 0) {
+					IsAFKEnd := getUnixTimeStamp(A_Now) 
+					
+					if ((IsAFKEnd - IsAFKStart) < 300) {
+						afkColor := COLOR_YELLOW
+					} else if ((IsAFKEnd - IsAFKStart) >= 300 && (IsAFKEnd - IsAFKStart) < 1800) {
+						afkColor := COLOR_ORANGE
+					} else if ((IsAFKEnd - IsAFKStart) >= 1800) {
+						afkColor := COLOR_RED
+					}
+					
+					SendClientMessage(prefix . afkColor . "AFK-Zeit: " . formatTime(IsAFKEnd - IsAFKStart))
+					
+					IsAFKStart := 0
+					IsAFKEnd := 0
+				}
+			}
+		}	
+	}
 	
 	IniRead, Killstreak, Stats.ini, Stats, Killstreak, 0	
 	IniRead, Kills, Stats.ini, Stats, Kills, 0
@@ -12089,14 +12100,10 @@ MainTimer:
 				chat4 := readChatLine(4)
 				chat := chat0 . chat1 . chat2 . chat3 . chat4
 				
-				if (InStr(chat, "Paintball:")) {
+				if (InStr(chat, "Paintball:") || InStr(chat, "[KillHouse]")) {
 					return
 				}
-				
-				if (InStr(chat, "[KillHouse]")) {
-					return
-				}
-				
+
 				hasEquip := 0
 				
 				killName := object.murderer.name
@@ -12105,7 +12112,6 @@ MainTimer:
 				killWeaponShort := weaponShort(object.weapon)
 				
 				if (bk) {
-					
 					if (getFullName(killName)) {
 						SendChat("/d HQ: Ich wurde von " . killName . " in " . getLocation() . " mit " . killWeaponShort . " " . killWeapon . " getötet.")
 					} else {
@@ -12368,7 +12374,7 @@ MainTimer:
 				}
 			}	
 		}
-	} else if (isPlayerOnJailGate()) {
+	} else if (isPlayerOnJailGate() && auotJailGate) {
 		if (jailgateTimeout_) {
 			SendClientMessage(prefix . "Möchtest du ins Staatsgefängnis? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen.")
 			
@@ -12382,7 +12388,7 @@ MainTimer:
 				jailgateTimeout_ := true
 			}
 		}
-	} else if (isPlayerOnPDGate()) {
+	} else if (isPlayerOnPDGate() && autoGate) {
 		if (gateTimeout_) {
 			if (!getPlayerInteriorId()) {
 				SendClientMessage(prefix . "Möchtest du das Tor öffnen? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen.")
@@ -12398,7 +12404,7 @@ MainTimer:
 				}
 			}
 		}
-	} else if (isPlayerOnFishPoint()) {
+	} else if (isPlayerOnFishPoint() && autoFish) {
 		if (fishTimeout_) {
 			SendClientMessage(prefix . "Möchtest du fischen? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen.")
 				
@@ -12908,7 +12914,7 @@ saveTicket(name) {
 		FileAppend, %str_speichern%, Tickets\%str_path%
 		
 		SendClientMessage(prefix . "Tickets bearbeitet: " . cSecond . formatNumber(gestickets) . COLOR_WHITE . " | Heute: " . cSecond . daytickets . COLOR_WHITE . " | Monat: " . cSecond . formatNumber(monthtickets))
-				
+		
 		sup_text_%ticketID% := ""
 		sup_zeilen_%ticketID% := 0
 	}
