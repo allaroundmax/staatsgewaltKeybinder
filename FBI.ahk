@@ -11,6 +11,13 @@
 SetWorkingDir, %A_ScriptDir%
 
 /*
+ * TODOs
+	* Loginsystem?
+	* Statistiken auf Server übertragen?
+	* Updatelog von Server holen
+*/
+
+/*
 if (!A_IsAdmin) {
 	try {
 		Run *RunAs "%A_ScriptFullPath%"
@@ -47,9 +54,7 @@ Start:
 {
 	keybinderStart := A_Hour . ":" . A_Min . ":" . A_Sec
 	
-	URLDownloadToFile, http://176.96.138.103/keybinder/version.txt, version.txt
-	FileRead, newversion, version.txt
-	FileDelete version.txt
+	newversion :=  URLDownloadToVar(baseURL . "api/getsetting?key=version")
 	
 	if (newversion > version) {		
 		MsgBox, 68, %projectName% Keybinder - Version %version%, Es wurde eine neue Keybinderversion (Version %newversion%) veröffentlicht!`nMöchtest du diese nun herunterladen?`n`nÄnderungen sind im Forum im Thread!
@@ -57,8 +62,8 @@ Start:
 		IfMsgBox, Yes
 		{
 			Progress, 25, Lädt neue Version herunter, Der Keybinder wird nun geupdated..., Update
-	
-			UrlDownloadToFile, http://176.96.138.103/keybinder/FBI.exe, FBI.new.exe
+			
+			UrlDownloadToFile, %baseURL%download/version/%newversion%/%projectName%.exe, %projectName%.new.exe
 			
 			Progress, 75, Installiere Update, Der Keybinder wird nun geupdated..., Update
 			
@@ -67,9 +72,9 @@ Start:
 			updateBat =
 				(LTrim
 					ping 127.0.0.1 -n 2 > nul
-					Del "FBI.exe"
-					Rename "FBI.new.exe" "FBI.exe"
-					"FBI.exe"
+					Del "%projectName%.exe"
+					Rename "%projectName%.new.exe" "%projectName%.exe"
+					"%projectName%.exe"
 				)
 			
 			FileAppend, %updateBat%, update.bat
@@ -87,40 +92,40 @@ Start:
 		FileCreateDir, images
 	
 	IfNotExist, images/LogoSmallFBI.png
-		URLDownloadToFile, http://176.96.138.103/keybinder/images/LogoSmallFBI.png, images\LogoSmallFBI.png
+		URLDownloadToFile, %baseURL%keybinder/download/images/LogoSmallFBI.png, images\LogoSmallFBI.png
 	
 	IfNotExist, images/LogoSmallLSPD.png
-		URLDownloadToFile, http://176.96.138.103/keybinder/images/LogoSmallLSPD.png, images\LogoSmallLSPD.png	
+		URLDownloadToFile, %baseURL%keybinder/download/images/LogoSmallLSPD.png, images\LogoSmallLSPD.png	
 	
 	IfNotExist, images/LogoSmallArmy.png
-		URLDownloadToFile, http://176.96.138.103/keybinder/images/LogoSmallArmy.png, images\LogoSmallArmy.png	
+		URLDownloadToFile, %baseURL%keybinder/download/images/LogoSmallArmy.png, images\LogoSmallArmy.png	
 	
 	IfNotExist, sounds
 		FileCreateDir, sounds
 	
 	IfNotExist, sounds/bk.mp3
-		URLDownloadToFile, http://176.96.138.103/keybinder/sounds/bk.mp3, sounds\bk.mp3
+		URLDownloadToFile, %baseURL%keybinder/download/sounds/bk.mp3, sounds\bk.mp3
 		
 	IfNotExist, sounds/call.mp3
-		URLDownloadToFile, http://176.96.138.103/keybinder/sounds/call.mp3, sounds\call.mp3
+		URLDownloadToFile, %baseURL%keybinder/download/sounds/call.mp3, sounds\call.mp3
 	
 	IfNotExist, sounds/sms.mp3
-		URLDownloadToFile, http://176.96.138.103/keybinder/sounds/sms.mp3, sounds\sms.mp3
+		URLDownloadToFile, %baseURL%keybinder/download/sounds/sms.mp3, sounds\sms.mp3
 	
 	IfNotExist, sounds/double.mp3
-		URLDownloadToFile, http://176.96.138.103/keybinder/sounds/double.mp3, sounds\double.mp3
+		URLDownloadToFile, %baseURL%keybinder/download/sounds/double.mp3, sounds\double.mp3
 		
 	IfNotExist, sounds/triple.mp3
-		URLDownloadToFile, http://176.96.138.103/keybinder/sounds/triple.mp3, sounds\triple.mp3
+		URLDownloadToFile, %baseURL%keybinder/download/sounds/triple.mp3, sounds\triple.mp3
 		
 	IfNotExist, sounds/quadra.mp3
-		URLDownloadToFile, http://176.96.138.103/keybinder/sounds/quadra.mp3, sounds\quadra.mp3
+		URLDownloadToFile, %baseURL%keybinder/download/sounds/quadra.mp3, sounds\quadra.mp3
 	
 	IfNotExist, sounds/penta.mp3
-		URLDownloadToFile, http://176.96.138.103/keybinder/sounds/penta.mp3, sounds\penta.mp3
+		URLDownloadToFile, %baseURL%keybinder/download/sounds/penta.mp3, sounds\penta.mp3
 		
 	IfNotExist, sounds/hexa.mp3
-		URLDownloadToFile, http://176.96.138.103/keybinder/sounds/hexa.mp3, sounds\hexa.mp3
+		URLDownloadToFile, %baseURL%keybinder/download/sounds/hexa.mp3, sounds\hexa.mp3
 	
 	IfNotExist, inis
 		FileCreateDir, inis
@@ -141,7 +146,7 @@ Start:
 			FileCreateDir, bin
 		
 		IfNotExist, bin\overlay.dll
-			URLDownloadToFile, http://176.96.138.103/keybinder/bin/overlay.dll, bin\overlay.dll
+			URLDownloadToFile, %baseURL%keybinder/download/bin/overlay.dll, bin\overlay.dll
 		
 		#Include, include/overlay.ahk
 		
@@ -636,7 +641,7 @@ Start:
 	Gui, Add, Button, x12 y459 w170 h30 gTeamSpeak, FBI/LSPD - TS Connect
 
 	Gui, Add, GroupBox, x232 y89 w560 h190, Neuigkeiten (Version %version%)
-		
+	; TODO: Updatelogs vom Server ziehen	
 	StringReplace, update, msg, ', `r`n, All
 	Gui, Add, Edit, x242 y109 w540 h160 ReadOnly, 
 (
@@ -728,7 +733,7 @@ Version 4.0.0
 - Wiederaufnahme des Keybinders (offline Version)
 )
 
-
+	; TODO: Userinfos von Server ziehen
 	Gui, Add, GroupBox, x232 y289 w560 h190, User-Informationen 
 		
 	IniRead, rank, settings.ini, Einstellungen, rank, 0	
