@@ -165,38 +165,42 @@ Start:
 	IniRead, autoWanted, settings.ini, settings, autoWanted, 0
 	IniRead, autoCustoms, settings.ini, settings, autoCustoms, 0
 	IniRead, autoLocal, settings.ini, settings, autoLocal, 0
-	IniRead, autoUse, settings.ini, settings, autoUse, 1
+	IniRead, autoUse, settings.ini, settings, autoUse, 0
 	IniRead, fishMode, settings.ini, settings, fishMode, 0
 	IniRead, autoHeal, settings.ini, settings, autoHeal, 0
 	IniRead, chatlogSaver, settings.ini, settings, chatlogSaver, 0
 	IniRead, admin, settings.ini, settings, admin, 0
+	IniRead, autoCook, settings.ini, settings, autoCook, 0
+	IniRead, autoEquip, settings.ini, settings, autoEquip, 0
 	
+	IniRead, smsSound, settings.ini, sounds, smsSound, 0
+	IniRead, callSound, settings.ini, sounds, callSound, 0
+	IniRead, killSound, settings.ini, sounds, killSound, 0
+	IniRead, deathSound, settings.ini, sounds, deathSound, 0
+	IniRead, backupSound, settings.ini, sounds, backupSound, 0
+	IniRead, emergencySound, settings.ini, sounds, emergencySound, 0
+	IniRead, leagueSound, settings.ini, sounds, leagueSound, 0
+	
+	IniRead, damageInfo, settings.ini, infos, damageInfo, 0
+	IniRead, paintInfo, settings.ini, infos, paintInfo, 0
+	IniRead, wantedInfo, settings.ini, infos, wantedInfo, 0
+	IniRead, paketInfo, settings.ini, infos, paketInfo, 0
+	IniRead, laserInfo, settings.ini, infos, laserInfo, 0
+	IniRead, memberInfo, settings.ini, infos, memberInfo, 0
+	IniRead, spotifyPrivacy, settings.ini, infos, spotifyPrivacy, 0
+	IniRead, spotifyPublic, settings.ini, infos, spotifyPublic, 0
+	IniRead, refillInfo, settings.ini, infos, refillInfo, 0
+	IniRead, escInfo, settings.ini, infos, escInfo, 0
 	
 	IniRead, lottoNumber, settings.ini, Einstellungen, Lottozahl, 0
-	IniRead, cookSystem, settings.ini, Einstellungen, cookSystem, 1
 	IniRead, primaryColor, settings.ini, Einstellungen, Primärfarbe, %A_Space%
 	IniRead, secondaryColor, settings.ini, Einstellungen, Sekundärfarbe, %A_Space%
 	IniRead, keybinderFrac, settings.ini, Einstellungen, keybinderFrac, %A_Space%
 	IniRead, ownprefix, settings.ini, Einstellungen, Ownprefix, %A_Space%	
 	IniRead, ownRank, settings.ini, Einstellungen, ownRank, 0
-	IniRead, showDamageInfo, settings.ini, Einstellungen, showDamageInfo, 1
-	IniRead, packetMessages, settings.ini, Einstellungen, PaketNachrichten, 1
-	IniRead, spotifymessage, settings.ini, Einstellungen, spotifymessage, 1
-	IniRead, paintballMessages, settings.ini, Einstellungen, PaintballNachrichten, 1
-	IniRead, partnerMessages, settings.ini, Einstellungen, PartnerNachrichten, 1
-	IniRead, friendMessages, settings.ini, Einstellungen, FreundeNachrichten, 1
-	IniRead, warningMessages, settings.ini, Einstellungen, Vorwarnungsnachrichten, 1
-	IniRead, AutoLaserMessage, Settings.ini, Settings, AutoLaserMessage, 0
-	IniRead, wantedAlarm, Settings.ini, Einstellungen, WantedAlarm, 1
-	IniRead, frakGreeting, Settings.ini, Einstellungen, Begrüßungen, 1
-	IniRead, refillWarning, Settings.ini, Einstellungen, Tankwarnung, 1
-	IniRead, smsSound, settings.ini, Sounds, smsSound, 1
-	IniRead, callSound, settings.ini, Sounds, callSound, 1
-	IniRead, killSound, settings.ini, Sounds, killSound, 1
-	IniRead, deathSound, settings.ini, Sounds, deathSound, 1
-	IniRead, backupSound, settings.ini, Sounds, backupSound, 1
-	IniRead, emergencySound, settings.ini, Sounds, emergencySound, 1
-	IniRead, leagueSound, settings.ini, Sounds, leagueSound, 1	
+	
+
+	
 	IniRead, maxKMH, settings.ini, Einstellungen, MaxKMH, 0
 	IniRead, taxes, settings.ini, Steuern, Steuersatz, 1			
 	IniRead, commitmentUnix, settings.ini, UnixTime, commitmentUnix, 0
@@ -596,10 +600,13 @@ Start:
 	SetTimer, ArrestTimer, 100
 	SetTimer, TimeoutTimer, 1000
 	SetTimer, SecondTimer, 1000
-	SetTimer, WantedTimer, 1000
 	
 	if (autoUncuff) {
 		SetTimer, UncuffTimer, 500
+	}
+	
+	if (wantedInfo) {
+		SetTimer, WantedTimer, 1000
 	}
 	
 	if (chatlogSaver) {
@@ -612,7 +619,7 @@ Start:
 	
 	SetTimer, LottoTimer, 2000
 	
-	if (refillWarning) {
+	if (refillInfo) {
 		SetTimer, TankTimer, 5000
 	}	
 	
@@ -845,7 +852,8 @@ SettingsGUI:
 
 	Gui, Settings: Add, CheckBox, x420 y30 w190 h20 vchatlogSaver checked%chatlogSaver%, Chatlogs abspeichern
 	Gui, Settings: Add, CheckBox, x420 y60 w190 h20 vadmin checked%admin%, Admin-Modus
-	
+	Gui, Settings: Add, CheckBox, x420 y90 w190 h20 vautoCook checked%autoCook%, Schnelles Kochen
+	Gui, Settings: Add, CheckBox, x420 y120 w190 h20 vautoEquip checked%autoEquip%, Schnelles Ausrüsten
 	
 	/*
 	Gui, Settings: Add, Text, x400 y60 w150 h20, Lottozahl (0 Rand, 101 = ID)
@@ -858,28 +866,30 @@ SettingsGUI:
 	Gui, Settings: Add, Edit, x530 y150 w70 h20 vkeybinderFrac, %keybinderFrac%
 	Gui, Settings: Add, Text, x400 y180 w110 h20, Eigener prefix
 	Gui, Settings: Add, Edit, x530 y180 w70 h20 vownprefix, %ownprefix%
-	Gui, Settings: Add, CheckBox, x400 y210 w120 h20 vcookSystem Checked%cookSystem%, Auto. Kochen
 	*/
 		
-	Gui, Settings: Add, GroupBox, x10 y250 w600 h80, Sounds
-	Gui, Settings: Add, CheckBox, x20 y270 w170 h20 vsmsSound Checked%smsSound%, SMS Sound
-	Gui, Settings: Add, CheckBox, x190 y270 w170 h20 vcallSound Checked%callSound%, Call Sound
-	Gui, Settings: Add, CheckBox, x360 y270 w170 h20 vbackupSound Checked%backupSound%, Backup Sound
-	Gui, Settings: Add, CheckBox, x20 y300 w170 h20 vemergencySound Checked%emergencySound%, Bankrob Sound	
-	Gui, Settings: Add, CheckBox, x190 y300 w170 h20 vleagueSound Checked%leagueSound%, LoL Kill Sounds
+	Gui, Settings: Add, GroupBox, x10 y250 w640 h80, Sounds
+	Gui, Settings: Add, CheckBox, x20 y270 w190 h20 vsmsSound Checked%smsSound%, SMS Sound
+	Gui, Settings: Add, CheckBox, x20 y300 w190 h20 vleagueSound Checked%leagueSound%, Killstreak Sound
+	Gui, Settings: Add, CheckBox, x220 y270 w190 h20 vcallSound Checked%callSound%, Call Sound
+	Gui, Settings: Add, CheckBox, x220 y300 w190 h20 vemergencySound Checked%emergencySound%, Bankrob Sound	
+	Gui, Settings: Add, CheckBox, x420 y300 w190 h20 vbackupSound Checked%backupSound%, Backup Sound
 	
-	Gui, Settings: Add, GroupBox, x10 y340 w600 h110, Verschiedene Meldungen
-	Gui, Settings: Add, CheckBox, x20 y360 w170 h20 vshowDamageInfo checked%showDamageInfo%, Damage-Infos
-	Gui, Settings: Add, CheckBox, x190 y360 w200 h20 vpacketMessages checked%packetMessages%, Paket-Nachrichten
-	Gui, Settings: Add, CheckBox, x400 y360 w200 h20 vspotifymessage checked%spotifymessage%, Spotify-Nachrichten
-	Gui, Settings: Add, CheckBox, x20 y390 w170 h20 vpaintballMessages checked%paintballMessages%, Paintball-Nachrichten
-	Gui, Settings: Add, CheckBox, x190 y390 w200 h20 vpartnerMessages checked%partnerMessages%, Partner-Nachrichten (/d)
-	Gui, Settings: Add, CheckBox, x400 y390 w160 h20 vwarningMessages checked%warningMessages%, Vorwarnungsmeldung
+	Gui, Settings: Add, GroupBox, x10 y340 w640 h140, Diverse Nachrichten
+	Gui, Settings: Add, CheckBox, x20 y360 w190 h20 vdamageInfo checked%damageInfo%, Erlittener Schaden
+	Gui, Settings: Add, CheckBox, x20 y390 w190 h20 vpaintInfo checked%paintInfo%, Paintballkillstreak
+	Gui, Settings: Add, CheckBox, x20 y420 w190 h20 vwantedInfo checked%wantedInfo%, Wantednachrichten
+	Gui, Settings: Add, CheckBox, x20 y450 w190 h20 vescInfo checked%escInfo%, /a bei ESC WTD
 	
-	Gui, Settings: Add, CheckBox, x20 y420 w160 h20 vwantedAlarm checked%wantedAlarm%, Wanted-Nachrichten
-	Gui, Settings: Add, CheckBox, x190 y420 w200 h20 vfrakGreeting checked%frakGreeting%, Member begrüßen?
-	Gui, Settings: Add, CheckBox, x400 y420 w200 h20 vrefillWarning checked%refillWarning%, Tank-Warnungen
+	Gui, Settings: Add, CheckBox, x210 y360 w190 h20 vpaketInfo checked%paketInfo%, Paket Danksagung
+	Gui, Settings: Add, CheckBox, x210 y390 w190 h20 vlaserInfo checked%laserInfo%, Radarkontrollenansage
+	Gui, Settings: Add, CheckBox, x210 y420 w190 h20 vmemberInfo checked%memberInfo%, Member begrüßen?
 	
+	Gui, Settings: Add, CheckBox, x420 y360 w190 h20 vspotifyPublic checked%spotifyPublic%, Spotify-Tracks (öffnentlich)
+	Gui, Settings: Add, CheckBox, x420 y390 w190 h20 vspotifyPrivacy checked%spotifyPrivacy%, Spotify-Tracks (privat)
+	Gui, Settings: Add, CheckBox, x420 y420 w190 h20 vrefillInfo checked%refillInfo%, Tank-Warnungen
+	
+	/*
 	Gui, Settings: Add, GroupBox, x10 y460 w600 h280, Ausrüstungsprofile
 	Gui, Settings: Add, Text, x20 y480 w580 h115, Hier kannst du dir drei Ausrüsten-Profile zusammenstellen und direkt Ingame abrufen.`nDie ersten beiden Profile sind für den normalen Streifendienst gedacht und können standardmäßig mit F4 bzw. F5 ausgewählt werden.`nIm dritten Profil kann zusätzlich ein UC-Skin gewählt werden und du kannst entscheiden`, ob du mit einer Schutzweste auf Streife gehen möchtest oder nicht.`nDie UC-Ausrüstung kannst du standardmäßig mit F6 auswählen.`nGehealt wirst du aber in jedem Fall.
 	
@@ -926,6 +936,7 @@ SettingsGUI:
 	Gui, Settings: Add, Text, x30 y710 w110 h20, UC-Skin (1-39):
 	Gui, Settings: Add, Edit, x150 y710 w75 h20 vucSkin, %ucSkin%
 	Gui, Settings: Add, CheckBox, x266 y710 w110 h20 vequipArmour Checked%equipArmour%, Schutzweste
+	*/
 	
 	Gui, Settings: Show, h810 w660, %projectName% - Einstellungen - Version %version%
 }
@@ -951,11 +962,28 @@ SettingsGuiClose:
 	Iniwrite, % autoHeal, settings.ini, settings, autoHeal
 	Iniwrite, % chatlogSaver, settings.ini, settings, chatlogSaver
 	IniWrite, % admin, settings.ini, settings, admin
+	IniWrite, % autoCook, settings.ini, settings, autoCook
+
+	IniWrite, % smsSound, settings.ini, sounds, smsSound
+	IniWrite, % callSound, settings.ini, sounds, callSound
+	IniWrite, % killSound, settings.ini, sounds, killSound
+	IniWrite, % deathSound, settings.ini, sounds, deathSound
+	IniWrite, % backupSound, settings.ini, sounds, backupSound
+	IniWrite, % emergencySound, settings.ini, sounds, emergencySound	
+	IniWrite, % leagueSound, settings.ini, sounds, leagueSound
+	
+	IniWrite, % damageInfo, settings.ini, infos, damageInfo
+	IniWrite, % paintInfo, settings.ini, infos, paintInfo
+	IniWrite, % wantedInfo, settings.ini, infos, wantedInfo
+	IniWrite, % paketInfo, settings.ini, infos, paketInfo
+	IniWrite, % laserInfo, settings.ini, infos, laserInfo
+	IniWrite, % memberInfo, settings.ini, infos, memberInfo
+	IniWrite, % spotifyPublic, settings.ini, infos, spotifyPublic
+	IniWrite, % spotifyPrivacy, settings.ini, infos, spotifyPrivacy
+	IniWrite, % refillInfo, settings.ini, infos, refillInfo
+	IniWrite, % escInfo, settings.ini, infos, escInfo
 
 	IniWrite, %lottoNumber%, settings.ini, Einstellungen, Lottozahl
-	IniWrite, %cookSystem%, settings.ini, Einstellungen, cookSystem
-	
-
 	IniWrite, %keybinderFrac%, settings.ini, Einstellungen, keybinderFrac
 	IniWrite, %ownprefix%, settings.ini, Einstellungen, Ownprefix
 	IniWrite, %primaryColor%, settings.ini, Einstellungen, Primärfarbe
@@ -965,23 +993,8 @@ SettingsGuiClose:
 		prefix := ownprefix . " "
 	}
 	
-	IniWrite, %showDamageInfo%, settings.ini, Einstellungen, showDamageInfo
-	IniWrite, %packetMessages%, settings.ini, Einstellungen, PaketNachrichten
-	IniWrite, %spotifymessage%, settings.ini, Einstellungen, spotifymessage
-	IniWrite, %paintballMessages%, settings.ini, Einstellungen, PaintballNachrichten
-	IniWrite, %partnerMessages%, settings.ini, Einstellungen, PartnerNachrichten
-	IniWrite, %warningMessages%, settings.ini, Einstellungen, Vorwarnungsnachrichten
-	IniWrite, %wantedAlarm%, settings.ini, Einstellungen, WantedAlarm
-	IniWrite, %frakGreeting%, settings.ini, Einstellungen, Begrüßungen
-	IniWrite, %refillWarning%, settings.ini, Einstellungen, Tankwarnung
 	
-	IniWrite, %smsSound%, settings.ini, Sounds, smsSound
-	IniWrite, %callSound%, settings.ini, Sounds, callSound
-	IniWrite, %killSound%, settings.ini, Sounds, killSound
-	IniWrite, %deathSound%, settings.ini, Sounds, deathSound
-	IniWrite, %backupSound%, settings.ini, Sounds, backupSound
-	IniWrite, %emergencySound%, settings.ini, Sounds, emergencySound	
-	IniWrite, %leagueSound%, settings.ini, Sounds, leagueSound
+
 
 	IniWrite, %profile1_1%, settings.ini, Ausrüstungsprofile, Profil1_1
 	IniWrite, %profile1_2%, settings.ini, Ausrüstungsprofile, Profil1_2
@@ -2500,7 +2513,7 @@ handleChatMessage(message, index, arr) {
 			SetTimer, SpamTimer, -1500
 		}
 	} else if (RegExMatch(message, "^\[Fraktion\]: (\S+) hat sich eingeloggt\.$", message_)) {
-		if (frakGreeting) {
+		if (memberInfo) {
 			loginName := message_1
 			
 			SetTimer, HelloTimer, 1
@@ -2522,7 +2535,7 @@ handleChatMessage(message, index, arr) {
 			
 			SendClientMessage(prefix . "Tode: " . csecond . FormatNumber(pbdeaths) . COLOR_WHITE . " | Kills: " . csecond . FormatNumber(pbkills) . COLOR_WHITE . " | K/D: " . csecond . round(pbkills/pbdeaths, 3))
 			
-			if (pbKillStreak > 0 && paintballMessages)  {
+			if (pbKillStreak > 0 && paintInfo)  {
 				SendChat("/l Meine Killstreak war: " . pbKillStreak)
 			}
 			
@@ -2544,11 +2557,11 @@ handleChatMessage(message, index, arr) {
 			if (pbKillStreak > pbHighestKillStreak) {
 				IniWrite, %pbKillStreak%, stats.ini, stats, Killstreak
 				
-				if (paintballMessages) {
+				if (paintInfo) {
 					SendChat("/l Meine neue beste Killstreak: " . pbKillStreak)
 				}
 			} else {
-				if (paintballMessages) {
+				if (paintInfo) {
 					SendChat("/l Meine Killstreak: " . pbKillStreak)
 				}
 			}
@@ -3133,8 +3146,7 @@ handleChatMessage(message, index, arr) {
 				SendClientMessage(prefix . "Trage zuerst eine erlaubte Höchstgeschwindigkeit ein:  " . csecond . "/setkmh")
 			}
 			
-			if (AutoLaserMessage)
-			{
+			if (laserInfo) {
 				if (message_1 > kmh) {
 					IniRead, keybinderFrac, settings.ini, Einstellungen, keybinderFrac, %A_Space%
 					
@@ -4060,16 +4072,10 @@ megaStopLabel:
 		}
 		
 		SendChat("/m << Letzte Mahnung, sollten Sie verweigern, wenden wir härte Maßnahmen an! >>")
-
-		if (warningMessages) {
-			if (isPlayerInAnyVehicle()) {
-				SetTimer, ShotAllowedCar, 30000
-			}
-			
-			if (!isPlayerInAnyVehicle()) {
-				SetTimer, TazerAllowed, 5000
-			}
-		}
+		
+		SetTimer, ShotAllowedCar, 30000
+		SetTimer, ShotAllowedBike, 5000
+		SetTimer, TazerAllowed, 5000
 	} else {
 		SendClientMessage(prefix . "Mau-Modus: Mau 2 wird gelegt:")
 		SendChat("/mau 2")
@@ -4097,15 +4103,9 @@ megaByNameLabel:
 			SendChat("/m << " . playerToFindName . ", bleiben Sie SOFORT stehen! >>")
 			SendChat("/m << Letzte Mahnung, sollten Sie verweigern, wenden wir härte Maßnahmen an! >>")
 		
-			if (warningMessages) {
-				if (isPlayerInAnyVehicle()) {
-					SetTimer, ShotAllowedCar, 30000
-				}
-				
-				if (!isPlayerInAnyVehicle()) {
-					SetTimer, TazerAllowed, 5000
-				}
-			}
+			SetTimer, ShotAllowedCar, 30000
+			SetTimer, ShotAllowedBike, 5000
+			SetTimer, TazerAllowed, 5000
 		}
 	} else {
 		SendClientMessage(prefix . "Mau-Modus: Mau 3 wird gelegt:")
@@ -4693,7 +4693,9 @@ escWantedsLabel:
 	name := getFullName(name)
 	
 	if (name != "") {
-		SendChat("/a " . name . " (ID: " getPlayerIdByName(name) . ") ESC Flucht / Buguse vor Cops!!!")
+		if (escInfo) {
+			SendChat("/a " . name . " (ID: " getPlayerIdByName(name) . ") ESC Flucht / Buguse vor Cops!!!")
+		}
 		
 		giveWanteds(name, "ESC-Flucht", 4)
 	}
@@ -5632,15 +5634,9 @@ arrestedCarLabel:
 			SendChat("/s Steigen Sie SOFORT in das Dienstfahrzeug")
 		}
 		
-		if (warningMessages) {
-			if (isPlayerInAnyVehicle()) {
-				SetTimer, ShotAllowedCar, 30000
-			}
-			
-			if (!isPlayerInAnyVehicle()) {
-				SetTimer, TazerAllowed, 5000
-			}
-		}
+		SetTimer, ShotAllowedCar, 30000
+		SetTimer, ShotAllowedBike, 5000
+		SetTimer, TazerAllowed, 5000
 	}
 }
 return
@@ -5673,15 +5669,9 @@ arrestedByNameLabel:
 			SendChat("/s Steigen Sie SOFORT in das Dienstfahrzeug")
 		}
 		
-		if (warningMessages) {
-			if (isPlayerInAnyVehicle()) {
-				SetTimer, ShotAllowedCar, 30000
-			}
-			
-			if (!isPlayerInAnyVehicle()) {
-				SetTimer, TazerAllowed, 5000
-			}
-		}
+		SetTimer, ShotAllowedCar, 30000
+		SetTimer, ShotAllowedBike, 5000
+		SetTimer, TazerAllowed, 5000
 	}
 }
 return
@@ -6496,8 +6486,11 @@ pauseLabel:
 		SetTimer, MainTimer, off	
 		SetTimer, TimeoutTimer, off
 		SetTimer, SecondTimer, off
-		SetTimer, WantedTimer, off
 		SetTimer, LottoTimer, Off
+		
+		if (wantedInfo) {
+			SetTimer, WantedTimer, off
+		}		
 		
 		if (autoUncuff) {
 			SetTimer, UncuffTimer, off
@@ -6507,7 +6500,7 @@ pauseLabel:
 			SetTimer, ChatlogSaveTimer, off
 		}
 		
-		if (refillWarning) {
+		if (refillInfo) {
 			SetTimer, TankTimer, Off
 		}
 		
@@ -6526,7 +6519,6 @@ pauseLabel:
 		SetTimer, MainTimer, 200
 		SetTimer, TimeoutTimer, 1000
 		SetTimer, SecondTimer, 1000
-		SetTimer, WantedTimer, 1000
 		SetTimer, LottoTimer, 2000
 		
 		IniRead, bossmode, settings.ini, settings, bossmode, 1
@@ -6535,17 +6527,21 @@ pauseLabel:
 			SetTimer, UncuffTimer, 500
 		}
 		
-		if (chatlogSaver) {
-			SetTimer, ChatlogSaveTimer, 1000
+		if (wantedInfo) {
+			SetTimer, WantedTimer, 1000
 		}
 		
-		iF (refillWarning) {
-			SetTimer, TankTimer, 1000
+		if (chatlogSaver) {
+			SetTimer, ChatlogSaveTimer, 1000
 		}
 		
 		if (admin) {
 			SetTimer, TicketTimer, 1000
 		}
+		
+		if (refillInfo) {
+			SetTimer, TankTimer, 5000
+		}		
 		
 		if (autoUse) {
 			SetTimer, SyncTimer, 600000
@@ -7618,11 +7614,7 @@ return
 			if (partners.HasKey(partnerID)) {
 				partnerName := partners.Delete(partnerID)
 				
-				if (partnerMessages) {
-					SendChat("/d HQ: Der Streifendienst mit (" . partnerID . ") " . partnerName . " wurde beendet!")
-				} else {
-					SendClientMessage(prefix . "Du hast " . csecond . partnerName . COLOR_WHITE . " (" . csecond . partnerID . COLOR_WHITE . ") ausgetragen.")
-				}
+				SendChat("/d HQ: Der Streifendienst mit (" . partnerID . ") " . partnerName . " wurde beendet!")
 			} else {
 				partnerName := PlayerInput("Partner-ID/Name: ")
 				partnerName := getFullName(partnerName)
@@ -7634,11 +7626,7 @@ return
 				
 				partners[partnerID] := partnerName
 				
-				if (partnerMessages) {
-					SendChat("/d HQ: " . partnerName . " wurde als Streifenpartner " . partnerID . " eingetragen!")
-				} else {
-					SendClientMessage(prefix . "Du hast " . csecond . partnerName . COLOR_WHITE . " (" . csecond . partnerID . COLOR_WHITE . ") eingetragen.")
-				}
+				SendChat("/d HQ: " . partnerName . " wurde als Streifenpartner " . partnerID . " eingetragen!")
 				
 				if (taxes == 1) {
 					SendClientMessage(prefix . "Du musst noch deine Steuerklasse eintragen, verwende " . csecond . "/settax")
@@ -11807,9 +11795,7 @@ return
 
 WantedTimer:
 {
-	IniRead, wantedAlarm, settings.ini, Einstellungen, WantedAlarm, 1
-
-	if (wantedAlarm) {
+	if (wantedInfo) {
 		wantedCopy := wantedPlayers.clone()
 		
 		for index, entry in wantedCopy {
@@ -11846,11 +11832,11 @@ WantedTimer:
 			
 			SendClientMessage(prefix . colorW . "Verdächtiger " . label_2 . " (ID: " . getPlayerIdByName(label_2) . ") mit " . label_3 . " Wanteds gesichtet!")
 
-			wantedInfo := []
-			wantedInfo["name"] := label_2
-			wantedInfo["countdown"] := 300
+			wantedAlarm := []
+			wantedAlarm["name"] := label_2
+			wantedAlarm["countdown"] := 300
 
-			wantedPlayers.Push(wantedInfo)
+			wantedPlayers.Push(wantedAlarm)
 		}
 	} else {
 		SetTimer, WantedTimer, off
@@ -11974,11 +11960,11 @@ PaketTimer:
 		Sleep, 200
 		
 		if (RegExMatch(readChatLine(0) . readChatLine(1) . readChatLine(2), "Du hast bereits ein Erste-Hilfe-Paket\. Verwende \/erstehilfe")) {
-			if (packetMessages) {
+			if (paketInfo) {
 				SendChat("/l Vielen Dank " . medicName . ", doch ich habe bereits ein Paket!")
 			}
 		} else if (RegExMatch(readChatLine(0) . readChatLine(1) . readChatLine(2), "\* Du hast für \$(\d+) ein Erste-Hilfe-Paket von (\S+) gekauft\.", chat_)) {
-			if (packetMessages) {
+			if (paketInfo) {
 				SendChat("/l Vielen Dank " . chat_2 . " für das Erste-Hilfe-Paket!")
 			}
 		}
@@ -12000,19 +11986,23 @@ return
 
 ShotAllowedCar:
 {
-	if (warningMessages) {
-		SendClientMessage(prefix . "Du darfst nun das Fahrzeug beschießen, sofern der Spieler flüchtet.")
-	}
+	SendClientMessage(prefix . "Du darfst nun das Fahrzeug beschießen, sofern der Verbrecher flüchtet.")
 	
 	SetTimer, ShotAllowedCar, off
 }
 return
 
+ShotAllowedBike:
+{
+	SendClientMessage(prefix . "Du darfst nun das Zweirad beschießen, sofern der Verbrecher flüchtet.")
+	
+	SetTimer, ShotAllowedBike, off
+}
+return
+
 TazerAllowed: 
 {
-	if (warningMessages) {
-		SendClientMessage(prefix . "Du darfst den Verbrecher nun Tazern " . csecond . "(Ausnahme: Kampfsituation)")
-	}
+	SendClientMessage(prefix . "Du darfst den Verbrecher nun Tazern oder Handschellen anlegen. " . csecond . "(Ausnahme: Kampfsituation)")
 	
 	SetTimer, TazerAllowed, off
 }
@@ -12024,17 +12014,21 @@ MainTimer:
 		return
 	}
 	
-	WinGetTitle, spotifytrack, ahk_exe Spotify.exe
-		
-	if (oldSpotifyTrack != spotifytrack && spotifytrack != "") {
-		oldSpotifyTrack := spotifytrack
-		
-		SendClientMessage(prefix . "Neuer Spotify-Track: " . COLOR_GREEN . spotifytrack)
-		
-		if (spotifymessage) {
-			SendChat("/l Spotify-Track wurde gewechselt: " . spotifytrack)
-		}
-	}	
+	if (spotifyPublic || spotifyPrivacy) {
+		WinGetTitle, spotifytrack, ahk_exe Spotify.exe
+			
+		if (oldSpotifyTrack != spotifytrack && spotifytrack != "") {
+			oldSpotifyTrack := spotifytrack
+			
+			if (spotifyPrivacy) {
+				SendClientMessage(prefix . "Neuer Spotify-Track: " . COLOR_GREEN . spotifytrack)
+			}
+			
+			if (spotifyPublic) {
+				SendChat("/l Spotify-Track wurde gewechselt: " . spotifytrack)
+			}
+		}	
+	}
 	
 	if (isPlayerInAnyVehicle()) {
 		if (oldVehicleName != getVehicleModelName()) {
@@ -12217,7 +12211,7 @@ MainTimer:
 		}
 	}
 	
-	if (showDamageInfo) {
+	if (damageInfo) {
 		if (getPlayerHealth() != healthOld) {
 			damage := healthOld - getPlayerHealth()
 			
@@ -12291,30 +12285,28 @@ MainTimer:
 				}
 			}
 		}	
-	} else if (isOnCookPoint()) {
-		if (cookSystem) {
-			if (cookTimeout_) {
-				SendClientMessage(prefix . "Möchtest du deine Fische kochen? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen!")
-				
-				KeyWait, X, D, T10
-				
-				if (!ErrorLevel && !isBlocked()) {
-					cookTimeout_ := false
-				
-					Loop, 5 {
-						SendChat("/cook fish " . A_Index)
-						
-						if (!admin || comhelper) {
-							Sleep, 500
-						}
-					}	
+	} else if (isOnCookPoint() && autoCook) {
+		if (cookTimeout_) {
+			SendClientMessage(prefix . "Möchtest du deine Fische kochen? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen!")
+			
+			KeyWait, X, D, T10
+			
+			if (!ErrorLevel && !isBlocked()) {
+				cookTimeout_ := false
+			
+				Loop, 5 {
+					SendChat("/cook fish " . A_Index)
 					
-					checkCooked()
-					
-					cookTimeout := 0
-				} else {
-					cookTimeout_ := true
-				}
+					if (!admin || comhelper) {
+						Sleep, 500
+					}
+				}	
+				
+				checkCooked()
+				
+				cookTimeout := 0
+			} else {
+				cookTimeout_ := true
 			}
 		}
 	} else if (isPlayerOnLocal() && autoLocal) {
@@ -12331,7 +12323,7 @@ MainTimer:
 				localTimeout_ := true
 			}
 		}
-	} else if (isPlayerOnEquip()) {
+	} else if (isPlayerOnEquip() && autoEquip) {
 		if (!hasEquip) {
 			if (equipTimeout_) {
 				SendClientMessage(prefix . "Möchtest du dich ausrüsten? Du kannst mit '" . csecond . "X" . COLOR_WHITE . "' bestätigen!")
