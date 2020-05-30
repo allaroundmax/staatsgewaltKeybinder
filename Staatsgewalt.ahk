@@ -168,7 +168,7 @@ Start:
 	IniRead, autoUse, settings.ini, settings, autoUse, 0
 	IniRead, fishMode, settings.ini, settings, fishMode, 0
 	IniRead, autoHeal, settings.ini, settings, autoHeal, 0
-	IniRead, chatlogSaver, settings.ini, settings, chatlogSaver, 0
+	IniRead, autoDrugs, settings.ini, settings, autoDrugs, 0
 	IniRead, admin, settings.ini, settings, admin, 0
 	IniRead, autoCook, settings.ini, settings, autoCook, 0
 	IniRead, autoEquip, settings.ini, settings, autoEquip, 0
@@ -609,11 +609,8 @@ Start:
 	if (wantedInfo) {
 		SetTimer, WantedTimer, 1000
 	}
-	
-	if (chatlogSaver) {
-		SetTimer, ChatlogSaveTimer, 1000
-	}
-	
+
+
 	if (admin) {
 		SetTimer, TicketTimer, 1000
 	}
@@ -853,7 +850,7 @@ SettingsGUI:
 	Gui, Settings: Add, CheckBox, x210 y180 w190 h20 vfishMode checked%fishMode%, Billigsten Fisch wegwerfen
 	Gui, Settings: Add, CheckBox, x210 y210 w185 h20 vautoHeal checked%autoHeal%, Schnelles Healen
 
-	Gui, Settings: Add, CheckBox, x420 y30 w190 h20 vchatlogSaver checked%chatlogSaver%, Chatlogs abspeichern
+	Gui, Settings: Add, CheckBox, x420 y30 w190 h20 vautoDrugs checked%autoDrugs%, Drogen use auf W A S D
 	Gui, Settings: Add, CheckBox, x420 y60 w190 h20 vadmin checked%admin%, Admin-Modus
 	Gui, Settings: Add, CheckBox, x420 y90 w190 h20 vautoCook checked%autoCook%, Schnelles Kochen
 	Gui, Settings: Add, CheckBox, x420 y120 w190 h20 vautoEquip checked%autoEquip%, Schnelles Ausrüsten
@@ -967,7 +964,7 @@ SettingsGuiClose:
 	IniWrite, % autoUse, settings.ini, settings, autoUse
 	IniWrite, % fishMode, settings.ini, settings, fishMode
 	Iniwrite, % autoHeal, settings.ini, settings, autoHeal
-	Iniwrite, % chatlogSaver, settings.ini, settings, chatlogSaver
+	Iniwrite, % autoDrugs, settings.ini, settings, autoDrugs
 	IniWrite, % admin, settings.ini, settings, admin
 	IniWrite, % autoCook, settings.ini, settings, autoCook
 	IniWrite, % autoEquip, settings.ini, settings, autoEquip
@@ -3633,34 +3630,34 @@ return
 ~A::
 ~W::
 {
-	IniRead, autoUse, settings.ini, settings, autoUse, 1
-	
-	if (isBlocked() || isPlayerInAnyVehicle() || !autoUse || isPaintball) {
-		return
-	}
-	
+	IniRead, autoUse, settings.ini, settings, autoUse, 0
 	IniRead, firstaid, settings.ini, Items, firstaid, 0
 	IniRead, drugs, settings.ini, Items, drugs, 0
 	IniRead, pakcooldown, settings.ini, Cooldown, pakcooldown, 0
-		
+	; JANES
+	if (isBlocked() || isPaintball || damageTime > getUnixTimestamp(A_Now) || !autoUse || isPlayerInAnyVehicle() || getPlayerArmor() >= 46) {
+		return
+	}
+
 	if (getPlayerHealth() <= 75) {		
 		if (firstaid && !pakcooldown) {
 			SendChat("/erstehilfe")
 		}
-		/*
-		if (drugs > 0) {
-			if (!drugsCooldown) {
-				SendChat("/usedrugs")
+		
+		if (autoDrugs) {
+			if (drugs > 0 && !getPlayerArmor()) {
+				if (!drugsCooldown) {
+					SendChat("/usedrugs")
+				}
 			}
 		}
-		*/
 	}		
 		
 	Loop, 5 {
 		LBS := fishLBS_%A_Index%
 		check := getPlayerHealth()
 		check += Round(LBS / 3)
-    
+	
 		if (check <= 90 && LBS != 0) {
 			SendChat("/eat " . A_Index)
 			
@@ -6479,11 +6476,7 @@ pauseLabel:
 		if (autoUncuff) {
 			SetTimer, UncuffTimer, off
 		}		
-		
-		if (chatlogSaver) {
-			SetTimer, ChatlogSaveTimer, off
-		}
-		
+
 		if (refillInfo) {
 			SetTimer, TankTimer, Off
 		}
@@ -6516,10 +6509,6 @@ pauseLabel:
 		
 		if (wantedInfo) {
 			SetTimer, WantedTimer, 1000
-		}
-		
-		if (chatlogSaver) {
-			SetTimer, ChatlogSaveTimer, 1000
 		}
 		
 		if (admin) {
@@ -6558,7 +6547,7 @@ return
 	}
 	
 	if (fracNumber == "1") {
-		fraction := "Los Santos Plice Department"
+		fraction := "Los Santos Police Department"
 		preposition := "Das"
 		title := "Beamten"
 	} else if (fracNumber == "2") {
@@ -11642,7 +11631,7 @@ TimeoutTimer:
 	if (!fillTimeout_) {
 		fillTimeout ++
 	
-		if (fillTimeout >= 9) {
+		if (fillTimeout >= 15) {
 			fillTimeout_ := true
 		}
 	}
@@ -11650,7 +11639,7 @@ TimeoutTimer:
 	if (!canisterTimeout_) {
 		canisterTimeout ++
 		
-		if (canisterTimeout >= 9) {
+		if (canisterTimeout >= 15) {
 			canisterTimeout_ := true
 		}
 	}
@@ -11658,15 +11647,15 @@ TimeoutTimer:
 	if (!mautTimeout_) {
 		mautTimeout ++
 		
-		if (mautTimeout >= 9) {
+		if (mautTimeout >= 15) {
 			mautTimeout_ := true
 		}
 	}
 	
-	if (!equipTimeout_) {
+	if (!healTimeout_) {
 		healTimeout ++
 		
-		if (healTimeout >= 9) {
+		if (healTimeout >= 15) {
 			healTimeout_ := true
 		}
 	}
@@ -11674,7 +11663,7 @@ TimeoutTimer:
 	if (!cookTimeout_) {
 		cookTimeout ++
 		
-		if (cookTimeout >= 9) {
+		if (cookTimeout >= 15) {
 			cookTimeout_ := true
 		}
 	}
@@ -11682,7 +11671,7 @@ TimeoutTimer:
 	if (!equipTimeout_) {
 		equipTimeout ++
 		
-		if (equipTimeout >= 9) {
+		if (equipTimeout >= 15) {
 			equipTimeout_ := true
 		}
 	}
@@ -11690,7 +11679,7 @@ TimeoutTimer:
 	if (!jailgateTimeout_) {
 		jailgateTimeout ++
 		
-		if (jailgateTimeout >= 2) {
+		if (jailgateTimeout >= 5) {
 			jailgateTimeout_ := true 
 		}
 	}
@@ -11698,7 +11687,7 @@ TimeoutTimer:
 	if (!gateTimeout_) {
 		gateTimeout ++
 		
-		if (gateTimeout >= 3) {
+		if (gateTimeout >= 5) {
 			gateTimeout_ := true
 		}
 	}
@@ -11706,7 +11695,7 @@ TimeoutTimer:
 	if (!fishTimeout_) {
 		fishTimeout ++
 		
-		if (fishTimeout >= 9) {
+		if (fishTimeout >= 15) {
 			fishTimeout_ := true
 		}
 	}
@@ -11714,7 +11703,7 @@ TimeoutTimer:
 	if (!localTimeout_) {
 		localTimeout ++
 		
-		if (localTimeout >= 9) {
+		if (localTimeout >= 15) {
 			localTimeout_ := true
 		}
 	}
@@ -12200,17 +12189,23 @@ MainTimer:
 		}
 	}
 	
-	if (damageInfo) {
-		if (getPlayerHealth() != healthOld) {
-			damage := healthOld - getPlayerHealth()
-			
-			healthOld := getPlayerHealth() 
-			
-			if (damage > 5 && !isPaintball) {
-				SendClientMessage(prefix . "Du hast " . cSecond . damage . COLOR_WHITE . " HP verloren (Waffe: " . cRed getDamageWeapon(damage) . COLOR_WHITE . "), HP über: " . cGreen . getPlayerHealth())
+	if (getPlayerHealth() != healthOld) {
+		damage := healthOld - getPlayerHealth()
+		
+		healthOld := getPlayerHealth() 
+		
+		if (autoUse) {
+			if (damage > 5 && getPlayerHealth() < 90) {
+				damageTime := (getUnixTimestamp(A_Now) + 10)
 			}
-		}	
-	}
+		}
+		
+		if (damageInfo) {
+			if (damage > 5 && !isPaintball ) {
+				SendClientMessage(prefix . "Du hast " . csecond . damage . COLOR_WHITE . " HP verloren (Waffe: " . cRed getDamageWeapon(damage) . COLOR_WHITE . "), HP über: " . cGreen . getPlayerHealth())
+			}
+		}
+	}	
 	
 	if (isPlayerAtGasStation() && autoFill) {
 		if (fillTimeout_) {
@@ -12430,32 +12425,6 @@ UncuffTimer:
 		}
 	} else {
 		SetTimer, UncuffTimer, off
-	}
-}
-return
-
-ChatlogSaveTimer:
-{	
-	if (chatlogSaver) {
-		WinWait, GTA:SA:MP, , 1
-		
-		if (ErrorLevel) {
-			return
-		}
-		
-		WinWaitClose, GTA:SA:MP, , 1
-		
-		if (ErrorLevel) {
-			return
-		}
-		
-		FileCreateDir, %A_MyDocuments%\GTA San Andreas User Files\SAMP\ChatlogBackups
-		FormatTime, time, %A_Now%, dd.MM.yy - HH.mm
-		FileCopy, %A_MyDocuments%\GTA San Andreas User Files\SAMP\chatlog.txt, %A_MyDocuments%\GTA San Andreas User Files\SAMP\ChatlogBackups\chatlog %time% Uhr.txt, 0
-		
-		TrayTip, %projectName%, Chatlog wurde abgespeichert!
-	} else {
-		SetTimer, ChatlogSaveTimer, off
 	}
 }
 return
