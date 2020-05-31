@@ -182,19 +182,28 @@ Start:
 	
 	IniRead, taxes, settings.ini, settings, taxes, 0
 	IniRead, max_kmh, settings.ini, settings, max_kmh, 0
+	IniRead, lottoNumber, settings.ini, settings, lottoNumber, %A_Space%
+	IniRead, rank, settings.ini, settings, rank, %A_Space%
+	IniRead, fraction, settings.ini, settings, fraction, %A_Space%
+	IniRead, department, settings.ini, settings, department, %A_Space%
 	
-	IniRead, lottoNumber, settings.ini, Einstellungen, Lottozahl, 0
-	IniRead, primaryColor, settings.ini, Einstellungen, Primärfarbe, %A_Space%
-	IniRead, secondaryColor, settings.ini, Einstellungen, Sekundärfarbe, %A_Space%
-	IniRead, keybinderFrac, settings.ini, Einstellungen, keybinderFrac, %A_Space%
-	IniRead, ownprefix, settings.ini, Einstellungen, Ownprefix, %A_Space%	
-	IniRead, ownRank, settings.ini, Einstellungen, ownRank, 0
+	if ((fraction != "" || fraction != " " || fraction != "ERROR") && (department == "" || department == " " || department == "ERROR")) {
+		department := fraction
+	}
+	
+	IniRead, primaryColor, settings.ini, settings, primaryColor, %A_Space%
+	IniRead, secondaryColor, settings.ini, settings, secondaryColor, %A_Space%
+	IniRead, ownprefix, settings.ini, settings, ownprefix, %A_Space%	
+	IniRead, killMessage, settings.ini, settings, killMessage, %A_Space%
+	IniRead, deathMessage, settings.ini, settings, deathMessage, %A_Space%
+	IniRead, killText, settings.ini, settings, killText, 0
+	IniRead, deathText, settings.ini, settings, deathText, 0
+	
 	IniRead, commitmentUnix, settings.ini, UnixTime, commitmentUnix, 0
 	IniRead, commitmentTime, settings.ini, UnixTime, commitmentTime, 0
 	IniRead, drugs, settings.ini, Items, drugs, 0
 	IniRead, firstaid, settings.ini, Items, firstaid, 0
 	IniRead, campfire, settings.ini, Items, campfire, 0
-	
 	IniRead, fishcooldown, settings.ini, Cooldown, fishcooldown, 0
 	IniRead, pakcooldown, settings.ini, Cooldown, pakcooldown, 0
 
@@ -443,11 +452,7 @@ Start:
 	if (ownprefix != "") {
 		prefix := ownprefix . " "
 	}
-	
-	if (keybinderFrac == "") {
-		keybinderFrac := "FBI"
-	}
-	
+
 	global chat 				:= []
 	global partners 			:= []
 	global grabList 			:= []
@@ -568,11 +573,11 @@ Start:
 		
 	Gui, Add, Text, x245 y12 w460 h55 , %fullProjectName%
 		
-	if (keybinderFrac == "FBI") {	
+	if (fraction == "FBI") {	
 		Gui, Add, Picture, x12 y0 w80 h80, images\LogoSmallFBI.png
-	} else if (keybinderFrac == "LSPD") {	
+	} else if (fraction == "LSPD") {	
 		Gui, Add, Picture, x12 y0 w80 h80, images\LogoSmallLSPD.png
-	} else if (keybinderFrac == "Army") {
+	} else if (fraction == "Army") {
 		Gui, Add, Picture, x12 y0 w80 h80, images\LogoSmallArmy.png
 	}
 	
@@ -683,10 +688,10 @@ Version 4.0.0
 	; TODO: Userinfos von Server ziehen
 	Gui, Add, GroupBox, x232 y289 w560 h190, User-Informationen 
 		
-	IniRead, rank, settings.ini, Einstellungen, rank, 0	
+	IniRead, rank, settings.ini, settings, rank, %A_Space%
 	
 	if (rank is number) {
-		if (ownRank == 0) {
+		if (rank == 0) {
 			rankinfo := "Du bist kein Beamter"
 		} else {
 			rankinfo := "Rang: " . rank . "!"
@@ -744,8 +749,9 @@ SettingsGUI:
 	Gui, Settings: Color, white
 	Gui, Settings: Font, S10 CDefault, Verdana
 	
-	Gui, Settings: Add, Button, x10 y760 w130 h40 gequipProfiles, Ausrüstprofile
-	Gui, Settings: Add, Button, x480 y760 w130 h40 gSettingsGuiClose, Schließen
+	Gui, Settings: Add, Button, x10 y730 w130 h40 gequipProfiles, Ausrüstprofile
+	Gui, Settings: Add, Button, x150 y730 w130 h40 gvariables, Variablen
+	Gui, Settings: Add, Button, x480 y730 w130 h40 gSettingsGuiClose, Schließen
 	
 	Gui, Settings: Add, GroupBox, x10 y10 w640 h230, Allgemeine Einstellungen
 	
@@ -773,19 +779,6 @@ SettingsGUI:
 	Gui, Settings: Add, CheckBox, x420 y180 w190 h20 vautoGate checked%autoGate%, Schnelles Tor-System
 	Gui, Settings: Add, CheckBox, x420 y210 w190 h20 vautoFish checked%autoFish%, Schnelles Angeln
 	
-	/*
-	Gui, Settings: Add, Text, x400 y60 w150 h20, Lottozahl (0 Rand, 101 = ID)
-	Gui, Settings: Add, Edit, x560 y60 w40 h20 vlottoNumber, %lottoNumber%	
-	Gui, Settings: Add, Text, x400 y90 w110 h20, Primärfarbe
-	Gui, Settings: Add, Edit, x530 y90 w70 h20 vprimaryColor, %primaryColor%
-	Gui, Settings: Add, Text, x400 y120 w110 h20, Sekundärfarbe
-	Gui, Settings: Add, Edit, x530 y120 w70 h20 vsecondaryColor, %secondaryColor%
-	Gui, Settings: Add, Text, x400 y150 w110 h20, Abteilung
-	Gui, Settings: Add, Edit, x530 y150 w70 h20 vkeybinderFrac, %keybinderFrac%
-	Gui, Settings: Add, Text, x400 y180 w110 h20, Eigener prefix
-	Gui, Settings: Add, Edit, x530 y180 w70 h20 vownprefix, %ownprefix%
-	*/
-		
 	Gui, Settings: Add, GroupBox, x10 y250 w640 h80, Sounds
 	Gui, Settings: Add, CheckBox, x20 y270 w190 h20 vsmsSound Checked%smsSound%, SMS Sound
 	Gui, Settings: Add, CheckBox, x20 y300 w190 h20 vleagueSound Checked%leagueSound%, Killstreak Sound
@@ -808,7 +801,35 @@ SettingsGUI:
 	Gui, Settings: Add, CheckBox, x420 y390 w190 h20 vspotifyPrivacy checked%spotifyPrivacy%, Spotify-Tracks (privat)
 	Gui, Settings: Add, CheckBox, x420 y420 w190 h20 vrefillInfo checked%refillInfo%, Tank-Warnungen
 	
-	Gui, Settings: Show, h810 w660, %projectName% - Einstellungen - Version %version%
+	Gui, Settings: Add, GroupBox, x10 y490 w640 h230, Sonstiges
+	Gui, Settings: Add, Text, x20 y510 w280 h20, Lottozahl:
+	Gui, Settings: Add, Edit, x130 y510 w110 h20 vlottoNumber, %lottoNumber%
+	
+	Gui, Settings: Add, CheckBox, x280 y510 w110 h20 vkillText checked%killText%, Killspruch:
+	Gui, Settings: Add, Edit, x400 y510 w240 h20 vkillMessage, %killMessage%
+		
+	Gui, Settings: Add, Text, x20 y540 w280 h20, Rang:
+	Gui, Settings: Add, Edit, x130 y540 w110 h20 vrank, %rank%	
+	
+	Gui, Settings: Add, CheckBox, x280 y540 w110 h20 vdeathText checked%deathText%, Todesspruch:
+	Gui, Settings: Add, Edit, x400 y540 w240 h20 vdeathMessage, %deathMessage%
+	
+	Gui, Settings: Add, Text, x20 y570 w280 h20, Fraktion:
+	Gui, Settings: Add, Edit, x130 y570 w110 h20 vfraction, %fraction%	
+
+	Gui, Settings: Add, Text, x20 y600 w280 h20, Abteilung:
+	Gui, Settings: Add, Edit, x130 y600 w110 h20 vdepartment, %department%	
+
+	Gui, Settings: Add, Text, x20 y630 w280 h20, Primärfarbe:
+	Gui, Settings: Add, Edit, x130 y630 w110 h20 vprimaryColor, %primaryColor%
+
+	Gui, Settings: Add, Text, x20 y660 w280 h20, Sekundärfarbe:
+	Gui, Settings: Add, Edit, x130 y660 w110 h20 vsecondaryColor, %secondaryColor%
+
+	Gui, Settings: Add, Text, x20 y690 w280 h20, Eigener Prefix:
+	Gui, Settings: Add, Edit, x130 y690 w110 h20 vownprefix, %ownprefix%
+	
+	Gui, Settings: Show, h780 w660, %projectName% - Einstellungen - Version %version%
 }
 return
 
@@ -858,11 +879,39 @@ SettingsGuiClose:
 	IniWrite, % escInfo, settings.ini, infos, escInfo
 	IniWrite, % afkInfo, settings.ini, infos, afkInfo
 
-	IniWrite, %lottoNumber%, settings.ini, Einstellungen, Lottozahl
-	IniWrite, %keybinderFrac%, settings.ini, Einstellungen, keybinderFrac
-	IniWrite, %ownprefix%, settings.ini, Einstellungen, Ownprefix
-	IniWrite, %primaryColor%, settings.ini, Einstellungen, Primärfarbe
-	IniWrite, %secondaryColor%, settings.ini, Einstellungen, Sekundärfarbe
+	IniWrite, % lottoNumber, settings.ini, settings, lottoNumber
+	if (rank == "" || rank == " ") {
+		MsgBox, 16, Fehler!, Du musst das Feld 'Rang' ausfüllen.
+	} else {
+		if (rank is not number) {
+			MsgBox, 16, Fehler!, Das Feld 'Rang' muss eine Zahl sein. 
+		} else {
+			if (rank > 11 || rank < 1) {
+				MsgBox, 16, Fehler!, Der Rang muss mindest 1 und darf maximal 11 betragen. 
+			} else {
+				IniWrite, % rank, settings.ini, settings, rank
+			}
+		}
+	}
+
+	if (fraction == "" || fraction == " ") {
+		MsgBox, 16, Fehler!, Du musst das Feld 'Fraktion' ausfüllen.
+	} else {
+		if (fraction == "LSPD" || fraction == "FBI" || fraction == "Army") {
+			IniWrite, % fraction, settings.ini, settings, fraction
+		} else {
+			MsgBox, 16, Fehler!, Trage folgende Fraktionen ein: 'LSPD', 'FBI', 'Army'
+		}
+	}
+	
+	IniWrite, % department, settings.ini, settings, department
+	IniWrite, % ownprefix, settings.ini, settings, ownprefix
+	IniWrite, % primaryColor, settings.ini, settings, primaryColor
+	IniWrite, % secondaryColor, settings.ini, settings, secondaryColor
+	IniWrite, % killMessage, settings.ini, settings, killMessage
+	IniWrite, % deathMessage, settings.ini, settings, deathMessage
+	IniWrite, % killText, settings.ini, settings, killText
+	IniWrite, % deathText, settings.ini, settings, deathText
 	
 	if (ownprefix != "") {
 		prefix := ownprefix . " "
@@ -874,6 +923,53 @@ SettingsGuiClose:
 
 	Gui, Settings: Destroy
 	reload
+}
+return
+
+Variables:
+{
+	Gui, Variables: Destroy
+	
+	Gui, Variables: Color, white
+	Gui, Variables: Font, S10 CDefault, Verdana		
+	
+	Gui, Variables: Add, Edit, x12 y9 w570 h520 +ReadOnly,
+	(
+Folgende Variablen können im Killspruch verwendet werden:
+
+| -> Trennvariable für mehrere Chatzeilen
+[SLEEP (Zeit in Millisekunden)] -> für Verzögerungen
+[LOCAL] -> Im eigenen Chat senden (SendClientMessage())
+[Name] -> Aktueller Name
+[ID] -> Aktuelle ID
+[FPS] -> Aktuelle FPS
+[PING] -> Aktueller Ping
+[SCORE] -> Aktuelles Level
+[CITY] -> Aktuelle Stadt o man ist
+[ZONE] -> Aktuelle Zone wo man ist
+[POS] -> Aktuelle Stadt & Zone oder Interior wo man ist
+[HP] -> Lebensenergie
+[VICTIM] -> Getötetes Opfer
+[VICTIMFRAK] -> Fraktion des getöteten
+[VICTIMWEAP] -> Mit welcher Waffe du ihn getötet hast
+[VICTIMWEAPART] -> Artikel (eine, einer, einem (( bezogen auf Waffe )) )
+[KILLPLACE] -> Ort des Kills (Kurz)
+[KILLPLACEFULL] -> Ort des Kills (mit Fahrzeug)
+[MURDERER] -> Dein Mörder
+[MURDERERFRAK] -> Fraktion des Mörders
+[MURDERERWEAP] -> Waffe des Mörders
+[MURDERERWEAPART] -> Artikel (eine, einer, einem (( bezogen auf Waffe )) )
+[DEATHPLACE] -> Todesort (Kurz)
+[DEATHPLACEFULL] -> Todesort (mit Fahrzeug)
+	)
+	Gui, Variables: Add, Button, x12 y549 w130 h40 gVariablesClose, Schließen
+	Gui, Variables: Show, w600 h600, %Keybinder%
+}
+return
+
+VariablesClose:
+{
+	Gui, Variables: Destroy
 }
 return
 
@@ -2860,14 +2956,14 @@ handleChatMessage(message, index, arr) {
 			
 			if (laserInfo) {
 				if (message_1 > kmh) {
-					IniRead, keybinderFrac, settings.ini, Einstellungen, keybinderFrac, %A_Space%
+					IniRead, department, settings.ini, settings, department, %A_Space%
 					
 					lastSpeed := message_1
 					lastSpeedUser := driver_1
 					
 					Sleep, 500
 					
-					SendChat("/m << " . keybinderFrac . ", Radarkontrolle! " . driver_1 . ", halten Sie SOFORT an und fahren Sie rechts ran! >>")				
+					SendChat("/m << " . department . ", Radarkontrolle! " . driver_1 . ", halten Sie SOFORT an und fahren Sie rechts ran! >>")				
 				}
 			}
 		}
@@ -3317,8 +3413,8 @@ megaFollowLabel:
 	} else if (airmode) {
 		SendChat("/m << C.A.S., bitte folgen Sie dem Helikopter! >>")
 	} else {
-		IniRead, keybinderFrac, settings.ini, Einstellungen, keybinderFrac, %A_Space%
-		SendChat("/m << " . keybinderFrac . ", bitte folgen Sie dem Einsatzfahrzeug >>")
+		IniRead, department, settings.ini, settings, department, %A_Space%
+		SendChat("/m << " . department . ", bitte folgen Sie dem Einsatzfahrzeug >>")
 	}
 }
 return
@@ -3341,8 +3437,8 @@ megaControlLabel:
 		} else if (airmode) {
 			SendChat("/m << C.A.S., Luftverkehrskontrolle. Landen Sie umgehend! >>")
 		} else {
-			IniRead, keybinderFrac, settings.ini, Einstellungen, keybinderFrac, %A_Space%
-			SendChat("/m << " . keybinderFrac . ", Allgemeine Kontrolle, bitte halten Sie an! >>")
+			IniRead, department, settings.ini, settings, department, %A_Space%
+			SendChat("/m << " . department . ", Allgemeine Kontrolle, bitte halten Sie an! >>")
 		}
 	} else {
 		SendClientMessage(prefix . "Mau-Modus: Mau 1 wird gelegt:")
@@ -3369,8 +3465,8 @@ megaStopLabel:
 		} else if (airmode) {
 			SendChat("/m << C.A.S., landen Sie SOFORT! >>")
 		} else {
-			IniRead, keybinderFrac, settings.ini, Einstellungen, keybinderFrac, %A_Space%
-			SendChat("/m << " . keybinderFrac . ", bleiben Sie SOFORT stehen >>")
+			IniRead, department, settings.ini, settings, department, %A_Space%
+			SendChat("/m << " . department . ", bleiben Sie SOFORT stehen >>")
 		}
 		
 		SendChat("/m << Letzte Mahnung, sollten Sie verweigern, wenden wir härte Maßnahmen an! >>")
@@ -3401,7 +3497,7 @@ megaByNameLabel:
 		if (playerToFindName == "" || playerToFind == "") {
 			SendClientMessage(prefix . "Fehler: Du suchst aktuell niemanden.")
 		} else {
-			IniRead, keybinderFrac, settings.ini, Einstellungen, keybinderFrac, %A_Space%
+			IniRead, department, settings.ini, settings, department, %A_Space%
 			SendChat("/m << " . playerToFindName . ", bleiben Sie SOFORT stehen! >>")
 			SendChat("/m << Letzte Mahnung, sollten Sie verweigern, wenden wir härte Maßnahmen an! >>")
 		
@@ -3434,8 +3530,8 @@ megaGetOutOfCarLabel:
 		} else if (airmode) {
 			dept := "C.A.S."
 		} else {
-			IniRead, keybinderFrac, settings.ini, Einstellungen, keybinderFrac, %A_Space%
-			dept := keybinderFrac
+			IniRead, department, settings.ini, settings, department, %A_Space%
+			dept := department
 		}
 		
 		SendChat("/m << " . dept . ", steigen Sie mit erhobenen Händen aus Ihrem Fahrzeug! >>")
@@ -3464,8 +3560,8 @@ megaClearLabel:
 		} else if (airmode) {
 			SendChat("/m << C.A.S., räumen Sie umgehend den Luftraum! >>")
 		} else {
-			IniRead, keybinderFrac, settings.ini, Einstellungen, keybinderFrac, %A_Space%
-			SendChat("/m << " . keybinderFrac . ", räumen Sie umgehend die Straße! >>")
+			IniRead, department, settings.ini, settings, department, %A_Space%
+			SendChat("/m << " . department . ", räumen Sie umgehend die Straße! >>")
 		}
 	} else {
 		SendClientMessage(prefix . "Mau-Modus: Mau 5 wird gelegt:")
@@ -3488,8 +3584,8 @@ megaWeaponsLabel:
 		if (getPlayerSkinID() == 285) {
 			SendChat("/m << S.W.A.T., SOFORT die Waffen niederlegen, ansonsten gebrauchen wir Gewalt! >>")
 		} else {
-			IniRead, keybinderFrac, settings.ini, Einstellungen, keybinderFrac, %A_Space%
-			SendChat("/m << Hier spricht das " . keybinderFrac . ", SOFORT die Waffen niederlegen, ansonsten gebrauchen wir Gewalt! >>")
+			IniRead, department, settings.ini, settings, department, %A_Space%
+			SendChat("/m << Hier spricht das " . department . ", SOFORT die Waffen niederlegen, ansonsten gebrauchen wir Gewalt! >>")
 		}
 	} else {
 		SendClientMessage(prefix . "Mau-Modus: Mau 6 wird gelegt:")
@@ -3516,8 +3612,8 @@ megaLeaveLabel:
 		} else if (airmode) {
 			dept := "C.A.S."
 		} else {
-			IniRead, keybinderFrac, settings.ini, Einstellungen, keybinderFrac, %A_Space%
-			dept := keybinderFrac
+			IniRead, department, settings.ini, settings, department, %A_Space%
+			dept := department
 		}
 		
 		if (!getPlayerInteriorId()) {
@@ -3549,8 +3645,8 @@ megaStopFollowLabel:
 	} else if (airmode) {
 		dept := "C.A.S."
 	} else {
-		IniRead, keybinderFrac, settings.ini, Einstellungen, keybinderFrac, %A_Space%
-		dept := keybinderFrac
+		IniRead, department, settings.ini, settings, department, %A_Space%
+		dept := department
 	}
 	
 	SendChat("/m << " . dept . ", unterlassen Sie SOFORT diese Verfolgung! >>")
@@ -3574,8 +3670,8 @@ megaRoadTrafficActLabel:
 	} else if (airmode) {
 		dept := "C.A.S."
 	} else {
-		IniRead, keybinderFrac, settings.ini, Einstellungen, keybinderFrac, %A_Space%
-		dept := keybinderFrac
+		IniRead, department, settings.ini, settings, department, %A_Space%
+		dept := department
 	}
 		
 	SendChat("/m << " . dept . ", bitte halten Sie sich an die Straßenverkehrsordnung >>")
@@ -5292,11 +5388,11 @@ acceptJobLabel:
 			SendChat("/d HQ: Wagen " . getVehicleModelId() . " übernimmt den Auftrag!")
 		}
 	} else {
-		if (keybinderFrac == "FBI") {	
+		if (fraction == "FBI") {	
 			SendChat("/d HQ: Agent " . getUserName() . " übernimmt den Auftrag!")
-		} else if (keybinderFrac == "LSPD") {
+		} else if (fraction == "LSPD") {
 			SendChat("/d HQ: Officer " . getUserName() . " übernimmt den Auftrag!")
-		} else if (keybinderFrac == "Army") {
+		} else if (fraction == "Army") {
 			SendChat("/d HQ: Soldat " . getUserName() . " übernimmt den Auftrag!")
 		}
 	}
@@ -5316,11 +5412,11 @@ doneJobLabel:
 			SendChat("/d HQ: Wagen " . getVehicleModelId() . " hat den Auftrag ausgeführt!")
 		}
 	} else {
-		if (keybinderFrac == "FBI") {	
+		if (fraction == "FBI") {	
 			SendChat("/d HQ: Agent " . getUserName() . " hat den Auftrag ausgeführt!")
-		} else if (keybinderFrac == "LSPD") {
+		} else if (fraction == "LSPD") {
 			SendChat("/d HQ: Officer " . getUserName() . " hat den Auftrag ausgeführt!")
-		} else if (keybinderFrac == "Army") {
+		} else if (fraction == "Army") {
 			SendChat("/d HQ: Soldat " . getUserName() . " hat den Auftrag ausgeführt!")
 		}
 	}
@@ -6330,12 +6426,12 @@ return
 :?:/rz::
 :?:/razzia::
 {	
-	IniRead, keybinderFrac, settings.ini, Einstellungen, keybinderFrac, %A_Space%
+	IniRead, department, settings.ini, settings, department, %A_Space%
 	
 	if (getPlayerSkinID() == 285) {
 		SendChat("/m << S.W.A.T., dies ist eine Razzia! >>")
 	} else {
-		SendChat("/m << " . keybinderFrac . ", dies ist eine Razzia! >>")
+		SendChat("/m << " . department . ", dies ist eine Razzia! >>")
 	}
 	
 	SendChat("/m << Nehmen Sie SOFORT die Hände hoch oder wir schießen! >>")
@@ -6344,12 +6440,12 @@ return
 
 :?:/weiter::
 {
-	IniRead, keybinderFrac, settings.ini, Einstellungen, keybinderFrac, %A_Space%
+	IniRead, department, settings.ini, settings, department, %A_Space%
 	
 	if (getPlayerSkinID() == 285) {
 		SendChat("/m << S.W.A.T., alle Personen bitte SOFORT weiterfahren! >>")
 	} else {
-		SendChat("/m << " . keybinderFrac . ", alle Personen bitte SOFORT weiterfahren! >>")
+		SendChat("/m << " . department . ", alle Personen bitte SOFORT weiterfahren! >>")
 	}
 }
 return
@@ -7296,11 +7392,11 @@ return
 			SendChat("/d HQ: Wagen " . getVehicleModelId() . " hat verstanden und bestätigt!")
 		}
 	} else {
-		if (keybinderFrac == "FBI") {	
+		if (fraction == "FBI") {	
 			SendChat("/d HQ: Agent " . getUserName() . " hat verstanden und bestätigt!")
-		} else if (keybinderFrac == "LSPD") {
+		} else if (fraction == "LSPD") {
 			SendChat("/d HQ: Officer " . getUserName() . " hat verstanden und bestätigt!")
-		} else if (keybinderFrac == "Army") {
+		} else if (fraction == "Army") {
 			SendChat("/d HQ: Soldat " . getUserName() . " hat verstanden und bestätigt!")
 		}
 	}
@@ -7316,11 +7412,11 @@ return
 			SendChat("/f HQ: Wagen " . getVehicleModelId() . " hat verstanden und bestätigt!")
 		}
 	} else {
-		if (keybinderFrac == "FBI") {	
+		if (fraction == "FBI") {	
 			SendChat("/f HQ: Agent " . getUserName() . " hat verstanden und bestätigt!")
-		} else if (keybinderFrac == "LSPD") {
+		} else if (fraction == "LSPD") {
 			SendChat("/f HQ: Officer " . getUserName() . " hat verstanden und bestätigt!")
-		} else if (keybinderFrac == "Army") {
+		} else if (fraction == "Army") {
 			SendChat("/f HQ: Soldat " . getUserName() . " hat verstanden und bestätigt!")
 		}
 	}
@@ -7336,11 +7432,11 @@ return
 			SendChat("/r HQ: Wagen " . getVehicleModelId() . " hat verstanden und bestätigt!")
 		}
 	} else {
-		if (keybinderFrac == "FBI") {	
+		if (fraction == "FBI") {	
 			SendChat("/r HQ: Agent " . getUserName() . " hat verstanden und bestätigt!")
-		} else if (keybinderFrac == "LSPD") {
+		} else if (fraction == "LSPD") {
 			SendChat("/r HQ: Officer " . getUserName() . " hat verstanden und bestätigt!")
-		} else if (keybinderFrac == "Army") {
+		} else if (fraction == "Army") {
 			SendChat("/r HQ: Soldat " . getUserName() . " hat verstanden und bestätigt!")
 		}
 	}
@@ -7819,27 +7915,23 @@ return
 :?:/dep::
 :?:/department::
 {
-	IniRead, keybinderFrac, settings.ini, Einstellungen, keybinderFrac, %A_Space%
+	IniRead, department, settings.ini, settings, department, %A_Space%
 	
-	SendClientMessage(prefix . "Deine aktuelle Abteilung: " . csecond . keybinderFrac)
+	SendClientMessage(prefix . "Deine aktuelle Abteilung: " . csecond . department)
 	
-	dep := PlayerInput("Abteilung (LSPD, FBI, Army): ")
+	dep := PlayerInput("Abteilung: ")
 	if (dep == "" || dep = " ") {
 		return
 	}
 	
-	if (dep == keybinderFrac) {
+	if (dep == department) {
 		SendClientMessage(prefix . "Fehler: Diese Abteilung hast du bereits eingetragen.")
 		return
 	}
 	
-	if (dep == "LSPD" || dep == "FBI" || dep == "Army") {
-		IniWrite, %dep%, settings.ini, Einstellungen, keybinderFrac
+	IniWrite, %dep%, settings.ini, settings, department
 	
-		SendClientMessage(prefix . "Deine Abteilung wurde auf " . csecond . dep . cwhite . " geupdated.")
-	} else {
-		SendClientMessage(prefix . "Fehler: Verwende bitte folgende Abteilungen: LSPD, FBI, Army")
-	}
+	SendClientMessage(prefix . "Deine Abteilung wurde auf " . csecond . dep . cwhite . " geupdated.")
 }
 return
 
@@ -7968,11 +8060,11 @@ return
 
 :?:/taxi::
 {
-	if (keybinderFrac == "FBI") {
+	if (fraction == "FBI") {
 		SendChat("Wir sind kein Taxiunternehmen, wir sind Agenten.")
-	} else if (keybinderFrac == "LSPD") {
+	} else if (fraction == "LSPD") {
 		SendChat("Wir sind kein Taxiunternehmen, wir sind Beamte.")
-	} else if (keybinderFrac == "Army") {
+	} else if (fraction == "Army") {
 		SendChat("Wir sind kein Taxiunternehmen, wir sind Soldaten.")
 	}
 }
@@ -8146,7 +8238,7 @@ return
 
 :?:/alotto::
 {
-	if (lottoNumber == 0) {
+	if (!lottoNumber) {
 		Random, randomNumber, 1, 100
 		
 		SendChat("/lotto " . randomNumber)
@@ -8430,11 +8522,11 @@ return
 		if (!admin)
 			Sleep, 400
 		
-		if (keybinderFrac == "FBI") {
+		if (fraction == "FBI") {
 			copTitle := "Agent"
-		} else if (keybinderFrac == "LSPD") {
+		} else if (fraction == "LSPD") {
 			copTitle := "Officer"
-		} else if (keybinderFrac == "Army") {
+		} else if (fraction == "Army") {
 			copTitle := "Soldat"
 		}
 		
@@ -11009,10 +11101,42 @@ MainTimer:
 
 				hasEquip := 0
 				
-				killName := object.murderer.name
+				
                 killFaction := getSkinFraction(object.skin)
                 killWeapon := getWeaponName(object.weapon)
 				killWeaponShort := weaponShort(object.weapon)
+				
+				if (getFullName(object.murderer.name)) {
+					killerID := getPlayerIdByName(object.murderer.name)
+					ped := getPedById(killerID)
+					pedCoord := getPedCoordinates(ped)
+						
+					if (getDistanceToPoint(getCoordinates()[1], getCoordinates()[2], getCoordinates()[3], pedCoord[1], pedCoord[2], pedCoord[3]) <= 30) {
+						killName := object.murderer.name
+					} else {
+						killName := "Unbekannt"
+					}
+				}
+				
+				if (getPlayerInteriorId()) {
+					deathPlace1 := "in einem Interior (" . getPlayerInteriorId() . ")"
+					deathPlace2 := "in einem Interior (" . getPlayerInteriorId() . ")"
+				} else {
+					deathPlace1 := "in " . getPlayerZone() . ", " . getPlayerCity()
+				
+					if (isPlayerInAnyVehicle()) {
+						deathPlace2 := "in " . getPlayerZone() . ", " . getPlayerCity() . " in einem Fahrzeug"
+					} else {
+						deathPlace2 := "in " . getPlayerZone() . ", " . getPlayerCity()
+					}
+				}				
+				
+				IniWrite, %killName%, Stats.ini, Stats, Murderer
+				IniWrite, %killFaction%, Stats.ini, Stats, MurdererFaction
+				IniWrite, %killWeapon%, Stats.ini, Stats, MurdererWeapon
+				IniWrite, %killWeaponShort%, Stats.ini, Stats, MurdererWeaponArt
+				IniWrite, %deathPlace1%, Stats.ini, Stats, DeathPlace
+				IniWrite, %deathPlace2%, Stats.ini, Stats, DeathPlaceFull				
 				
 				if (bk) {
 					if (getFullName(killName)) {
@@ -11024,20 +11148,12 @@ MainTimer:
 					
 					bk := 0
 				} else {
-					if (getFullName(killName)) {
-						killerID := getPlayerIdByName(killName)
-						ped := getPedById(killerID)
-						pedCoord := getPedCoordinates(ped)
-						
-						if (getDistanceToPoint(getCoordinates()[1], getCoordinates()[2], getCoordinates()[3], pedCoord[1], pedCoord[2], pedCoord[3]) <= 30) {
-							SendChat("/f Ich wurde von " . killName . " in " . getLocation() . " mit " . killWeaponShort . " " . killWeapon . " getötet.")
-						} else {
-							SendChat("/f Ich wurde in " . getLocation() . " mit " . killWeaponShort . " " . killWeapon . " getötet.")
-						}
+					if (deathText) {
+						SendToHotkey(deathMessage) 
 					}
 				}
 				
-				SLeep, 200
+				Sleep, 200
 				
 				Deaths ++
 				DDeaths ++
@@ -11061,11 +11177,7 @@ MainTimer:
 				chat4 := readChatLine(4)
 				chat := chat0 . chat1 . chat2 . chat3 . chat4
 				
-				if (InStr(chat, "Paintball:")) {
-					return
-				}
-				
-				if (InStr(chat, "[KillHouse]")) {
+				if (InStr(chat, "Paintball:") || InStr(chat, "[KillHouse]")) {
 					return
 				}				
 			
@@ -11073,6 +11185,26 @@ MainTimer:
                 killFaction := getSkinFraction(object.skin)
                 killWeapon := getWeaponName(object.weapon)
 				killWeaponShort := weaponShort(object.weapon)
+
+				if (getPlayerInteriorId()) {
+					killPlace1 := "in einem Interior (" . getPlayerInteriorId() . ")"
+					killPlace2 := "in einem Interior (" . getPlayerInteriorId() . ")"
+				} else {
+					killPlace1 := "in " . getPlayerZone() . ", " . getPlayerCity()
+				
+					if (isPlayerInAnyVehicle()) {
+						killPlace2 := "in " . getPlayerZone() . ", " . getPlayerCity() . " in einem Fahrzeug"
+					} else {
+						killPlace2 := "in " . getPlayerZone() . ", " . getPlayerCity()
+					}
+				}				
+				
+				IniWrite, %killName%, Stats.ini, stats, Victim
+				IniWrite, %killFaction%, Stats.ini, stats, VictimFaction
+				IniWrite, %killWeapon%, Stats.ini, stats, VictimWeapon
+				IniWrite, %killWeaponShort%, Stats.ini, stats, VictimWeaponArt
+				IniWrite, %killPlace1%, Stats.ini, stats, KillPlace
+				IniWrite, %killPlace2%, Stats.ini, stats, KillPlaceFull				
 			
 				Kills ++
 				DKills ++
@@ -11081,8 +11213,10 @@ MainTimer:
 				IniWrite, %DKills%, Stats.ini, Stats,  DKills[%A_DD%:%A_MM%:%A_YYYY%]
 				
 				Streak ++
-
-				SendChat("/f Ich habe " . killName . " (" . killFaction . ") in " . getLocation() . " mit " . killWeaponShort . " " . killWeapon . " getötet!")
+				
+				if (killText) {
+					SendToHotkey(killmessage) 
+				}
 
 				if (leagueSound) {
 					if (Streak == 2) {
@@ -11373,7 +11507,7 @@ LottoTimer:
 			KeyWait, X, D, T10
 			
 			if (!ErrorLevel && !isInChat() && !IsDialogOpen() && !IsPlayerInMenu()) {
-				if (lottoNumber == 0) {
+				if (!lottoNumber) {
 					Random, randomNumber, 1, 100
 					
 					SendChat("/lotto " . randomNumber)
@@ -11784,7 +11918,7 @@ useHeals() {
 checkRank() {
 	global
 	
-	iniRead, rank, settings.ini, settings, rank, 0
+	iniRead, rank, settings.ini, settings, rank, %A_Space%
 	
 	if (!rank || rank == "" || rank == "ERROR") {
 		SendClientMessage(prefix . "Du musst deinen genauen Rang eintragen, um alle Funktionen nutzen zukönnen.")
@@ -12086,9 +12220,9 @@ payPartnerMoney(money, stat) {
 startFish() {
 	global
 	
-	IniRead, fishUnix, settings.ini, Einstellungen, fishUnix, 0
+	IniRead, fishcooldown, settings.ini, Cooldown, fishcooldown, 0
 	
-	if (fishUnix < getUnixTimestamp(A_Now)) {
+	if (!fishcooldown) {
 		fishNumber := 0
 		aFishMoney := 0
 		aFishHP := 0
@@ -12177,8 +12311,7 @@ startFish() {
 			}
 		}
 	} else {
-		restTime := fishUnix - getUnixTimestamp(A_Now)
-		SendClientMessage(prefix . "Du kannst noch nicht fischen! (Gesperrt: " . csecond . formatTime(restTime) . cwhite . ")")
+		SendClientMessage(prefix . "Du kannst noch nicht fischen! (Gesperrt: " . csecond . formatTime(fishcooldown) . cwhite . ")")
 	}
 }
 
@@ -12369,39 +12502,20 @@ sendPosition(chat, cMode := true) {
 }
 
 getFishValue(fishName, fishWeight) {
-	global
 	
-	if (fishName == "Bernfisch") {
+	if (fishName == "Bernfisch" || fishName == "Blauer Fächerfisch") {
 		value := fishWeight * 1
-	} else if (fishName == "Blauer Fächerfisch") {
-		value := fishWeight * 1
-	} else if (fishName == "Roter Schnapper") {
+	} else if (fishName == "Roter Schnapper" || fishName == "Schwertfisch" || fishName == "Zackenbarsch") {
 		value := fishWeight * 2
-	} else if (fishName == "Schwertfisch") {
-		value := fishWeight * 2
-	} else if (fishName == "Zackenbarsch") {
-		value := fishWeight * 2
-	} else if (fishName == "Katzenfisch") {
+	} else if (fishName == "Katzenfisch" || fishName == "Forelle") {
 		value := fishWeight * 3
-	} else if (fishName == "Forelle") {
-		value := fishWeight * 3
-	} else if (fishName == "Delphin") {
-		value := fishWeight * 4
-	} else if (fishName == "Hai") {
-		value := fishWeight * 4
-	} else if (fishName == "Segelfisch") {
+	} else if (fishName == "Delphin" || fishName == "Hai" || fishName == "Segelfisch") {
 		value := fishWeight * 4
 	} else if (fishName == "Makrele") {
 		value := fishWeight * 5
-	} else if (fishName == "Aal") {
+	} else if (fishName == "Aal" || fishName == "Hecht") {
 		value := fishWeight * 6
-	} else if (fishName == "Hecht") {
-		value := fishWeight * 6
-	} else if (fishName == "Schildkröte") {
-		value := fishWeight * 8
-	} else if (fishName == "Thunfisch") {
-		value := fishWeight * 8
-	} else if (fishName == "Wolfbarsch") {
+	} else if (fishName == "Schildkröte" || fishName == "Thunfisch" || fishName == "Wolfbarsch") {
 		value := fishWeight * 8
 	} else {
 		value := 0
@@ -13158,12 +13272,215 @@ isBlocked() {
 }
 
 isFraction() {
-	IniRead, keybinderFrac, settings.ini, Einstellungen, keybinderFrac, %A_Space%
+	IniRead, fraction, settings.ini, settings, fraction, %A_Space%
 	
-	if (keybinderFrac == "" || keybinderFrac == "ERROR") {
-		SendClientMessage(prefix . "Fehler: Du musst noch deine Fraktion setzen. Nutze " . csecond . "/dep")	
+	if (fraction == "" || fraction == "ERROR") {
+		SendClientMessage(prefix . "Fehler: Du musst noch deine Fraktion setzen!")
+		SendClientMessage(prefix . "Fehler: Trage diese in den Einstellungen unter 'Fraktion' ein!")
 		return 0
 	} else {
 		return 1
 	}
+}
+
+sendToHotkey(text, check = 0) {
+	global
+	
+	if (check == 1) {
+		text = /f %text%
+	}	
+	
+	String := checkVars(text)
+	StringReplace, String, String, &&, |, All
+	
+	if (InStr(String, "|")) {
+		StringSplit, Splitted, String, |
+		Loop, %Splitted0%
+		{
+			Value := Splitted%A_Index%
+		
+			if (InStr(Value, "[SLEEP")) {
+				RegExMatch(Value, "\[SLEEP ([0-9]+)\]", sleepresult)
+				StringReplace, Value, Value, [SLEEP %sleepresult1%], , All
+				Sleep, %sleepresult1%
+			}
+			
+			if (check == 1) {
+				SendClientMessage(Prefix . Value)
+			} else {
+				if (InStr(Value, "[LOCAL]")) {
+					StringReplace, Value, Value, [LOCAL],, All
+					SendClientMessage(Prefix . Value)
+				} else {
+					if (InStr(Value,"[ENTER]")) {
+						StringReplace, Value, Value, [ENTER], , All
+						SendChat(Value)
+					} else {
+						SendInput, t%Value%		
+					}				
+				}
+			}
+		}
+	} else {
+		if (InStr(String, "[SLEEP")) {
+			RegExMatch(String, "\[SLEEP ([0-9]+)\]", sleepresult)
+			StringReplace, String, String, [SLEEP %sleepresult1%], , All
+			sleep %sleepresult1%
+		}
+		
+		if (check == 1) {
+			SendClientMessage(Prefix . Value)
+		} else {
+			if (InStr(String,"[LOCAL]")) {
+				StringReplace, String, String, [LOCAL],, All
+				SendClientMessage(Prefix . String)
+			} else { 
+				if (InStr(String,"[ENTER]")) {
+					StringReplace, String, String, [ENTER], , All
+					SendChat(String)
+				} else {
+					SendInput, t%String%		
+				}
+			}
+		}
+	}
+
+	return
+}
+
+checkVars(String) {
+	global
+	
+	if (InStr(String, "[NAME]")) {
+		MyName := getUserName()
+		StringReplace, String, String, [NAME], %MyName%,
+	}
+	
+	if (InStr(String, "[ID]")) {
+		MyId := GetId()
+		StringReplace, String, String, [ID], %MyId%, All
+	}
+	
+	if (InStr(String, "[FPS]"))	{
+		Frames := GetFPS()
+		StringReplace, String, String, [FPS], %Frames%, All
+	}
+	
+	if (InStr(String, "[PING]")) {
+		Ping := GetPlayerPingById(GetId())
+		StrinGreplace, String, String, [PING], %Ping%, All
+	}
+		
+	if (InStr(String, "[SCORE]")) {
+		Score := getPlayerScoreById(GetId())
+		StringReplace, String, String, [SCORE], %Score%, All
+	}
+	
+	if (InStr(String, "[CITY]")) {
+		City := getPlayerCity()
+		StringReplace, String, String, [CITY], %City%, All
+	}
+	
+	if (InStr(String, "[ZONE]")) {
+		Zone := getPlayerZone()
+		StringReplace, String, String, [ZONE], %Zone%, All
+	}	
+	
+	if (InStr(String, "[POS]")) {
+		MyPos := getPlayerZone() ", " getPlayerCity()
+		StringReplace, String, String, [POS], %MyPos%, All
+	}	
+	
+	if (InStr(String, "[HP]")) {
+		Life := getPlayerHealth()
+		StringReplace, String, String, [HP], %Life%, All
+	}
+	
+	if (Instr(String, "[VICTIM]")) {
+		IniRead, Victim, Stats.ini, Stats, Victim, %A_Space%
+		StringReplace, String, String, [VICTIM], %Victim%, All
+	}
+	
+	if (Instr(String, "[VICTIMFRAK]")) {
+		IniRead, VictimFaction, Stats.ini, Stats, VictimFaction, %A_Space%
+		StringReplace, String, String, [VICTIMFRAK], %VictimFaction%, All
+	}	
+	
+	if (Instr(String, "[VICTIMWEAP]")) {
+		IniRead, VictimWeapon, Stats.ini, Stats, VictimWeapon, %A_Space%
+		StringReplace, String, String, [VICTIMWEAP], %VictimWeapon%, All
+	}	
+
+	if (Instr(String, "[VICTIMWEAPART]")) {
+		IniRead, VictimWeaponArt, Stats.ini, Stats, VictimWeaponArt, %A_Space%
+		StringReplace, String, String, [VICTIMWEAPART], %VictimWeaponArt%, All
+	}	
+
+	if (Instr(String, "[KILLPLACE]")) {
+		IniRead, KillPlace, Stats.ini, Stats, KillPlace, %A_Space%
+		StringReplace, String, String, [KILLPLACE], %KillPlace%, All
+	}	
+
+	if (Instr(String, "[KILLPLACEFULL]")) {
+		IniRead, KillPlaceFull, Stats.ini, Stats, KillPlaceFull, %A_Space%
+		StringReplace, String, String, [KILLPLACEFULL], %KillPlaceFull%, All
+	}		
+	
+	if (Instr(String, "[MURDERER]")) {
+		IniRead, Murderer, Stats.ini, Stats, Murderer, %A_Space%
+		StringReplace, String, String, [MURDERER], %Murderer%, All
+	}
+	
+	if (Instr(String, "[MURDERERFRAK]")) {
+		IniRead, MurdererFaction, Stats.ini, Stats, MurdererFaction, %A_Space%
+		StringReplace, String, String, [MURDERERFRAK], %MurdererFaction%, All
+	}	
+	
+	if (Instr(String, "[MURDERERWEAP]")) {
+		IniRead, MurdererWeapon, Stats.ini, Stats, MurdererWeapon, %A_Space%
+		StringReplace, String, String, [MURDERERWEAP], %MurdererWeapon%, All
+	}	
+
+	if (Instr(String, "[MURDERERWEAPART]")) {
+		IniRead, MurdererWeaponArt, Stats.ini, Stats, MurdererWeaponArt, %A_Space%
+		StringReplace, String, String, [MURDERERWEAPART], %MurdererWeaponArt%, All
+	}	
+
+	if (Instr(String, "[DEATHPLACE]")) {
+		IniRead, DeathPlace, Stats.ini, Stats, DeathPlace, %A_Space%
+		StringReplace, String, String, [DEATHPLACE], %DeathPlace%, All
+	}	
+
+	if (Instr(String, "[DEATHPLACEFULL]")) {
+		IniRead, DeathPlaceFull, Stats.ini, Stats, DeathPlaceFull, %A_Space%
+		StringReplace, String, String, [DEATHPLACEFULL], %DeathPlaceFull%, All
+	}		
+	
+	if (InStr(String, "[DAYTIME]")) {
+		DayTime := getDayTime()
+		StringReplace, String, String, [DAYTIME], %DayTime%, All
+	}
+	
+	if (InStr(String, "[KILLS]") || InStr(String, "[DEATHS]") || InStr(String, "[KD]")) {
+		IniRead, Kills, Stats.ini, Stats, Kills, 0
+		IniRead, Deaths, Stats.ini, Stats, Deaths, 0
+
+		KD := Round(Kills / Deaths, 3)
+		
+		StringReplace, String, String, [KILLS], %Kills%, All
+		StringReplace, String, String, [DEATHS], %Deaths%, All
+		StringReplace, String, String, [KD], %KD%, All
+	}
+	
+	if (InStr(String, "[DKILLS]") || InStr(String, "[DDEATHS]") || InStr(String, "[DKD]")) {
+		IniRead, DKills, Stats.ini, Stats, Dkills[%A_DD%:%A_MM%:%A_YYYY%], 0
+		IniRead, DDeaths, Stats.ini, Stats, DDeaths[%A_DD%:%A_MM%:%A_YYYY%], 0
+		DKD := Round(Dkills / DDeaths, 3)
+		
+		StringReplace, String, String, [DKILLS], %Dkills%, All
+		StringReplace, String, String, [DDEATHS], %DDeaths%, All
+		StringReplace, String, String, [DKD], %DKD%, All
+	}
+	
+	return string
 }
