@@ -11949,25 +11949,56 @@ giveWanteds(suspect, reason, amount) {
 	suspect := getFullName(suspect)
 		
 	FormatTime, time, , HH:mm
+    result := URLDownloadToVar(baseURL . "api/catalog-new?username=" . username . "&password=" . password . "&type=wanteds&suspect=" . suspect)
 	
-	Loop %amount% {
-		SendChat("/suspect " . suspect . " " . reason . " - Uhr: " . time)
+    try {
+        data := JSON.Load(result)
+    } catch {
+        SendClientMessage(prefix . "Fehler: Es ist ein Scriptinterner Fehler aufgetreten.")
+        FormatTime, time, , dd.MM.yyyy HH:mm:ss
+        FileAppend, [%time%] Beim Laden der Wanted-Vergabe ist ein Fehler aufgetreten: %result%`n, log.txt
+        return false
+    }
+    
+    if (data["error"] != "") {
+        SendClientMessage(prefix . "Fehler: " . data["error"])
+    } else {
+        
+        if (!data["registered"]) {
+			SendClientMessage(prefix . "|========================| Doppelete Vergabe |========================|")
+			SendClientMessage(prefix . "Es wurde eine doppelte Wantedvergabe erkannt. Informationen:")
+			SendClientMessage(prefix . "Spieler: " . csecond . suspect . cwhite . ", letzte Vergabe mit dem selben Grund um: " . csecond . data["time"] . cwhite . " Uhr.")
+			SendClientMessage(prefix . "Vergeben von: " . data["lastoffical"])
+			SendClientMessage(prefix . "Möchtest du die Wanteds trotzdem vergeben? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
+            
+            KeyWait, X, D, T10
+            
+            if (ErrorLevel) {
+                return false
+            }
+        }
+	
+		Loop %amount% {
+			SendChat("/suspect " . suspect . " " . reason . " - Uhr: " . time)
+		}
+		
+		Sleep, 200
+		
+		suspectLine0 := readChatLine(0)
+		suspectLine1 := readChatLine(1)
+		
+		if (inStr(suspectLine0 . suspectLine1, "Du kannst Beamte keine Wanteds eintrragen.") || InStr(suspectLine0 . suspectLine1, "Der Spieler befindet sich im Gefängnis.")) {
+			return false
+		}
+		
+		wanteds := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=wanteds&value=" . amount)
+		IniWrite, %wanteds%, stats.ini, Vergaben, Wanteds
+		
+		SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(wanteds) . cwhite . " Wanteds vergeben.")
+		return true
 	}
 	
-	Sleep, 200
-	
-	suspectLine0 := readChatLine(0)
-	suspectLine1 := readChatLine(1)
-	
-	if (inStr(suspectLine0 . suspectLine1, "Du kannst Beamte keine Wanteds eintrragen.") || InStr(suspectLine0 . suspectLine1, "Der Spieler befindet sich im Gefängnis.")) {
-		return false
-	}
-	
-	wanteds := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=wanteds&value=" . amount)
-	IniWrite, %wanteds%, stats.ini, Vergaben, Wanteds
-	
-	SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(wanteds) . cwhite . " Wanteds vergeben.")
-	return true
+	return false 
 }
 
 givePoints(suspect, reason, amount, extra := "") {
@@ -12026,7 +12057,8 @@ giveTicket(player, money, reason) {
 }
 
 payPartnerMoney(money, stat) {
-	global
+	global username
+	global password
 	
 	partnerStake := Round(money / (partners.Length() + 1), 0)
 	
