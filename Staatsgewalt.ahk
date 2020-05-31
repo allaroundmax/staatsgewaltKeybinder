@@ -31,7 +31,7 @@ global fullProjectName 		:= "Staatsgewalt"
 
 global version 				:= "4.1.0"
 global keybinderStart 		:= 0
-global rank						:= 0
+global rank					:= 0
 global userFraction			:= 1
 global baseURL 				:= "https://staatsgewalt.jameschans.de/keybinder/"
 
@@ -71,9 +71,11 @@ if (username != "" && password != "") {
 
 	IniWrite, % "", login.ini, login, username
 	IniWrite, % "", login.ini, login, password
+	
 	Gui, Add, Text, x12 y9 w530 h60 +BackgroundTrans +Center, Staatsgewalt - Login
 	Gui, Add, Text, x12 y49 w100 h20 +BackgroundTrans, Benutzername
 	Gui, Add, Text, x12 y79 w100 h20 +BackgroundTrans, Passwort
+	
 	Gui, Add, Edit, x112 y49 w180 h20 vusername,
 	Gui, Add, Edit, x112 y79 w180 h20 +Password vpassword,
 	Gui, Add, Button, x442 y189 w100 h30 gdoLogin, Login
@@ -83,13 +85,16 @@ if (username != "" && password != "") {
 return
 
 doLogin:
-GuiControlGet, username
-GuiControlGet, password
-IniWrite, %username%, login.ini, login, username
-IniWrite, %password%, login.ini, login, password
-Reload
+{
+	GuiControlGet, username
+	GuiControlGet, password
+	
+	IniWrite, %username%, login.ini, login, username
+	IniWrite, %password%, login.ini, login, password
+	
+	Reload
+}
 return
-
 
 Start:
 {
@@ -98,7 +103,9 @@ Start:
 	newversion :=  URLDownloadToVar(baseURL . "api/getsetting?key=version")
 	rank := URLDownloadToVar(baseURL . "api/getUserInfo?username=" . username . "&info=rank")
 	userFraction := URLDownloadToVar(baseURL . "api/getUserInfo?username=" . username . "&info=fraction")
+	
 	fraction := getFractionName()
+	
 	if (newversion > version) {		
 		MsgBox, 68, %projectName% Keybinder - Version %version%, Es wurde eine neue Keybinderversion (Version %newversion%) veröffentlicht!`nMöchtest du diese nun herunterladen?`n`nÄnderungen sind im Forum im Thread!
 		
@@ -562,6 +569,7 @@ Start:
 	global fishTimeout_ 		:= true
 	global localTimeout_ 		:= true
 
+	global firstStart			:= false
 	global isPaintball			:= false
 	global hackerFinder 		:= false
 	global rewantedting			:= false
@@ -614,11 +622,11 @@ Start:
 		
 	Gui, Add, Text, x245 y12 w460 h55 , %fullProjectName%
 		
-	if (fraction == "FBI") {
+	if (getFractionName() == "LSPD") {
 		Gui, Add, Picture, x12 y0 w80 h80, images\LogoSmallFBI.png
-	} else if (fraction == "LSPD") {
+	} else if (getFractionName() == "LSPD") {
 		Gui, Add, Picture, x12 y0 w80 h80, images\LogoSmallLSPD.png
-	} else if (fraction == "Army") {
+	} else if (getFractionName() == "Army") {
 		Gui, Add, Picture, x12 y0 w80 h80, images\LogoSmallArmy.png
 	}
 	
@@ -651,6 +659,8 @@ Start:
 		rankinfo := "Du bist kein Beamter"
 	}
 	
+	fractionName := getFractionName()
+	
 	info =
 	(
 Name: %username%
@@ -660,6 +670,7 @@ Name: %username%
 	
 	
 Aktuelle Keybinderversion: %version%
+Fraktion: %fractionName%
 
 Eingeloggt seit: %keybinderStart% Uhr
 	)
@@ -832,30 +843,6 @@ SettingsGuiClose:
 	IniWrite, % afkInfo, settings.ini, infos, afkInfo
 
 	IniWrite, % lottoNumber, settings.ini, settings, lottoNumber
-	if (rank == "" || rank == " ") {
-		MsgBox, 16, Fehler!, Du musst das Feld 'Rang' ausfüllen.
-	} else {
-		if (rank is not number) {
-			MsgBox, 16, Fehler!, Das Feld 'Rang' muss eine Zahl sein.
-		} else {
-			if (rank > 11 || rank < 1) {
-				MsgBox, 16, Fehler!, Der Rang muss mindest 1 und darf maximal 11 betragen.
-			} else {
-				IniWrite, % rank, settings.ini, settings, rank
-			}
-		}
-	}
-
-	if (fraction == "" || fraction == " ") {
-		MsgBox, 16, Fehler!, Du musst das Feld 'Fraktion' ausfüllen.
-	} else {
-		if (fraction == "LSPD" || fraction == "FBI" || fraction == "Army") {
-			IniWrite, % fraction, settings.ini, settings, fraction
-		} else {
-			MsgBox, 16, Fehler!, Trage folgende Fraktionen ein: 'LSPD', 'FBI', 'Army'
-		}
-	}
-	
 	IniWrite, % department, settings.ini, settings, department
 	IniWrite, % ownprefix, settings.ini, settings, ownprefix
 	IniWrite, % primaryColor, settings.ini, settings, primaryColor
@@ -2228,12 +2215,10 @@ handleChatMessage(message, index, arr) {
 		
 	} else if (RegExMatch(message, "^\*\* (.+) (\S+): HQ: Bitte Zollstation (\S+) schließen! \*\*", message_)) {
 		if (message_2 != getUserName()) {
-			if (checkRank()) {
-				if (getRank() > 4) {
-					closeZoll := message_3
-					
-					SetTimer, CloseZollTimer, 1
-				}
+			if (rank > 4) {
+				closeZoll := message_3
+				
+				SetTimer, CloseZollTimer, 1
 			}
 		}
 	} else if (RegExMatch(message, "^\*\* (.*) (\S+): Der Spieler (\S+) \(ID: (\d+)\) (.*)\. \*\*", line_)) {
@@ -2268,12 +2253,10 @@ handleChatMessage(message, index, arr) {
 		}		
 	} else if (RegExMatch(message, "^\*\* (.+) (\S+): HQ: Bitte Zollstation (\S+) öffnen! \*\*", message_)) {
 		if (message_2 != getUserName()) {		
-			if (checkRank()) {
-				if (getRank() > 4) {
-					openZoll := message_3
-					
-					SetTimer, OpenZollTimer, 1
-				}
+			if (rank > 4) {
+				openZoll := message_3
+				
+				SetTimer, OpenZollTimer, 1
 			}
 		}
 	} else if (RegExMatch(message, "^WARNUNG: Hör auf zu Spamen, sonst wirst du gekickt!$")) {
@@ -3090,7 +3073,7 @@ return
 {
 	stopFinding()
 	
-	global tempo 				:= 80
+		global tempo 				:= 80
 	global currentTicket 		:= 1
 	global maxTickets 			:= 1
 	global currentFish 			:= 1
@@ -3135,7 +3118,7 @@ return
 	global oldFrisk				:= ""
 	global oldLocal				:= ""
 	global tvName 				:= ""
-
+	
 	global fillTimeout_ 		:= true
 	global canisterTimeout_ 	:= true
 	global mautTimeout_ 		:= true
@@ -3145,17 +3128,14 @@ return
 	global jailgateTimeout_ 	:= true 
 	global GateTimeout_ 		:= true
 	global fishTimeout_ 		:= true
-	global localTimeout_		:= true
+	global localTimeout_ 		:= true
 
-	global timeout				:= true
 	global isPaintball			:= false
 	global hackerFinder 		:= false
 	global rewantedting			:= false
 	global tempomat 			:= false
 	global tv 					:= false
-	
-	global oldVehicleName		:= "none"
-	
+		
 	SendChat("/me verbindet sich neu zum Server.")
 
 	restart()
@@ -3200,18 +3180,16 @@ closeCustomsControlLabel:
 		return
 	}
 		
-	if (checkRank()) {
-		if (getRank() > 4) {
-			SendInput, t/zollcontrol  zu{left 3}
-		} else if (getRank() < 5) {
-			zoll := PlayerInput("Zoll Nummer: ")
-			if (zoll == "" || zoll == " ") {
-				return
-			}
-				
-			SendChat("/d HQ: Bitte Zollstation " . zoll . " schließen!")
+	if (rank > 4) {
+		SendInput, t/zollcontrol  zu{left 3}
+	} else if (rank < 5) {
+		zoll := PlayerInput("Zoll Nummer: ")
+		if (zoll == "" || zoll == " ") {
+			return
 		}
-	}	
+			
+		SendChat("/d HQ: Bitte Zollstation " . zoll . " schließen!")
+	}
 }
 return
 
@@ -3221,17 +3199,15 @@ openCustomsControlLabel:
 		return
 	}
 		
-	if (checkRank()) {
-		if (getRank() > 3) {
-			SendInput, t/zollcontrol  auf{left 4}
-		} else if (getRank() < 4) {
-			zoll := PlayerInput("Zoll Nummer: ")
-			if (zoll == "" || zoll == " ") {
-				return
-			}
-			
-			SendChat("/d HQ: Bitte Zollstation " . zoll . " öffnen!")
+	if (rank > 3) {
+		SendInput, t/zollcontrol  auf{left 4}
+	} else if (rank < 4) {
+		zoll := PlayerInput("Zoll Nummer: ")
+		if (zoll == "" || zoll == " ") {
+			return
 		}
+		
+		SendChat("/d HQ: Bitte Zollstation " . zoll . " öffnen!")
 	}
 }
 return
@@ -3242,10 +3218,8 @@ govClosedCustomsLabel:
 		return
 	}
 	
-	if (checkRank()) {
-		if (getRank() > 6) {
-			SendInput, t/gov Die Zollstationen  sind zurzeit geschlossen.{left 26}
-		}
+	if (rank > 6) {
+		SendInput, t/gov Die Zollstationen  sind zurzeit geschlossen.{left 26}
 	}
 }
 return
@@ -3256,10 +3230,8 @@ govOpenedCustomsLabel:
 		return
 	}
 	
-	if (checkRank()) {
-		if (getRank() > 6) {
-			SendInput, t/gov Die Zollstationen  sind nicht mehr geschlossen.{left 29}
-		}
+	if (rank > 6) {
+		SendInput, t/gov Die Zollstationen  sind nicht mehr geschlossen.{left 29}
 	}
 }
 return
@@ -5306,13 +5278,7 @@ acceptJobLabel:
 			SendChat("/d HQ: Wagen " . getVehicleModelId() . " übernimmt den Auftrag!")
 		}
 	} else {
-		if (fraction == "FBI") {
-			SendChat("/d HQ: Agent " . getUserName() . " übernimmt den Auftrag!")
-		} else if (fraction == "LSPD") {
-			SendChat("/d HQ: Officer " . getUserName() . " übernimmt den Auftrag!")
-		} else if (fraction == "Army") {
-			SendChat("/d HQ: Soldat " . getUserName() . " übernimmt den Auftrag!")
-		}
+		SendChat("/d HQ: " . getFractionTitle() . " " . getUserName() . " übernimmt den Auftrag!")
 	}
 }
 return
@@ -5330,13 +5296,7 @@ doneJobLabel:
 			SendChat("/d HQ: Wagen " . getVehicleModelId() . " hat den Auftrag ausgeführt!")
 		}
 	} else {
-		if (fraction == "FBI") {
-			SendChat("/d HQ: Agent " . getUserName() . " hat den Auftrag ausgeführt!")
-		} else if (fraction == "LSPD") {
-			SendChat("/d HQ: Officer " . getUserName() . " hat den Auftrag ausgeführt!")
-		} else if (fraction == "Army") {
-			SendChat("/d HQ: Soldat " . getUserName() . " hat den Auftrag ausgeführt!")
-		}
+		SendChat("/d HQ: " . getFractionTitle() . " " . getUserName() . " hat den Auftrag ausgeführt!")
 	}
 }
 return
@@ -6152,6 +6112,7 @@ return
 :?:/q::
 {
 	stopFinding()
+	
 	global tempo 				:= 80
 	global currentTicket 		:= 1
 	global maxTickets 			:= 1
@@ -6197,7 +6158,7 @@ return
 	global oldFrisk				:= ""
 	global oldLocal				:= ""
 	global tvName 				:= ""
-
+	
 	global fillTimeout_ 		:= true
 	global canisterTimeout_ 	:= true
 	global mautTimeout_ 		:= true
@@ -6207,15 +6168,13 @@ return
 	global jailgateTimeout_ 	:= true 
 	global GateTimeout_ 		:= true
 	global fishTimeout_ 		:= true
-	global localTimeout_		:= true
-		
+	global localTimeout_ 		:= true
+
 	global isPaintball			:= false
 	global hackerFinder 		:= false
 	global rewantedting			:= false
 	global tempomat 			:= false
-	global tv 					:= false
-	
-	global oldVehicleName		:= "none"
+	global tv 					:= false	
 	
 	SendInput, /q{enter} 
 }
@@ -7310,13 +7269,7 @@ return
 			SendChat("/d HQ: Wagen " . getVehicleModelId() . " hat verstanden und bestätigt!")
 		}
 	} else {
-		if (fraction == "FBI") {
-			SendChat("/d HQ: Agent " . getUserName() . " hat verstanden und bestätigt!")
-		} else if (fraction == "LSPD") {
-			SendChat("/d HQ: Officer " . getUserName() . " hat verstanden und bestätigt!")
-		} else if (fraction == "Army") {
-			SendChat("/d HQ: Soldat " . getUserName() . " hat verstanden und bestätigt!")
-		}
+		SendChat("/d HQ: " . getFractionTitle() . " " . getUserName() . " hat verstanden und bestätigt!")
 	}
 }
 return
@@ -7330,13 +7283,7 @@ return
 			SendChat("/f HQ: Wagen " . getVehicleModelId() . " hat verstanden und bestätigt!")
 		}
 	} else {
-		if (fraction == "FBI") {
-			SendChat("/f HQ: Agent " . getUserName() . " hat verstanden und bestätigt!")
-		} else if (fraction == "LSPD") {
-			SendChat("/f HQ: Officer " . getUserName() . " hat verstanden und bestätigt!")
-		} else if (fraction == "Army") {
-			SendChat("/f HQ: Soldat " . getUserName() . " hat verstanden und bestätigt!")
-		}
+		SendChat("/f HQ: " . getFractionTitle() . " " . getUserName() . " hat verstanden und bestätigt!")
 	}
 }
 return
@@ -7350,13 +7297,7 @@ return
 			SendChat("/r HQ: Wagen " . getVehicleModelId() . " hat verstanden und bestätigt!")
 		}
 	} else {
-		if (fraction == "FBI") {
-			SendChat("/r HQ: Agent " . getUserName() . " hat verstanden und bestätigt!")
-		} else if (fraction == "LSPD") {
-			SendChat("/r HQ: Officer " . getUserName() . " hat verstanden und bestätigt!")
-		} else if (fraction == "Army") {
-			SendChat("/r HQ: Soldat " . getUserName() . " hat verstanden und bestätigt!")
-		}
+		SendChat("/r HQ: " . getFractionTitle() . " " . getUserName() . " hat verstanden und bestätigt!")
 	}
 }
 return
@@ -7437,60 +7378,54 @@ return
 :?:/mt::
 :?:/mats::
 {
-	if (checkRank()) {
-		if (getRank() > 0 && getRank() < 7) {
-			extra := "/f HQ:"
-		} else if (getRank() > 7) {
-			extra := "/hq"
-		} else {
-			SendClientMessage(prefix . "Bei der Rang-Abfrage ist ein Fehler aufgetreten.")
-			extra := "/f HQ:"
-		}
-		
-		SendChat(extra . " Es findet ein Matstransport statt! ALLE EINHEITEN SOFORT ANRÜCKEN!")
-		SendChat(extra . " Derzeitige Position: " . getLocation())
+	if (rank > 0 && rank < 7) {
+		extra := "/f HQ:"
+	} else if (rank > 7) {
+		extra := "/hq"
+	} else {
+		SendClientMessage(prefix . "Bei der Rang-Abfrage ist ein Fehler aufgetreten.")
+		extra := "/f HQ:"
 	}
+	
+	SendChat(extra . " Es findet ein Matstransport statt! ALLE EINHEITEN SOFORT ANRÜCKEN!")
+	SendChat(extra . " Derzeitige Position: " . getLocation())
 }
 return
 
 :?:/mrob::
 {
-	if (checkRank()) {
-		if (getRank() > 0 && getRank() < 7) {
-			extra := "/f HQ:"
-		} else if (getRank() > 7) {
-			extra := "/hq"
-		} else {
-			SendClientMessage(prefix . "Bei der Rang-Abfrage ist ein Fehler aufgetreten.")
-			extra := "/f HQ:"
-		}
+	if (rank > 0 && rank < 7) {
+		extra := "/f HQ:"
+	} else if (rank > 7) {
+		extra := "/hq"
+	} else {
+		SendClientMessage(prefix . "Bei der Rang-Abfrage ist ein Fehler aufgetreten.")
+		extra := "/f HQ:"
+	}
+	
+	SendChat(extra . " Es findet aktuell ein Überfall auf einen Matstransport statt!")
+	SendChat(extra . " ALLE EINHEITEN SOFORT ANRÜCKEN! Aktuelle Position: " . getLocation())
+	
+	if (!bk) {
+		bk := true
 		
-		SendChat(extra . " Es findet aktuell ein Überfall auf einen Matstransport statt!")
-		SendChat(extra . " ALLE EINHEITEN SOFORT ANRÜCKEN! Aktuelle Position: " . getLocation())
-		
-		if (!bk) {
-			bk := true
-			
-			SendChat("/bk")
-		}
+		SendChat("/bk")
 	}
 }
 return
 
 :?:/go::
 {	
-	if (checkRank()) {
-		if (getRank() > 0 && getRank() < 7) {
-			extra := "/d HQ:"
-		} else if (getRank() > 7) {
-			extra := "/hq"
-		} else {
-			SendClientMessage(prefix . "Bei der Rang-Abfrage ist ein Fehler aufgetreten.")
-			extra := "/d HQ:"
-		}
-		
-		SendChat(extra . " Einsatzleitung erlaubt Zugriff, GOGOGO!")
+	if (rank > 0 && rank < 7) {
+		extra := "/d HQ:"
+	} else if (rank > 7) {
+		extra := "/hq"
+	} else {
+		SendClientMessage(prefix . "Bei der Rang-Abfrage ist ein Fehler aufgetreten.")
+		extra := "/d HQ:"
 	}
+	
+	SendChat(extra . " Einsatzleitung erlaubt Zugriff, GOGOGO!")
 }
 return
 
@@ -7542,26 +7477,24 @@ return
 		return
 	}
 	
-	if (checkRank()) {
-		if (getRank() > 6) {
-			SendChat("/hq An alle Einheiten: Einsatzziel ist " . getFullName(hunting) . " (ID: " . getPlayerIdByName(getFullName(hunting)) . "). Alle SOFORT ausrücken!")
-		} else {
-			SendChat("/f HQ: An alle Einheiten: Einsatzziel ist " . getFullName(hunting) . " (ID: " . getPlayerIdByName(getFullName(hunting)) . "). Alle SOFORT ausrücken!")
-		}
+	if (rank > 6) {
+		SendChat("/hq An alle Einheiten: Einsatzziel ist " . getFullName(hunting) . " (ID: " . getPlayerIdByName(getFullName(hunting)) . "). Alle SOFORT ausrücken!")
+	} else {
+		SendChat("/f HQ: An alle Einheiten: Einsatzziel ist " . getFullName(hunting) . " (ID: " . getPlayerIdByName(getFullName(hunting)) . "). Alle SOFORT ausrücken!")
+	}
+	
+	Sleep, 200
+	
+	SendClientMessage(prefix . "Möchtest du den Spieler suchen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
+	
+	KeyWait, X, D, T10
+	
+	if (!ErrorLevel) {
+		playerToFind := getFullName(hunting)
+		autoFindMode := 1
 		
-		Sleep, 200
-		
-		SendClientMessage(prefix . "Möchtest du den Spieler suchen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
-		
-		KeyWait, X, D, T10
-		
-		if (!ErrorLevel) {
-			playerToFind := getFullName(hunting)
-			autoFindMode := 1
-			
-			findPlayer()
-			findInfo(playerToFind)
-		}
+		findPlayer()
+		findInfo(playerToFind)
 	}
 }
 return
@@ -7978,13 +7911,7 @@ return
 
 :?:/taxi::
 {
-	if (fraction == "FBI") {
-		SendChat("Wir sind kein Taxiunternehmen, wir sind Agenten.")
-	} else if (fraction == "LSPD") {
-		SendChat("Wir sind kein Taxiunternehmen, wir sind Beamte.")
-	} else if (fraction == "Army") {
-		SendChat("Wir sind kein Taxiunternehmen, wir sind Soldaten.")
-	}
+	SendChat("Ich bin kein Taxifahrer, sondern ein " . getFractionTitle() . "!")
 }
 return
 
@@ -8437,18 +8364,11 @@ return
 		
 		SendChat("/pickup")
 		
-		if (!admin)
+		if (!admin) { 
 			Sleep, 400
-		
-		if (fraction == "FBI") {
-			copTitle := "Agent"
-		} else if (fraction == "LSPD") {
-			copTitle := "Officer"
-		} else if (fraction == "Army") {
-			copTitle := "Soldat"
 		}
 		
-		SendChat("Guten " . getDayTime() . " " . caller_1 . ", Sie sprechen mit " . copTitle . " " . name . ".")
+		SendChat("Guten " . getDayTime() . " " . caller_1 . ", Sie sprechen mit " . getFractionTitle() . " " . name . ".")
 		
 		if (!admin) {
 			Sleep, 750
@@ -10936,6 +10856,13 @@ MainTimer:
 		return
 	}
 	
+	if (!firstStart) {
+		firstStart := true 
+		
+		SendClientMessage(prefix . "Keybinder (Version " . csecond . version . cwhite . ") wurde gestartet!")
+		SendClientMessage(prefix . "Willkommen, " . csecond . username . cwhite . "! Fraktion: " . getFractionName() . ", Rang: " . rank)
+	}
+	
 	if (spotifyPublic || spotifyPrivacy) {
 		WinGetTitle, spotifytrack, ahk_exe Spotify.exe
 
@@ -11833,26 +11760,6 @@ useHeals() {
 	Settimer, reactivateAutoUse, -60000
 }
 */
-checkRank() {
-	global
-	
-	iniRead, rank, settings.ini, settings, rank, %A_Space%
-	
-	if (!rank || rank == "" || rank == "ERROR") {
-		SendClientMessage(prefix . "Du musst deinen genauen Rang eintragen, um alle Funktionen nutzen zukönnen.")
-		SendClientMessage(prefix . "Verwende hierfür '" . cSecond . "/setrang" . cwhite . "' als Befehl.")
-		return 0
-	} else {
-		return 1
-	}
-}
-
-getRank() {
-	global
-	
-	iniRead, rank, settings.ini, settings, rank, 0
-	return rank
-}
 
 utf8toansi(string) {
 	FileAppend, %string%, conv.txt
@@ -12048,7 +11955,6 @@ giveWanteds(suspect, reason, amount) {
 	}
 	
 	wanteds := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=wanteds&value=" . amount)
-
 	IniWrite, %wanteds%, stats.ini, Vergaben, Wanteds
 	
 	SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(wanteds) . cwhite . " Wanteds vergeben.")
@@ -13178,16 +13084,32 @@ isPlayerAtFishPoint() {
 	}
 }
 
-getFractionName(){
-		global
-		if(userFraction == 1){
-			return "LSPD"
-		} else if(userFraction == 2){
-			return "FBI"
-		} else if(userFraction == 3){
-			return "Army"
-		}
+getFractionName() {
+	global
+	
+	if (userFraction == 1) {
 		return "LSPD"
+	} else if (userFraction == 2) {
+		return "FBI"
+	} else if (userFraction == 3){ 
+		return "Army"
+	}
+	
+	return "LSPD"
+}
+
+getFractionTitle() {
+	global
+	
+	if (getFractionName() == "LSPD") {
+		return "Officer"
+	} else if (getFractionName() == "FBI") {
+		return "Agent"
+	} else if (getFractionName() == "Army") {
+		return "Soldat"
+	}
+	
+	return "Beamter"
 }
 
 isBlocked() {
