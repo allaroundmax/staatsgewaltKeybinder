@@ -587,9 +587,9 @@ Start:
 		global respawnCarsRunning := false
 	}
 	
+	SetTimer, ArrestTimer, 100
 	SetTimer, ChatTimer, 200	
 	SetTimer, MainTimer, 200
-	SetTimer, ArrestTimer, 100
 	SetTimer, TimeoutTimer, 1000
 	SetTimer, SecondTimer, 1000
 
@@ -11993,7 +11993,6 @@ giveWanteds(suspect, reason, amount) {
     if (data["error"] != "") {
         SendClientMessage(prefix . "Fehler: " . data["error"])
     } else {
-        
         if (!data["registered"]) {
 			SendClientMessage(prefix . "|========================| Doppelete Vergabe |========================|")
 			SendClientMessage(prefix . "Es wurde eine doppelte Wantedvergabe erkannt. Informationen:")
