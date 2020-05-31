@@ -36,17 +36,17 @@ IfExist update.bat
 global projectName 			:= "Staatsgewalt"
 global fullProjectName 		:= "Staatsgewalt"
 
-global keybinderVersion 	:= "overlay"
 global version 				:= "4.0.8"
 global keybinderStart 		:= 0
 
 global baseURL 				:= "https://staatsgewalt.jameschans.de/keybinder/"
 
-global cwhite			:= "{FFFFFF}"
+global cwhite				:= "{FFFFFF}"
+global cblue				:= "{2090B3}"
 global COLOR_GREY			:= "{BDBDBD}"
-global COLOR_RED			:= "{CC0000}"
+global cred					:= "{CC0000}"
 global COLOR_WANTED			:= "{FF4000}"
-global COLOR_GREEN			:= "{00962B}"
+global cgreen				:= "{00962B}"
 global COLOR_YELLOW			:= "{FFEE00}"
 global COLOR_ORANGE			:= "{FF8100}"
 
@@ -137,20 +137,7 @@ Start:
 	
 	IfNotExist, images
 		FileCreateDir, images
-	
-	if (keybinderVersion == "overlay") {
-		IfNotExist, bin 
-			FileCreateDir, bin
-		
-		IfNotExist, bin\overlay.dll
-			URLDownloadToFile, %baseURL%keybinder/download/bin/overlay.dll, bin\overlay.dll
-		
-		#Include, include/overlay.ahk
-		
-		SetParam("use_window", "1")
-		SetParam("window", "GTA:SA:MP")
-	}
-	
+
 	IniRead, autoLock, settings.ini, settings, autoLock, 0
 	IniRead, autoEngine, settings.ini, settings, autoEngine, 0
 	IniRead, autoFill, settings.ini, settings, autoFill, 0
@@ -193,14 +180,15 @@ Start:
 	IniRead, escInfo, settings.ini, infos, escInfo, 0
 	IniRead, afkInfo, settings.ini, infos, afkInfo, 0
 	
+	IniRead, taxes, settings.ini, settings, taxes, 0
+	IniRead, max_kmh, settings.ini, settings, max_kmh, 0
+	
 	IniRead, lottoNumber, settings.ini, Einstellungen, Lottozahl, 0
 	IniRead, primaryColor, settings.ini, Einstellungen, Primärfarbe, %A_Space%
 	IniRead, secondaryColor, settings.ini, Einstellungen, Sekundärfarbe, %A_Space%
 	IniRead, keybinderFrac, settings.ini, Einstellungen, keybinderFrac, %A_Space%
 	IniRead, ownprefix, settings.ini, Einstellungen, Ownprefix, %A_Space%	
 	IniRead, ownRank, settings.ini, Einstellungen, ownRank, 0
-	IniRead, maxKMH, settings.ini, Einstellungen, MaxKMH, 0
-	IniRead, taxes, settings.ini, Steuern, Steuersatz, 1			
 	IniRead, commitmentUnix, settings.ini, UnixTime, commitmentUnix, 0
 	IniRead, commitmentTime, settings.ini, UnixTime, commitmentTime, 0
 	IniRead, drugs, settings.ini, Items, drugs, 0
@@ -456,41 +444,6 @@ Start:
 		prefix := ownprefix . " "
 	}
 	
-	if (keybinderVersion == "overlay") {
-		IniRead, statsOverlayContent, settings.ini, StatsOverlay, Content, %A_Space%
-		IniRead, statsOverlayAutostart, settings.ini, StatsOverlay, Autostart, 0
-		IniRead, statsOverlayPosX, settings.ini, StatsOverlay, PosX, 20
-		IniRead, statsOverlayPosY, settings.ini, StatsOverlay, PosY, 215
-		IniRead, statsOverlayColors, settings.ini, StatsOverlay, Colors, 1
-		IniRead, statsOverlayItalic, settings.ini, StatsOverlay, Italic, 0
-		IniRead, statsOverlayFont, settings.ini, StatsOverlay, Font, Arial
-		IniRead, statsOverlayFontSize, settings.ini, StatsOverlay, FontSize, 7
-		IniRead, statsOverlayBold, settings.ini, StatsOverlay, Bold, 1
-		IniRead, statsOverlayColor, settings.ini, StatsOverlay, Color, FF9900
-		
-		if (statsOverlayContent == "") {
-			statsOverlayConect := "[primcol]Spieler Informationen [white]([primcol][name][white])~| Spieler ID: [csecond][id][white]~| FPS: [csecond][fps][white]~| Standort: [csecond][zone], [city][white]~| Leben: [csecond][hp] / [armour]~~[primcol]Statistiken~[white]| Arrests: [csecond][arrests][white] (Geld: [csecond][arrestmoney][white]$)~| Tickets: [csecond][tickets][white] (Geld: [csecond][ticketmoney][white]$)~| Wanteds: [csecond][wanteds][white]~| Kills: [csecond][crimekills][white]~| Kontrollen: [csecond][controls]~[backup]~~~[lock]~[light]"
-			
-			IniWrite, %statsOverlayContent%, settings.ini, StatsOverlay, Content
-		}
-		
-		statsOverlayContent := StrReplace(statsOverlayContent, "~", "`n")
-		
-		statsOverlayprimcolor := "{0040FF}"
-		statsOverlaycsecondor := "{" . statsOverlayColor . "}"
-		statsOverlayPositiveColor := "{00962B}"
-		statsOverlayNegativeColor := "{CC0000}"
-		
-		allOverlaysEnabled := false
-		statsOverlayEnabled := false
-		
-		if (statsOverlayAutostart) {
-			createOverlay(1)
-			
-			statsOverlayEnabled := true
-		}
-	}
-	
 	if (keybinderFrac == "") {
 		keybinderFrac := "FBI"
 	}
@@ -571,20 +524,6 @@ Start:
 		
 	global oldVehicleName		:= "none"
 	global oldSpotifyTrack		:= "notFound"
-
-	if (keybinderVersion == "overlay") {
-		if (admin) {
-			overlayOn := false
-			
-			Loop 15 {
-				sup_text_%A_Index% := ""
-				sup_name_%A_Index% := ""
-			}
-			
-			numID := 1
-			page := 1	
-		}
-	}
 	
 	if (admin) {
 		IfNotExist Tickets
@@ -765,7 +704,6 @@ Name: %username%
 	
 	
 Aktuelle Keybinderversion: %version%
-Keybinder-Typ: %keybinderVersion%
 
 Eingeloggt seit: %keybinderStart% Uhr
 	)
@@ -777,19 +715,6 @@ return
 
 GuiClose:
 {
-	if (keybinderVersion == "overlay") {
-		if (statsOverlayEnabled) {
-			TextDestroy(statsOverlay)
-		}	
-
-		if (admin) {
-			TextDestroy(sup_heading)
-			TextDestroy(sup_page)
-			TextDestroy(sup_text)
-			BoxDestroy(sup_box)
-		}
-	}
-
 	ExitApp
 }
 return
@@ -819,15 +744,7 @@ SettingsGUI:
 	Gui, Settings: Color, white
 	Gui, Settings: Font, S10 CDefault, Verdana
 	
-	if (keybinderVersion == "nooverlay") {
-		Gui, Settings: Add, Button, x10 y760 w130 h40 voverlayButton, Overlay
-		
-		GuiControl, Settings: Disable, overlayButton
-	} else {
-		Gui, Settings: Add, Button, x10 y760 w130 h40 gOverlaySettingsGUI, Overlays
-	}
-	
-	Gui, Settings: Add, Button, x150 y760 w130 h40 gequipProfiles, Ausrüstprofile
+	Gui, Settings: Add, Button, x10 y760 w130 h40 gequipProfiles, Ausrüstprofile
 	Gui, Settings: Add, Button, x480 y760 w130 h40 gSettingsGuiClose, Schließen
 	
 	Gui, Settings: Add, GroupBox, x10 y10 w640 h230, Allgemeine Einstellungen
@@ -1052,210 +969,6 @@ EquipClose:
 	reload
 }
 return
-
-if (keybinderVersion == "overlay") {
-	OverlaySettingsGUI:
-	{
-		Gui, OverlaySettings: Destroy
-		
-		Gui, OverlaySettings: Color, white
-		Gui, OverlaySettings: Font, S10 CDefault, Verdana
-		
-		Gui, OverlaySettings: Add, Button, x10 y670 w160 h40 gOverlaySettingsSave, Speichern
-		Gui, OverlaySettings: Add, Button, x370 y670 w160 h40 gOverlaySettingsGuiClose, Schließen
-		
-		
-		Gui, OverlaySettings: Add, GroupBox, x10 y10 w520 h260, Overlay-Inhalt
-		Gui, OverlaySettings: Add, Edit, x20 y30 w500 h230 vstatsOverlayContent, %statsOverlayContent%
-		
-		Gui, OverlaySettings: Add, GroupBox, x10 y280 w520 h170, Statistik-Overlay Einstellungen
-		
-		Gui, OverlaySettings: Add, Text, x20 y300 w200 h20, Beim Keybinderstart starten:
-		Gui, OverlaySettings: Add, CheckBox, x230 y300 w80 h20 vstatsOverlayAutostart checked%statsOverlayAutostart%, on / off
-		
-		Gui, OverlaySettings: Add, Text, x20 y330 w90 h20, Koordinaten:
-		Gui, OverlaySettings: Add, Text, x130 y330 w10 h20, x
-		Gui, OverlaySettings: Add, Text, x130 y360 w10 h20, y
-		Gui, OverlaySettings: Add, Text, x20 y390 w120 h20, Farben anzeigen:
-		Gui, OverlaySettings: Add, Text, x20 y420 w120 h20, Kursiv anzeigen:
-		
-		Gui, OverlaySettings: Add, Edit, x150 y330 w70 h20 vstatsOverlayPosX, %statsOverlayPosX%
-		Gui, OverlaySettings: Add, Edit, x150 y360 w70 h20 vstatsOverlayPosY, %statsOverlayPosY%
-		Gui, OverlaySettings: Add, CheckBox, x150 y390 w80 h20 vstatsOverlayColors checked%statsOverlayColors%, on / off
-		Gui, OverlaySettings: Add, CheckBox, x150 y420 w80 h20 vstatsOverlayItalic checked%statsOverlayItalic%, on / off
-		
-		Gui, OverlaySettings: Add, Text, x230 y330 w145 h20, Schriftart (z.B. Arial):
-		Gui, OverlaySettings: Add, Text, x230 y360 w140 h20, Schriftgröße:
-		Gui, OverlaySettings: Add, Text, x230 y390 w140 h20, Fett anzeigen:
-		Gui, OverlaySettings: Add, Text, x230 y420 w140 h20, Sekundärfarbe:
-		
-		Gui, OverlaySettings: Add, Edit, x380 y330 w140 h20 vstatsOverlayFont, %statsOverlayFont%
-		Gui, OverlaySettings: Add, Edit, x380 y360 w140 h20 vstatsOverlayFontSize, %statsOverlayFontSize%
-		Gui, OverlaySettings: Add, CheckBox, x380 y390 w140 h20 vstatsOverlayBold checked%statsOverlayBold%, on / off
-		Gui, OverlaySettings: Add, Edit, x380 y420 w140 h20 vstatsOverlayColor, %statsOverlayColor%
-		
-		Menu, OverlaySettingsInformations, Add, &Informationen, OverlaySettingsInformations
-		
-		Gui, OverlaySettings: Menu, OverlaySettingsInformations
-		
-		Gui, OverlaySettings: Show, h720 w540, %projectName% - Overlay - Version: %version%
-	}
-	return
-
-	OverlaySettingsGuiClose:
-	{
-		Gui, OverlaySettings: Destroy
-	}
-	return
-
-	OverlaySettingsSave:
-	{
-		Gui, OverlaySettings: Submit, NoHide
-		
-		savedStatsOverlayContent := StrReplace(statsOverlayContent, "`n", "~")
-		
-		IniWrite, %savedStatsOverlayContent%, settings.ini, StatsOverlay, Content
-		IniWrite, %statsOverlayAutostart%, settings.ini, StatsOverlay, Autostart
-		IniWrite, %statsOverlayPosX%, settings.ini, StatsOverlay, PosX
-		IniWrite, %statsOverlayPosY%, settings.ini, StatsOverlay, PosY
-		IniWrite, %statsOverlayColors%, settings.ini, StatsOverlay, Colors
-		IniWrite, %statsOverlayItalic%, settings.ini, StatsOverlay, Italic
-		IniWrite, %statsOverlayFont%, settings.ini, StatsOverlay, Font
-		IniWrite, %statsOverlayFontSize%, settings.ini, StatsOverlay, FontSize
-		IniWrite, %statsOverlayBold%, settings.ini, StatsOverlay, Bold
-		IniWrite, %statsOverlayColor%, settings.ini, StatsOverlay, Color
-		
-		statsOverlayprimcolor := csecond
-		statsOverlaycsecondor := "{" . statsOverlayColor . "}"
-		statsOverlayPositiveColor := "{00962B}"
-		statsOverlayNegativeColor := "{CC0000}"
-		
-		if (statsOverlayEnabled) {
-			SetTimer, StatsOverlayTimer, Off
-			
-			TextDestroy(statsOverlay)
-			
-			createOverlay(1)
-		}
-		
-		MsgBox, 64, Speicherung, Alle Eingaben und Daten wurden erfolgreich gespeichert!
-		
-		Gui, OverlaySettings: Destroy
-	}
-	return
-
-	OverlaySettingsInformations:
-	{
-		Gui, OverlayVariables: Destroy
-		
-		Gui, OverlayVariables: Default
-		
-		Gui, OverlayVariables: Color, white
-		Gui, OverlayVariables: Font, S10 CDefault, Verdana
-		
-		Gui, OverlayVariables: Add, ListView, x10 y10 r20 w460 gOverlayVariablesLV, Platzhalter|Beschreibung
-		Gui, OverlayVariables: Add, Button, x310 y450 w160 h40 gOverlayVariablesGuiClose, Schließen
-		
-		LV_Add("", "-----------------", "Allgemeine Variablen")
-		LV_Add("", "[primcol]", "Primärfarbe")
-		LV_Add("", "[csecond]", "Sekundärfarbe")
-		LV_Add("", "[white]", "Weiß")
-		LV_Add("", "[name]", "Dein Name")
-		LV_Add("", "[id]", "Deine ID")
-		LV_Add("", "[ping]", "Dein Ping")
-		LV_Add("", "[fps]", "Deine FPS")
-		LV_Add("", "[zone]", "Deine Zone")
-		LV_Add("", "[city]", "Deine Stadt")
-		LV_Add("", "[hp]", "Deine HP")
-		LV_Add("", "[armour]", "Deine Armour")
-		LV_Add("", "[money]", "Geld auf der Hand")
-		LV_Add("", "[bankmoney]", "Geld auf dem Konto")
-		LV_Add("", "[allmoney]", "Gesamtgeld")
-		LV_Add("", "[skin]", "Deine Skin-ID")
-		LV_Add("", "[weaponid]", "Weapon-ID der aktuellen Waffe")
-		LV_Add("", "[weapon]", "Name der aktuellen Waffe")
-		LV_Add("", "[freezed]", "ja/nein, ob man gefreezed ist")
-		LV_Add("", "[vhealth]", "Fahrzeugzustand in Prozent")
-		LV_Add("", "[vmodelid]", "Fahrzeug-Modell-ID")
-		LV_Add("", "[vmodel]", "Fahrzeug-Modell-Name")
-		LV_Add("", "[vspeed]", "Fahrzeug-Geschwindigkeit")
-		LV_Add("", "[fishtime]", "Fisch-Zeit")
-		LV_Add("", "[date]", "Aktuelles Datum im Format TT.MM.JJJJ")
-		LV_Add("", "[motor]", "Motor-Status")
-		LV_Add("", "[lock]", "Lock-Status")
-		LV_Add("", "[light]", "Licht-Status")
-		LV_Add("", "[checkpoint]", "Distanz zum Checkpoint")
-		LV_Add("", "[pdmoney]", "Geld am nächsten Payday (brutto)")
-		LV_Add("", "[pdmoneynetto]", "Geld am nächsten Payday (netto)")
-		LV_Add("", "[find]", "Spieler auf /af oder /asp")
-		LV_Add("", "[partners]", "Eingetragene Partner")
-		LV_Add("", "[backup]", "Backup Informationen zeigen")
-		
-		LV_Add("", "-----------------", "Statistik Variablen")
-		LV_Add("", "[wanteds]", "Anzahl der vergebenen Wanteds")
-		LV_Add("", "[points]", "Anzahl der vergebenen Punkte")
-		LV_Add("", "[pointclear]", "Anzahl der gelöschten Punkte")
-		LV_Add("", "[wantedclear]", "Anzahl der gelöschten Wanteds")
-		LV_Add("", "[ticketrequests]", "Anzahl der von dir angebotenen Tickets")
-		LV_Add("", "[tickets]", "Anzahl der von dir angenommenen Tickets")
-		LV_Add("", "[ticketmoney]", "Durch Tickets verdientes Geld")
-		LV_Add("", "[arrests]", "Anzahl der eingesperrten Verbrecher")
-		LV_Add("", "[deatharrests]", "Anzahl der Death-Arrests")
-		LV_Add("", "[offlinearrests]", "Anzahl der Offline-Arrests")
-		LV_Add("", "[deathprison]", "Anzahl der Death-Prison")
-		LV_Add("", "[offlineprison]", "Anzahl der Offline-Prison")
-		LV_Add("", "[crimekills]", "Anzahl der getöteten Verbrecher")
-		LV_Add("", "[arrestmoney]", "Durch Verhaftungen verdientes Geld")
-		LV_Add("", "[controls]", "Anzahl der Kontrollen")
-		LV_Add("", "[trunkcontrols]", "Anzahl der Kofferraumkontrollen")
-		LV_Add("", "[radar]", "Anzahl der Radarkontrollen")
-		LV_Add("", "[takedmats]", "Anzahl der entzogenen Mats")
-		LV_Add("", "[takedpaks]", "Anzahl der entzogenen Mats-Pakete")
-		LV_Add("", "[takedbomb]", "Anzahl der entzogenen Haftbomben")
-		LV_Add("", "[takeddrugs]", "Anzahl der entzogenen Drogen")
-		LV_Add("", "[takedseeds]", "Anzahl der entzogenen Samen")
-		LV_Add("", "[plants]", "Anzahl zerstörter Marihuana-Pflanzen")
-		LV_Add("", "[plantsmoney]", "Durch Marihuana verdientest Geld")
-		LV_Add("", "[locals]", "Anzahl der eingenommenen Ketten")
-		LV_Add("", "[stores]", "Anzahl der übernommenen Storers")
-		LV_Add("", "[services]", "Anzahl der angenommenen Notrufe")
-		LV_Add("", "[tazer]", "Anzahl der Tazer-Benutzungen")		
-		LV_Add("", "[fishmoney]", "Durch Fischen verdientes Geld")
-		LV_Add("", "[roadblocks]", "Anzahl aufgestellter Straßensperren")
-		LV_Add("", "[equipmats]", "Anzahl der verbrauchten Materialien beim Ausrüsten")
-		LV_Add("", "[totalmoney]", "Gesamt verdientes Geld")
-		
-		LV_ModifyCol()
-		
-		Gui, OverlayVariables: Show, h500 w480, %projectName% - Overlay-Variablen - Version: %version%
-	}
-	return
-
-	OverlayVariablesLV:
-	{
-		if A_GuiEvent = DoubleClick
-		{
-			LV_GetText(RowText, A_EventInfo)
-			clipboard := RowText
-			ToolTip, Die Variable "%RowText%" wurde in die Zwischenablage kopiert!
-			SetTimer, RemoveToolTip, 1000
-		}
-	}
-	return
-
-	RemoveToolTip:
-	{
-		SetTimer, RemoveToolTip, Off
-		ToolTip
-	}
-	return
-
-	OverlayVariablesGuiClose:
-	{
-		Gui, OverlayVariables: Destroy
-	}
-	return
-}
 
 HotkeysGUI:
 {
@@ -2054,12 +1767,6 @@ HelpGUI:
 	
 	Gui, Help: Add, Edit, x10 y10 r30 w700 +ReadOnly,
 	(
-.:: Overlay ::. 
-/ov -> Overlay de/aktivieren (einzeln)
-/ovall -> Alle Overlays de/aktivieren
-/ovmove -> Overlay bewegen
-/ovsave -> Overlay speichern
-
 .:: Zollsystem ::.
 /zollhelp -> Keys / Befehle für Zollsachen anzeigen
 /zollinfo -> Alle Zollstationen auflisten
@@ -2147,8 +1854,6 @@ HelpGUI:
 /verf -> Unterstützung für Verfolgung anfragen (/d)
 /ort -> Letzten Ort des Verbrechers ansagen (/d)
 /air -> Fordere Luftüberwachung (/d)
-/off -> Meldet sich vom Dienst ab! (/d)
-/on -> Meldet sich zum Dienst! (/d)
 /wagen -> Benötige eine Streife in ... (/d)
 /sani -> Benötige einen RTW in ... + /service (/d)
 /abschlepp /oamt -> Benötige einen Abschleppwagen in ... + /service (/d)
@@ -3139,7 +2844,7 @@ handleChatMessage(message, index, arr) {
 		}
 		
 		if (RegExMatch(vehDriver, "^Fahrzeugführer: (\S+) \(ID: (\d+)\)$", driver_)) {
-			kmh := maxKMH
+			kmh := max_kmh
 			
 			IniRead, Radarcontrols, stats.ini, Kontrollen, Radarcontrols, 0
 			Radarcontrols ++
@@ -3205,398 +2910,6 @@ handleChatMessage(message, index, arr) {
 	}
 }
 
-if (keybinderVersion == "overlay") 
-{
-	StatsOverlayTimer:
-	{
-		if (keybinderVersion == "nooverlay") {
-			return
-		}
-		
-		IniRead, accountmoney, stats.ini, Vermögen, Bank, 0
-		IniRead, depositmoney, stats.ini, Vermögen, Festgeld, 0
-		
-		allMoney := accountMoney + depositMoney + getPlayerMoney()
-		
-		IniRead, wanteds, stats.ini, Vergaben, Wanteds, 0
-		IniRead, points, stats.ini, Vergaben, Points, 0
-		IniRead, pointclear, stats.ini, Vergaben, Pointsclear, 0
-		IniRead, wantedclear, stats.ini, Vergaben, Wantedsclear, 0
-		IniRead, ticketrequests, Stats.ini, Tickets, Ticketrequests, 0
-		IniRead, tickets, Stats.ini, Tickets, Tickets, 0
-		IniRead, ticketmoney, stats.ini, Tickets, Money, 0
-		IniRead, arrests, stats.ini, Verhaftungen, Arrests, 0
-		IniRead, deatharrests, stats.ini, Verhaftungen, Deatharrests, 0
-		IniRead, offlinearrests, stats.ini, Verhaftungen, Offlinearrests, 0
-		IniRead, deathprison, stats.ini, Verhaftungen, Deathprison, 0
-		IniRead, offlineprison, stats.ini, Verhaftungen, Offlineprison, 0
-		IniRead, crimekills, stats.ini, Verhaftungen, Crimekills, 0
-		IniRead, arrestmoney, stats.ini, Verhaftungen, Money, 0
-		IniRead, controls, stats.ini, Kontrollen, Controls, 0
-		IniRead, trunkcontrols, stats.ini, Kontrollen, Trunkcontrols, 0
-		IniRead, radar, stats.ini, Kontrollen, Radarcontrols, 0
-		IniRead, takedmats, stats.ini, Kontrollen, Mats, 0
-		IniRead, takedpaks, stats.ini, Kontrollen, Matpackets, 0
-		IniRead, takedbomb, stats.ini, Kontrollen, Matbombs, 0
-		IniRead, takeddrugs, stats.ini, Kontrollen, Drugs, 0
-		IniRead, takedseeds, stats.ini, Kontrollen, Seeds, 0
-		IniRead, plants, stats.ini, Marihuana, Plants, 0
-		IniRead, plants_money, stats.ini, Marihuana, Money, 0
-		IniRead, locals, stats.ini, Übernahmen, Restaurants, 0
-		IniRead, stores, stats.ini, Übernahmen, Storerobs, 0
-		IniRead, services, stats.ini, Übernahmen, Services, 0
-		IniRead, tazer, stats.ini, Allgemein, Tazer, 0
-		IniRead, fishmoney, stats.ini, Allgemein, Fishmoney, 0
-		IniRead, roadblocks, stats.ini, Allgemein, Roadblocks, 0
-		IniRead, equipmats, stats.ini, Allgemein, Equipmats, 0
-
-		totalMoney := arrestMoney + ticketMoney + fishMoney
-		
-		IniRead, fishTime, settings.ini, UnixTime, fishTime, 0
-		IniRead, fishUnix, settings.ini, UnixTime, fishUnix, 0
-		
-		motorStatus := ""
-		lockStatus := ""
-		lightStatus := ""
-		checkpointDistance := "-"
-		
-		if (isPlayerInAnyVehicle()) {
-			if (getVehicleEngineState()) {
-				motorStatus := statsOverlayPositiveColor . "Motor an{FFFFFF}"
-			} else {
-				motorStatus := statsOverlayNegativeColor . "Motor aus{FFFFFF}"
-			}
-		}
-		
-		if (isPlayerInAnyVehicle()) {
-			if (getVehicleLockState()) {
-				lockStatus := statsOverlayNegativeColor . "Fahrzeug abgeschlossen{FFFFFF}"
-			} else {
-				lockStatus := statsOverlayPositiveColor . "Fahrzeug aufgeschlossen{FFFFFF}"
-			}
-		}
-		
-		if (isPlayerInAnyVehicle()) {
-			if (getVehicleLightState()) {
-				lightStatus := statsOverlayPositiveColor . "Licht angeschalten{FFFFFF}"
-			} else {
-				lightStatus := statsOverlayNegativeColor . "Licht abgeschalten{FFFFFF}"
-			}
-		}
-		
-		if (bk == true) {
-			backupStatus := statsOverlayNegativeColor . "Bk ist angeschaltet{FFFFFF}"
-		} else {
-			backupStatus := statsOverlayPositiveColor . "Bk ist ausgeschaltet{FFFFFF}"
-		}
-		
-		if (IsMarkerCreated()) {
-			coordsFromRedmarker := CoordsFromRedmarker()
-			playerCoords := getCoordinates()
-			distance := getDistanceToPoint(coordsFromRedmarker[1], coordsFromRedmarker[2], coordsFromRedmarker[3], playerCoords[1], playerCoords[2], playerCoords[3])
-			
-			checkpointDistance := FormatNumber(Floor(distance)) . "m"
-		}
-		
-		ovFind := getFullName(playerToFind)
-		
-		ovPartners := ""
-		
-		for index, entry in partners {
-			ovPartners .= "`n" . statsOverlayprimcolor . index . cwhite . ": " . entry
-		}
-		
-		statsOverlayText := statsOverlayContent
-		
-		statsOverlayText := StrReplace(statsOverlayText, "[name]", getUsername())
-		statsOverlayText := StrReplace(statsOverlayText, "[id]", getId())
-		statsOverlayText := StrReplace(statsOverlayText, "[ping]", getPlayerPingById(getId()))
-		statsOverlayText := StrReplace(statsOverlayText, "[fps]", getPlayerFPS())
-		statsOverlayText := StrReplace(statsOverlayText, "[zone]", getPlayerZone())
-		statsOverlayText := StrReplace(statsOverlayText, "[city]", getPlayerCity())
-		statsOverlayText := StrReplace(statsOverlayText, "[hp]", getPlayerHealth())
-		statsOverlayText := StrReplace(statsOverlayText, "[armour]", getPlayerArmor())
-		statsOverlayText := StrReplace(statsOverlayText, "[money]", FormatNumber(getPlayerMoney()))
-		statsOverlayText := StrReplace(statsOverlayText, "[bankmoney]", FormatNumber(accountMoney))
-		statsOverlayText := StrReplace(statsOverlayText, "[allmoney]", FormatNumber(allMoney))
-		statsOverlayText := StrReplace(statsOverlayText, "[skin]", getPlayerSkinId())
-		statsOverlayText := StrReplace(statsOverlayText, "[weaponid]", getPlayerWeaponId())
-		statsOverlayText := StrReplace(statsOverlayText, "[weapon]", getPlayerWeaponName())
-		statsOverlayText := StrReplace(statsOverlayText, "[freezed]", (IsPlayerFreezed() ? "ja" : "nein"))
-		statsOverlayText := StrReplace(statsOverlayText, "[vhealth]", getVehicleHealth())
-		statsOverlayText := StrReplace(statsOverlayText, "[vmodelid]", getVehicleModelId())
-		statsOverlayText := StrReplace(statsOverlayText, "[vmodel]", getVehicleModelName())
-		statsOverlayText := StrReplace(statsOverlayText, "[vspeed]", round(getVehicleSpeed()))
-		statsOverlayText := StrReplace(statsOverlayText, "[fishtime]", formatTime(fishcooldown))
-		statsOverlayText := StrReplace(statsOverlayText, "[healTime]", healcooldown)
-		statsOverlayText := StrReplace(statsOverlayText, "[date]", A_DD . "." . A_MM . "." . A_Year)
-		statsOverlayText := StrReplace(statsOverlayText, "[motor]", motorStatus)
-		statsOverlayText := StrReplace(statsOverlayText, "[lock]", lockStatus)
-		statsOverlayText := StrReplace(statsOverlayText, "[light]", lightStatus)
-		statsOverlayText := StrReplace(statsOverlayText, "[checkpoint]", checkpointDistance)
-		statsOverlayText := StrReplace(statsOverlayText, "[pdmoney]", FormatNumber(paydayMoney))
-		statsOverlayText := StrReplace(statsOverlayText, "[pdmoneynetto]", FormatNumber(Round(paydayMoney * taxes)))
-		statsOverlayText := StrReplace(statsOverlayText, "[find]", (autoFindMode > 0 ? (ovFind == "" ? "-" : ovFind) : "-"))
-		statsOverlayText := StrReplace(statsOverlayText, "[partners]", (ovPartners == "" ? "-" : ovPartners))
-		statsOverlayText := StrReplace(statsOverlayText, "[backup]", backupStatus)
-		
-		statsOverlayText := StrReplace(statsOverlayText, "[wanteds]", FormatNumber(wanteds))
-		statsOverlayText := StrReplace(statsOverlayText, "[points]", FormatNumber(points))
-		statsOverlayText := StrReplace(statsOverlayText, "[pointclear]", FormatNumber(pointclear))
-		statsOverlayText := StrReplace(statsOverlayText, "[wantedclear]", FormatNumber(wantedclear))
-		
-		statsOverlayText := StrReplace(statsOverlayText, "[ticketrequests]", FormatNumber(ticketrequests))
-		statsOverlayText := StrReplace(statsOverlayText, "[tickets]", FormatNumber(tickets))
-		statsOverlayText := StrReplace(statsOverlayText, "[ticketmoney]", FormatNumber(ticketmoney))
-		
-		statsOverlayText := StrReplace(statsOverlayText, "[arrests]", FormatNumber(arrests))
-		statsOverlayText := StrReplace(statsOverlayText, "[deatharrests]", FormatNumber(deatharrests))
-		statsOverlayText := StrReplace(statsOverlayText, "[offlinearrests]", FormatNumber(offlinearrests))
-		statsOverlayText := StrReplace(statsOverlayText, "[deathprison]", FormatNumber(deathprison))
-		statsOverlayText := StrReplace(statsOverlayText, "[offlineprison]", FormatNumber(offlineprison))
-		statsOverlayText := StrReplace(statsOverlayText, "[crimekills]", FormatNumber(crimekills))
-		statsOverlayText := StrReplace(statsOverlayText, "[arrestmoney]", FormatNumber(arrestmoney))
-		
-		statsOverlayText := StrReplace(statsOverlayText, "[controls]", FormatNumber(controls))
-		statsOverlayText := StrReplace(statsOverlayText, "[trunkcontrols]", FormatNumber(trunkcontrols))
-		statsOverlayText := StrReplace(statsOverlayText, "[radar]", FormatNumber(radar))
-		statsOverlayText := StrReplace(statsOverlayText, "[takedmats]", FormatNumber(takedmats))
-		statsOverlayText := StrReplace(statsOverlayText, "[takedpaks]", FormatNumber(takedpaks))
-		statsOverlayText := StrReplace(statsOverlayText, "[takedbomb]", FormatNumber(takedbomb))
-		statsOverlayText := StrReplace(statsOverlayText, "[takeddrugs]", FormatNumber(takeddrugs))
-		statsOverlayText := StrReplace(statsOverlayText, "[takedseeds]", FormatNumber(takedseeds))
-		
-		statsOverlayText := StrReplace(statsOverlayText, "[plants]", FormatNumber(plants))
-		statsOverlayText := StrReplace(statsOverlayText, "[plantsmoney]", FormatNumber(plants_money))
-
-		statsOverlayText := StrReplace(statsOverlayText, "[locals]", FormatNumber(locals))
-		statsOverlayText := StrReplace(statsOverlayText, "[stores]", FormatNumber(stores))
-		statsOverlayText := StrReplace(statsOverlayText, "[services]", FormatNumber(services))
-		
-		statsOverlayText := StrReplace(statsOverlayText, "[tazer]", FormatNumber(tazer))
-		statsOverlayText := StrReplace(statsOverlayText, "[fishmoney]", FormatNumber(fishMoney))
-		statsOverlayText := StrReplace(statsOverlayText, "[roadblocks]", FormatNumber(roadblocks))
-		statsOverlayText := StrReplace(statsOverlayText, "[equipmats]", FormatNumbeR(equipmats))
-		statsOverlayText := StrReplace(statsOverlayText, "[totalmoney]", FormatNumber(totalMoney))
-		
-		statsOverlayText := StrReplace(statsOverlayText, "[primcol]", statsOverlayprimcolor)
-		statsOverlayText := StrReplace(statsOverlayText, "[csecond]", statsOverlaycsecondor)
-		statsOverlayText := StrReplace(statsOverlayText, "[white]", . cwhite)
-		
-		if (!statsOverlayColors) {
-			statsOverlayText := RegExReplace(statsOverlayText, "{\S{6}}", "")
-		}
-		
-		TextSetString(statsOverlay, statsOverlayText)
-	}
-	return
-
-	:?:/ov::
-	:?:/overlay::
-	{
-		if (keybinderVersion == "nooverlay") {
-			SendClientMessage(prefix . "Du benutzt die Overlay lose Version")
-			return
-		}	
-
-		if (allOverlayEnabled) {
-			SendClientMessage(prefix . "Du hast das gesamte Overlay aktiviert (/ovall), verwende dies erst einmal.")
-			return
-		}
-		
-		SendClientMessage(prefix . csecond . "1{FFFFFF}: Statistik-Overlay")
-		
-		overlayInput := PlayerInput("Overlay de-/aktivieren: ")
-		
-		if (overlayInput == "1") {
-			if (statsOverlayEnabled) {
-				TextDestroy(statsOverlay)
-				
-				statsOverlayEnabled := false
-				
-				if (ovMoveMode == 1) {
-					ovMoveMode := 0
-				}
-				
-				SetTimer, StatsOverlayTimer, Off
-				
-				SendClientMessage(prefix . "Statistik-Overlay {CC0000}deaktiviert{FFFFFF}.")
-			} else {
-				createOverlay(1)
-				
-				statsOverlayEnabled := true
-				
-				SendClientMessage(prefix . "Statistik-Overlay {00962B}aktiviert{FFFFFF}.")
-			}
-		}
-	}
-	return
-	
-	:?:/ovall::
-	{
-		if (keybinderVersion == "nooverlay") {
-			SendClientMessage(prefix . "Du benutzt die Overlay lose Version")
-			return
-		}	
-		
-		if (!allOverlaysEnabled) {
-			allOverlaysEnabled := true
-			
-			if (!statsOverlayEnabled) {
-				createOverlay(1)
-				
-				statsOverlayEnabled := true
-			}
-			
-			SendClientMessage(prefix . "Du hast das Overlay {00962B}aktiviert{FFFFFF}.")
-		} else {
-			allOverlaysEnabled := false
-		
-			if (statsOverlayEnabled) {
-				TextDestroy(statsOverlay)
-				
-				statsOverlayEnabled := false
-				
-				if (ovMoveMode == 1) {
-					ovMoveMode := 0
-				}
-				
-				SetTimer, StatsOverlayTimer, Off
-			} 
-			
-			SendClientMessage(prefix . "Du hast das Overlay {CC0000}deaktiviert{FFFFFF}.")
-		}
-	}
-	return
-
-	createOverlay(id) {
-		global
-		
-		if (id == 1) {
-			statsOverlay := TextCreate(statsOverlayFont, statsOverlayFontSize, statsOverlayBold, statsOverlayItalic, statsOverlayPosX, statsOverlayPosY, 0xFFFFFFFF, "", true, true)
-			
-			SetTimer, StatsOverlayTimer, 1000
-		}
-	}
-
-	updateOverlay(id) {
-		global
-		
-		if (id == 1) {
-			if (statsOverlayEnabled) {
-				TextSetPos(statsOverlay, statsOverlayPosX, statsOverlayPosY)
-			}
-		}
-	}
-
-	:?:/ovmove::
-	{
-		if (keybinderVersion == "nooverlay") {
-			SendClientMessage(prefix . "Du benutzt die Overlay lose Version")
-			return
-		}		
-		
-		if (ovMoveMode) {
-			ovMoveMode := 0
-			
-			SendClientMessage(prefix . "Der Overlay-Bearbeitungsmodus wurde {CC0000}deaktiviert{FFFFFF}.")
-		} else {
-			SendClientMessage(prefix . csecond . "1{FFFFFF}: Statistik-Overlay")
-			
-			overlayInput := PlayerInput("Overlay verschieben: ")
-			
-			if (overlayInput == "1") {
-				if (statsOverlayEnabled) {
-					ovMoveMode := 1
-					
-					SendClientMessage(prefix . "Der Overlay-Bearbeitungsmodus wurde {00962B}aktiviert{FFFFFF}.")
-					SendClientMessage(prefix . "Das Overlay kann nun mit den Pfeiltasten verschoben werden.")
-					SendClientMessage(prefix . "Wenn du fertig bist, tippe " . csecond . "/ovsave {FFFFFF}ein, um die Einstellung zu speichern.")
-				} else {
-					SendClientMessage(prefix . "Das Statistik-Overlay muss aktiviert sein, um es zu verschieben.")
-				}
-			}
-		}
-	}
-	return
-
-	:?:/ovsave::
-	{
-		if (keybinderVersion == "nooverlay") {
-			SendClientMessage(prefix . "Du benutzt die Overlay lose Version")
-			return
-		}		
-		
-		if (ovMoveMode == 1) {
-			IniWrite, %statsOverlayPosX%, settings.ini, StatsOverlay, PosX
-			IniWrite, %statsOverlayPosY%, settings.ini, StatsOverlay, PosY
-			
-			ovMoveMode := 0
-			
-			SendClientMessage(prefix . "Die Overlay-Position wurde {00962B}gespeichert {FFFFFF}und der Bearbeitungsmodus {CC0000}deaktiviert{FFFFFF}.")
-		} else {
-			SendClientMessage(prefix . "Der Overlay-Bearbeitungsmodus ist nicht aktiviert!")
-		}
-	}
-	return
-}
-
-~Up::
-{
-	if (keybinderVersion == "overlay") {
-		if (ovMoveMode) {
-			if (ovMoveMode == 1) {
-				statsOverlayPosY -= 3
-			}
-			
-			updateOverlay(ovMoveMode)
-		}
-	}
-}
-return
-
-~Down::
-{
-	if (keybinderVersion == "overlay") {
-		if (ovMoveMode) {
-			if (ovMoveMode == 1) {
-				statsOverlayPosY += 3
-			}
-			
-			updateOverlay(ovMoveMode)
-		}
-	}
-}
-return
-
-~Left::
-{
-	if (keybinderVersion == "overlay") {
-		if (ovMoveMode) {
-			if (ovMoveMode == 1) {
-				statsOverlayPosX -= 3
-			}
-			
-			updateOverlay(ovMoveMode)
-		}
-	}
-}
-return
-
-~Right::
-{
-	if (keybinderVersion == "overlay") {
-		if (ovMoveMode) {
-			if (ovMoveMode == 1) {
-				statsOverlayPosX += 3
-			}
-			
-			updateOverlay(ovMoveMode)
-		}
-	}
-}
-return
-
 ~xButton1::
 {
 	if (isBlocked() || tv) {
@@ -3648,7 +2961,7 @@ return
 	IniRead, firstaid, settings.ini, Items, firstaid, 0
 	IniRead, drugs, settings.ini, Items, drugs, 0
 	IniRead, pakcooldown, settings.ini, Cooldown, pakcooldown, 0
-	; JANES
+
 	if (isBlocked() || isPaintball || damageTime > getUnixTimestamp(A_Now) || !autoUse || isPlayerInAnyVehicle() || getPlayerArmor() >= 46) {
 		return
 	}
@@ -4552,7 +3865,7 @@ vehicleTheftWantedsLabel:
 	name := getFullName(name)
 	
 	if (name != "") {
-		SendClientMessage(prefix . csecond . "1: {FFFFFF}Privatfahrzeug | " . csecond . "2: {FFFFFF}Dienstfahrzeug | " . csecond . "3: {FFFFFF}gep./bew. Dienstfahrzeug")
+		SendClientMessage(prefix . csecond . "1: " . cwhite . "Privatfahrzeug, " . csecond . "2: " . cwhite . "Dienstfahrzeug, " . csecond . "3: " . cwhite . "gep./bew. Dienstfahrzeug")
 		
 		wantedType := PlayerInput("Typ: ")
 		
@@ -4940,10 +4253,8 @@ clearPointsLabel:
 	
 	Sleep, 200
 	
-	Loop, 5 {
-		chat := readChatLine(A_Index - 1)
-	
-		if (InStr(chat, "Dieser Befehl ist ab Rang 9.")) {
+	Loop, 5 {	
+		if (InStr(readChatLine(A_Index - 1), "Dieser Befehl ist ab Rang 9.")) {
 			SendChat("/d HQ: " . getFullName(name) . " bitte " . amount . " Strafpunkte löschen!")
 			break
 		}
@@ -5228,8 +4539,9 @@ uncuffLabel:
 	}
 
 	name := PlayerInput("Uncuff-ID: ")
-	if (name == "" || name == " ")
+	if (name == "" || name == " ") {
 		return
+	}
 	
 	name := getFullName(name)
 	if (name == "") {
@@ -5789,6 +5101,11 @@ motorSystemLabel:
 		if (IsPlayerDriver()) {
 			if (getVehicleEngineState()) {
 				SendChat("/motor")
+				Sleep, 200
+				
+				if (autoLock) {
+					SendChat("/lock")
+				}
 			} else {
 				if (autoLock) {
 					if (!getVehicleLockState()) {
@@ -6019,13 +5336,13 @@ putWeaponsAwayLabel:
 	Random, tmp, 1, 4
 	
 	if (tmp == 1) {
-		SendChat("/s Bitte stecken Sie umgehend Ihre Waffen ein.")
+		SendChat("/s Bitte stecken Sie umgehend Ihre Waffen ein")
 	} else if (tmp == 2) {
-		SendChat("/s Stecken Sie SOFORT Ihre Waffen ein.")
+		SendChat("/s Stecken Sie SOFORT Ihre Waffen ein")
 	} else if (tmp == 3) {
-		SendChat("/s Legen Sie SOFORT Ihre Waffe weg.")
+		SendChat("/s Legen Sie SOFORT Ihre Waffe weg")
 	} else if (tmp == 4) {
-		SendChat("/s Nehmen Sie sofort die Waffe runter.")
+		SendChat("/s Nehmen Sie sofort die Waffe runter")
 	}
 }
 return
@@ -6096,14 +5413,6 @@ giveQuickTicketLabel:
 		return
 	}
 
-	; SendChat("/l Guten " . getDayTime() . " " . playerForTicket . ",")
-	; SendChat("/l Hiermit biete ich Ihnen einen Freikauf für " . (wantedCount == 1 ? wantedCount . " Wanted" :  wantedCount . " Wanteds") . " an.")
-			
-	; if (!admin) {
-		; Sleep, 1500
-	; }
-			
-	; SendChat("/l Sollten Sie das Ticket (" . FormatNumber(wantedCount * 750) . "$) nicht zahlen können, werden wir Sie leider verhaften müssen.")
 	SendChat("/ticket " . playerForTicket . " " . (wantedCount * 750) " Wanted-Ticket (" . wantedCount . " Wanted" . (wantedCount == 1 ? "" : "s") . ")")
 }
 return
@@ -6220,7 +5529,7 @@ return
 
 acceptEmergencyLabel:
 {
-	if (isBlocked()) {
+	if (isBlocked() || tv) {
 		return 
 	}
 	
@@ -6234,12 +5543,14 @@ acceptEmergencyLabel:
 				Sleep, 200
 				
 				if (!RegExMatch(readChatLine(0) . readChatLine(1), "^Der Spieler benötigt kein Streifenwagen\.$")) {
+					Sleep, 100
 					SendChat("/d HQ: Übernehme Notruf-ID " . serviceName . " von " . getFullName(serviceName))
 					
 					IniRead, Services, Stats.ini, Übernahmen, Services, 0
 					Services ++
 					IniWrite, %services%, stats.ini, Übernahmen, Services
 	
+					Sleep, 100
 					SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(services) . cwhite . " Notrufe übernommen.")
 				}
 			} else {
@@ -6337,7 +5648,7 @@ return
 
 togCellphoneLabel:
 {
-	if (isBlocked()) {
+	if (isBlocked() || tv) {
 		return 
 	}
 	
@@ -6407,10 +5718,7 @@ thanksLabel:
 }
 :?:/thx::
 {
-	if (tv)
-		return
-	
-	Random, rand, 1, 3
+	random, rand, 1, 3
 	
 	if (rand == 1) {
 		SendChat("Vielen Dank!")
@@ -6430,10 +5738,7 @@ sorryLabel:
 }
 :?:/sry::
 {
-	if (tv)
-		return
-	
-	Random, rand, 1, 3
+	random, rand, 1, 3
 	
 	if (rand == 1) {
 		SendChat("Entschuldigung!")
@@ -6472,8 +5777,9 @@ pauseLabel:
 	IniRead, autoUse, settings.ini, settings, autoUse, 1
 	
 	if (A_IsSuspended) {
-		SendClientMessage(prefix . "Du hast den Keybinder {CC0000}deaktiviert{FFFFFF}.")
+		SendClientMessage(prefix . "Du hast den Keybinder " . cred . "deaktiviert" . cwhite . ".")
 		
+		SetTimer, TempoTimer, off
 		SetTimer, ChatTimer, off 
 		SetTimer, MainTimer, off	
 		SetTimer, TimeoutTimer, off
@@ -6503,7 +5809,7 @@ pauseLabel:
 			SetTimer, SyncTimer, off
 		}
 	} else {
-		SendClientMessage(prefix . "Du hast den Keybinder {00AA31}aktiviert{FFFFFF}.")
+		SendClientMessage(prefix . "Du hast den Keybinder " . cgreen . "aktiviert" . cwhite . ".")
 	
 		SetTimer, TempoTimer, 100
 		SetTimer, ChatTimer, 200
@@ -6594,26 +5900,34 @@ return
 		
 		if (typeOf > 0) {
 			SendChat("/gov .:: " . fraction . " - Bewerbungsrunde ::.")
+			
 			if (!admin) {
 				Sleep, 750
 			}
+			
 			SendChat("/gov " . preposition . " " . fraction . " ist aktuell auf der Suche nach '" . title . "' neuen " . title . ".")
+			
 			if (!admin) {
 				Sleep, 750
 			} 
+			
 			SendChat("/gov Versuchen Sie Ihr Glück und werden Teil unseres Teams. Mehr Informationen im Forum!")
 		} else {
 			SendClientMessage(prefix . "Du musst mindestens ein Member suchen.")
 		}
 	} else if (typeOf == "2") {
 		SendChat("/gov .:: " . fraction . " - Bewerbungsrunde ::.")
+	
 		if (!admin) {
 			Sleep, 750
 		}
+		
 		SendChat("/gov " . preposition . " " . fraction . " hat aktuell Ihre Bewerbungsphase geöffnet.")
+		
 		if (!admin) {
 			Sleep, 750
 		} 
+		
 		SendChat("/gov Werden Sie Teil unseres Teams und versuchen Sie Ihr Glück!")
 	} else {
 		SendClientMessage(prefix . "Fehler: Verwende eine Zahl für einer der folgenden Bewerbungsrunden:")
@@ -6676,7 +5990,9 @@ return
 	if (customsID == "" || customsID == " ") {
 		SendClientMessage(prefix . "Fehler: Du hast die Eingabe abgebrochen.")
 		return
-	} else if (customsID is not number) {
+	}
+	
+	if (customsID is not number) {
 		SendClientMessage(prefix . "Fehler: Du musst eine Nummer eintragen.")
 		return
 	}
@@ -6718,7 +6034,7 @@ return
 		SendClientMessage(prefix . "Stadt: Los Santos - Flint County")
 		SendClientMessage(prefix . "Beschreibung: Zollstation von Flint County nach Los Santos (Flint Intersection)")
 	} else {
-		SendCLientMessage(prefix . "Diese Zollstation existiert nicht (1-9).")
+		SendClientMessage(prefix . "Diese Zollstation existiert nicht (1-9).")
 	}
 }
 return
@@ -6763,6 +6079,7 @@ return
 {
 	IniWrite, 0, Stats.ini, Stats, DDeaths[%A_DD%:%A_MM%:%A_YYYY%]
 	IniWrite, 0, Stats.ini, Stats, DKills[%A_DD%:%A_MM%:%A_YYYY%]
+	
 	SendClientMessage(Prefix . "Deine Tages-Kills und Tode wurden auf 0 gesetzt.")
 }
 return
@@ -6776,18 +6093,21 @@ return
 :?:/items::
 {
 	IniRead, drugs, settings.ini, Items, drugs, 0
+	IniRead, firstaid, settings.ini, Items, firstaid, 0
+	IniRead, campfire, settings.ini, Items, campfire, 0
+	
 	if (drugs) {
 		dColor := COLOR_GREEN
 	} else {
 		dColor := COLOR_RED 
 	}
-	IniRead, firstaid, settings.ini, Items, firstaid, 0
+	
 	if (firstaid) {
 		fAvailable := COLOR_GREEN . "vorhanden"
 	} else {
 		fAvailable := COLOR_RED . "nicht vorhanden"
 	}
-	IniRead, campfire, settings.ini, Items, campfire, 0
+	
 	if (campfire) {
 		cAvailable := COLOR_GREEN . campfire . " vorhanden"
 	} else {
@@ -6805,7 +6125,6 @@ return
 :?:/gk::
 {
 	gkid := PlayerInput("Gebäudekomplex: ")
-	
 	if (gkid == "") {
 		return
 	}
@@ -6982,10 +6301,6 @@ return
 
 :?:/pbexit::
 {
-	if (tv) {
-		return
-	}	
-	
 	cantExit := 0
 	
 	SendChat("/pbexit")
@@ -7015,10 +6330,6 @@ return
 :?:/rz::
 :?:/razzia::
 {	
-	if (tv) {
-		return
-	}
-	
 	IniRead, keybinderFrac, settings.ini, Einstellungen, keybinderFrac, %A_Space%
 	
 	if (getPlayerSkinID() == 285) {
@@ -7033,14 +6344,12 @@ return
 
 :?:/weiter::
 {
-	if (!tv) {
-		IniRead, keybinderFrac, settings.ini, Einstellungen, keybinderFrac, %A_Space%
-		
-		if (getPlayerSkinID() == 285) {
-			SendChat("/m << S.W.A.T., alle Personen bitte SOFORT weiterfahren! >>")
-		} else {
-			SendChat("/m << " . keybinderFrac . ", alle Personen bitte SOFORT weiterfahren! >>")
-		}
+	IniRead, keybinderFrac, settings.ini, Einstellungen, keybinderFrac, %A_Space%
+	
+	if (getPlayerSkinID() == 285) {
+		SendChat("/m << S.W.A.T., alle Personen bitte SOFORT weiterfahren! >>")
+	} else {
+		SendChat("/m << " . keybinderFrac . ", alle Personen bitte SOFORT weiterfahren! >>")
 	}
 }
 return
@@ -7095,10 +6404,6 @@ return
 
 :?:/nt::
 {	
-	if (tv) {
-		return
-	}	
-	
 	if (currentTicketMoney > 0) {
 		giveTicket(lastTicketPlayer, currentTicketMoney, lastTicketReason)
 	} else {
@@ -7109,12 +6414,7 @@ return
 
 :?:/stvo::
 {
-	if (tv) {
-		return
-	}		
-	
 	name := PlayerInput("Spieler: ")
-	
 	if (StrLen(name) > 2 || name is number) {
 		fullName := getFullName(name)
 		
@@ -7171,7 +6471,6 @@ return
 		return
 	}
 	
-	
 	if (lastSpeedUser = name && lastSpeed != 0) {
 		name := lastSpeedUser
 		autoSpeed := lastSpeed
@@ -7190,7 +6489,7 @@ return
 	
 	reason := "geschwindigkeit"
 	
-	kmh := maxKMH
+	kmh := max_kmh
 	
 	if (kmh == 0) {
 		kmh := 80
@@ -7204,7 +6503,7 @@ return
 		Sleep, 750
 	}
 	
-	SendChat("/l Sie haben die erlaubte Höchstgeschwindigkeit (" . maxKMH . " km/h) mit " . autoSpeed . " km/h überschritten.")
+	SendChat("/l Sie haben die erlaubte Höchstgeschwindigkeit (" . max_kmh . " km/h) mit " . autoSpeed . " km/h überschritten.")
 	
 	if (!admin) {
 		Sleep, 750
@@ -7223,10 +6522,6 @@ return
 
 :?:/aticket::
 {
-	if (tv) {
-		return
-	}	
-	
 	if (autoName != "") {
 		if (autoSpeed == 0) {
 			giveTicket(autoName, autoTicket, autoReason)
@@ -7244,10 +6539,6 @@ return
 
 :?:/apunkte::
 {
-	if (tv) {
-		return
-	}	
-	
 	if (autoName != "") {
 		if (autoSpeed == 0) {
 			givePoints(autoName, "Missachtung des Tempolimits", 1)
@@ -7265,30 +6556,18 @@ return
 
 :?:/top::
 {	
-	if (tv) {
-		return
-	}	
-	
 	SendChat("/l Möchten Sie nun ein Ticket oder Strafpunkte?")
 }
 return
 
 :?:/tot::
 {
-	if (tv) {
-		return
-	}	
-	
 	SendChat("/l Möchten Sie nun einen Strafzettel oder einen Entzug der Lizenz?")
 }
 return
 
 :?:/stvof::
 {
-	if (tv) {
-		return
-	}	
-	
 	name := PlayerInput("Spieler (Flugschein): ")
 	if (name == "" || name == " " || getFullName(name) == "") {
 		return
@@ -7316,10 +6595,6 @@ return
 
 :?:/stvow::
 {
-	if (tv) {
-		return
-	}
-
 	name := PlayerInput("Spieler (Waffenschein): ")
 	if (name == "" || name == " " || getFullName(name) == "") {
 		return
@@ -7347,13 +6622,10 @@ return
 
 :?:/stvob::
 {
-	if (tv) {
+	name := PlayerInput("Spieler (Bootsschein): ")
+	if (name == "" || name == " " || getFullName(name) == "") {
 		return
 	}
-	
-	name := PlayerInput("Spieler (Bootsschein): ")
-	if (name == "" || name == " " || getFullName(name) == "") 
-		return
 
 	SendChat("/l Guten " . getDayTime() . " " . getFullName(name) . ", Sie haben gegen die Straßenverkehrsverordnung verstoßen.")
 	
@@ -7377,10 +6649,6 @@ return
 
 :?:/fst::
 {
-	if (tv) {
-		return
-	}
-
 	name := PlayerInput("Spieler (Flugschein): ")
 	if (name == "" || name == " " || getFullName(name) == "") {
 		return
@@ -7392,10 +6660,6 @@ return
 
 :?:/wst::
 {	
-	if (tv) {
-		return
-	}
-	
 	name := PlayerInput("Spieler (Waffenschein): ")
 	if (name == "" || name == " " || getFullName(name) == "") {
 		return
@@ -7407,10 +6671,6 @@ return
 
 :?:/bst::
 {	
-	if (tv) {
-		return
-	}
-	
 	name := PlayerInput("Spieler (Bootschein): ")
 	if (name == "" || name == " " || getFullName(name) == "") {
 		return
@@ -7422,10 +6682,6 @@ return
 
 :?:/tw::
 {
-	if (tv) {
-		return
-	}
-	
 	SendInput, /take Waffen{space}
 }
 return
@@ -7433,10 +6689,6 @@ return
 :?:/tfs::
 :?:/tfl::
 {
-	if (tv) {
-		return
-	}
-	
 	SendInput, /take Flugschein{space}
 }
 return
@@ -7444,76 +6696,54 @@ return
 :?:/tws::
 :?:/twl::
 {
-	if (tv) {
-		return
-	}
-	
 	SendInput, /take Waffenschein{space}
 }
 return
 
 :?:/tbs::
 {
-	if (tv) {
-		return
-	}
-	
 	SendInput, /take Bootsschein{space}
 }
 return
 
 :?:/td::
 {
-	if (tv) {
-		return
-	}	
-
 	SendInput, /take Drogen{space}
 }
 return
 
 :?:/tm::
 {
-	if (tv) {
-		return
-	}	
-	
 	SendInput, /take Materialien{space}
 }
 return
 
 :?:/tall::
 {
-	if (tv) {
-		return
-	}	
-	
 	SendInput, /take Waffen{Space}
 	Input SID, V I M, {Enter}
 	SendInput, {Enter}t/take Materialien %SID%{Enter}t/take Drogen %SID%{Enter}
 }
 return
 
+/*
 :?:/dsp::
 {
-	if (tv) {
-		return
-	}	
-	
 	SendChat("/destroyplant")
 }
 return
+*/
 
 :?:/setkmh::
 {	
 	maxKMHinput := PlayerInput("Maximal erlaubte km/h: ")
 	
 	if (maxKMHinput is number) {
-		maxKMH := maxKMHinput
+		max_kmh := maxKMHinput
 		
-		IniWrite, %maxKMH%, settings.ini, Einstellungen, MaxKMH
+		IniWrite, %max_kmh%, settings.ini, settings, max_kmh
 		
-		SendClientMessage(prefix . "Du hast die maximal erlaubte Geschwindigkeit bei Radarkontrollen auf " . csecond . maxKMH . " km/h {FFFFFF}gesetzt.")
+		SendClientMessage(prefix . "Du hast die maximal erlaubte Geschwindigkeit bei Radarkontrollen auf " . csecond . max_kmh . " km/h " . cwhite . "gesetzt.")
 	} else {
 		SendClientMessage(prefix . "Fehler: Gib bitte eine Zahl für die maximal erlaubte Geschwindigkeit bei Radarkontrollen ein.")
 	}
@@ -7535,7 +6765,17 @@ return
 :?:/hi::
 {
 	SendChat("/f Hi")
+	
+	if (!admin) {
+		Sleep, 750
+	}
+	
 	SendChat("/d Hi")
+	
+	if (!admin) {
+		Sleep, 750
+	}	
+	
 	SendChat("/crew Hi")
 }
 return
@@ -7572,11 +6812,10 @@ return
 	
 	Sleep, 250
 	
-	chat := readChatLine(4 - taxClass)
-	RegExMatch(chat, "Steuerklasse " . taxClass . ": (\d*) Prozent", chat_)
+	RegExMatch(readChatLine(4 - taxClass), "Steuerklasse " . taxClass . ": (\d*) Prozent", chat_)
 	taxes := (100 - chat_1) / 100
 	
-	IniWrite, %taxes%, settings.ini, Steuern, Steuersatz
+	IniWrite, %taxes%, settings.ini, settings, taxes
 	SendClientMessage(prefix . "Der Steuersatz (Steuerklasse " . cSecond . taxClass . cwhite . ") wurde auf " . cSecond . chat_1 . cwhite . " Prozent gesetzt.")	
 }
 return
@@ -7655,10 +6894,6 @@ return
 
 :?:/oa::
 {
-	if (tv) {
-		return
-	}
-	
 	if (!updateTextLabelData()) {
 		SendInput, /offlinearrest  0{left 2}
 		return
@@ -7684,10 +6919,6 @@ return
 
 :?:/op::
 {
-	if (tv) {
-		return
-	}	
-	
 	if (!updateTextLabelData()) {
 		SendInput, /offlinearrest  1{left 2}
 		return
@@ -7713,10 +6944,6 @@ return
 
 :?:/da::
 {
-	if (tv) {
-		return
-	}	
-	
 	if (!updateTextLabelData()) {
 		SendInput, /deatharrest  0{left 2}
 		return
@@ -7746,10 +6973,6 @@ return
 
 :?:/dp::
 {
-	if (tv) {
-		return
-	}	
-	
 	if (!updateTextLabelData()) {
 		SendInput, /deatharrest  1{left 2}
 		return
@@ -7819,52 +7042,42 @@ return
 
 :?:/fahrt::
 {
-	if (tv) {
-		return
-	}
-
 	SendChat("/l Die allgemeine Kontrolle ist nun beendet. Ich danke für Ihre Kooperation!")
+	
+	if (!admin) {
+		Sleep, 750
+	}	
+	
 	SendChat("/l Ich wünsche Ihnen nun eine schöne und angenehme Weiterfahrt! Auf Wiedersehen!")
 }
 return
 
 :?:/tput::
 {
-	if (tv) {
-		return
-	}	
-	
 	SendInput, /trunk put{Space}
 }
 return
 
 :?:/tcm::
 {	
-	if (tv) {
-		return
-	}	
-	
 	SendChat("/trunk clear mats")
 }
 return
 
 :?:/tcd::
 {
-	if (tv) {
-		return
-	}	
-	
 	SendChat("/trunk clear drugs")
 }
 return
 
 :?:/wtd::
 {
-	if (tv) { 
-		return
+	SendChat("Guten Tag,")
+	
+	if (!admin) {
+		Sleep, 750
 	}
 	
-	SendChat("Guten Tag,")
 	SendChat("Möchten Sie ein Ticket für Ihre(n) Wanted(s) ?")
 }
 return
@@ -7882,10 +7095,6 @@ return
 
 :?:/tdd::
 {
-	if (tv) { 
-		return
-	}
-	
 	playerForTicket := PlayerInput("Spieler: ")
 	playerForTicket := getFullName(playerForTicket)
 	
@@ -7920,10 +7129,6 @@ return
 
 :?:/twd::
 {
-	if (tv) { 
-		return
-	}
-	
 	playerForTicket := PlayerInput("Spieler: ")
 	playerForTicket := getFullName(playerForTicket)
 	
@@ -7972,10 +7177,6 @@ return
 
 :?:/ci::
 {	
-	if (tv) { 
-		return
-	}	
-	
 	if (isBlocked()) {
 		SendInput, /dl{enter}
 	} else {
@@ -7986,11 +7187,9 @@ return
 	
 	if (carID != "") {
 		SendClientMessage(prefix . "Fahrzeuginformationen werden gespeichert, bitte warte einen Moment...")
-		
 		Sleep, 250
 		
 		SendChat("/carinfo " . carID)
-		
 		Sleep, 250
 		
 		readCarInfos()
@@ -8006,20 +7205,25 @@ return
 	playerToFindInput := PlayerInput("Spieler: ")
 	if (playerToFindInput == "" || playerToFindInput == " ") {
 		SendClientMessage(prefix . "Fehler: Die Eingabe wurde abgebrochen.")
-	} else {
-		playerToFind := playerToFindInput
-		
-		if (getFullName(playerToFind) == "") {
-			SendClientMessage(prefix . "Fehler: Der angegebene Spieler ist nicht online.")
-		} else if (getFullName(playerToFind) == getUserName()) {
-			SendClientMessage(prefix . "Fehler: Du kannst dich nicht selber finden.")
-		} else {
-			autoFindMode := 1
-		
-			findPlayer()
-			findInfo(playerToFind)
-		}
+		return
 	}
+	
+	playerToFind := playerToFindInput
+	
+	if (getFullName(playerToFind) == "") {
+		SendClientMessage(prefix . "Fehler: Der angegebene Spieler ist nicht online.")
+		return 
+	}
+	
+	if (getFullName(playerToFind) == getUserName()) {
+		SendClientMessage(prefix . "Fehler: Du kannst dich nicht selber finden.")
+		return
+	}
+	
+	autoFindMode := 1
+
+	findPlayer()
+	findInfo(playerToFind)
 }
 return
 
@@ -8031,29 +7235,36 @@ return
 		
 		if (playerToShowToInput == "" || playerToShowToInput == " ") {
 			SendClientMessage(prefix . "Fehler: Du hast die Eingabe abgebrochen.")
-		} else if (!getFullName(playerToShowToInput)) {
+			return
+		}
+		
+		if (!getFullName(playerToShowToInput)) {
 			SendClientMessage(prefix . "Fehler: Der angegebene Show-Partner ist offline.")
-		} else if (getFullName(playerToShowToInput) == getUserName()) {
+			return
+		}
+		
+		if (getFullName(playerToShowToInput) == getUserName()) {
 			SendClientMessage(prefix . "Fehler: Du kannst dir selbst niemanden anzeigen, nutze /af[ind]")
+			return
+		}
+		
+		playerToShowTo := playerToShowToInput		
+		playerToFindInput := PlayerInput("Gesuchter: ")
+		
+		if (playerToFindInput == "" || playerToFindInput == " ") {
+			SendClientMessage(prefix . "Fehler: Du hast die Eingabe abgebrochen.")
+		} else if (!getFullName(playerToFindInput)) {
+			SendClientMessage(prefix . "Fehler: Der gesuchte Spieler ist offline.")
+			return
+		} else if (getFullName(playerToFindInput) == getUserName()) {
+			SendClientMessage(prefix . "Fehler: Du kannst dich nicht selbst finden.")
+			return
 		} else {
-			playerToShowTo := playerToShowToInput		
-			playerToFindInput := PlayerInput("Gesuchter: ")
+			playerToFind := playerToFindInput
+			autoFindMode := 2
 			
-			if (playerToFindInput == "" || playerToFindInput == " ") {
-				SendClientMessage(prefix . "Fehler: Du hast die Eingabe abgebrochen.")
-			} else if (!getFullName(playerToFindInput)) {
-				SendClientMessage(prefix . "Fehler: Der gesuchte Spieler ist offline.")
-				return
-			} else if (getFullName(playerToFindInput) == getUserName()) {
-				SendClientMessage(prefix . "Fehler: Du kannst dich nicht selbst finden.")
-				return
-			} else {
-				playerToFind := playerToFindInput
-				autoFindMode := 2
-				
-				findPlayer()
-				findInfo(playerToFind)
-			}
+			findPlayer()
+			findInfo(playerToFind)
 		}
 	}
 }
@@ -8072,7 +7283,7 @@ return
 
 :?:/wo::
 {
-	SendChat("/d HQ: Wo befindet ihr euch und was ist das Problem?")
+	SendChat("/d HQ: Wo befindet ihr euch?")
 }
 return
 
@@ -8212,10 +7423,6 @@ return
 :?:/mt::
 :?:/mats::
 {
-	if (tv) { 
-		return
-	}		
-	
 	if (checkRank()) {
 		if (getRank() > 0 && getRank() < 7) {
 			extra := "/f HQ:"
@@ -8234,10 +7441,6 @@ return
 
 :?:/mrob::
 {	
-	if (tv) { 
-		return
-	}		
-	
 	if (checkRank()) {
 		if (getRank() > 0 && getRank() < 7) {
 			extra := "/f HQ:"
@@ -8291,10 +7494,6 @@ return
 
 :?:/abholung::
 {
-	if (tv) { 
-		return
-	}		
-	
 	abholungChat := PlayerInput("Chat: ")
 	if (abholungChat == "" || abholungChat == " ") {
 		return
@@ -8306,10 +7505,6 @@ return
 
 :?:/kabholung::
 {
-	if (tv) { 
-		return
-	}		
-	
 	if (abholungChat != "") {
 		SendChat("/" . abholungChat . " HQ: Eine Abholung wird nicht mehr benötigt.")
 		
@@ -8323,7 +7518,7 @@ return
 :?:/z::
 :?:/ziel::
 {
-	hunting := PlayerInput("Ziel (Name/ID): ")
+	hunting := PlayerInput("Einsatzziel: ")
 	if (hunting == "" || hunting == " ") {
 		return
 	}
@@ -8361,11 +7556,7 @@ return
 :?:/verf::
 :?:/verfolgung::
 {
-	if (tv) { 
-		return
-	}		
-	
-	name := PlayerInput("Verbrecher: ")
+	name := PlayerInput("Gesuchter Verbrecher: ")
 	if (name == "" || name == " ") {
 		return
 	}
@@ -8375,24 +7566,12 @@ return
 		return
 	}
 
-	if (isPlayerInAnyVehicle()) {
-		if (isPlayerDriver()) {
-			SendChat("/d HQ: Wagen " . getVehicleID() . " erbittet Unterstützung bei der Verfolgung von " . getFullName(name) . "[" . getPlayerIdByName(getFullName(name), true) . "]!")
-		} else {
-			SendChat("/d HQ: Wagen " . getVehicleModelId() . " erbittet Unterstützung bei der Verfolgung von " . getFullName(name) . "[" . getPlayerIdByName(getFullName(name), true) . "]!")
-		}
-	} else {
-		SendChat("/d HQ: Erbitte Unterstützung bei der Verfolgung von " . getFullName(name) . "[" . getPlayerIdByName(getFullName(name), true) . "]!")
-	}
+	SendChat("/d HQ: Erbitte Unterstützung bei der Verfolgung von " . getFullName(name) . "[" . getPlayerIdByName(getFullName(name), true) . "]!")
 }
 return
 
 :?:/ort::
 {
-	if (tv) { 
-		return
-	}		
-	
 	position := PlayerInput("Letzter bekannter Aufenthaltsort: ")
 	if (position == "" || position == " ") {
 		return
@@ -8404,23 +7583,7 @@ return
 
 :?:/air::
 {
-	if (tv) { 
-		return
-	}		
-	
 	SendChat("/d HQ: Fordere Luftüberwachung im Sektor " . getLocation() . " an!")
-}
-return
-
-:?:/off::
-{
-	SendChat("/d HQ: Officer " . getUsername() . " meldet sich vom Dienst ab!")
-}
-return
-
-:?:/on::
-{
-	SendChat("/d HQ: Officer " . getUsername() . " meldet sich einsatzbereit zum Dienst!")
 }
 return
 
@@ -8478,7 +7641,7 @@ return
 		return
 	}
 
-	SendChat("/gov Das Gebiet " . sperrzone . " wird zur Sperrzone erklärt.")
+	SendChat("/gov Das Gebiet ''" . sperrzone . "' wird zur Sperrzone erklärt.")
 	SendChat("/gov Wer sich unbefugt in der Sperrzone aufhält muss mit Konsequenzen rechnen.")
 }
 return
@@ -8488,8 +7651,10 @@ return
 	if (sperrzone != "") {
 		SendChat("/gov Die Sperrzone " . sperrzone . " wird hiermit aufgehoben.")
 	} else {
-		SendChat("/gov Alle Sperrzonen werden hiermit aufgehoben.")
+		SendChat("/gov Die Sperrzone wird hiermit aufgehoben.")
 	}
+	
+	Sleep, 100
 	
 	SendChat("/roadblock deleteall")
 }
@@ -8531,10 +7696,6 @@ return
 
 :?:/asell::
 {
-	if (tv) { 
-		return
-	}		
-	
 	if (IsPlayerInRangeOfPoint(2.3247, -28.8923, 1003.5494, 10)) {
 		SendClientMessage(prefix . "Deine Fische werden nun verkauft!")
 		
@@ -8572,10 +7733,6 @@ return
 
 :?:/acook::
 {
-	if (tv) { 
-		return
-	}		
-	
 	if (!getPlayerInteriorId()) {
 		IniRead, campfire, settings.ini, Items, campfire, 0
 		
@@ -8615,6 +7772,8 @@ return
 {
 	SendClientMessage(prefix . "Überprüfung der ungekochten Fische:")
 	
+	Sleep, 100
+	
 	checkFishes()
 }
 return
@@ -8624,16 +7783,14 @@ return
 {
 	SendClientMessage(prefix . "Überprüfung der gekochten Fische:")
 	
+	Sleep, 100
+	
 	checkCooked()
 }
 return
 
 :?:/sellfish::
 {
-	if (tv) { 
-		return
-	}		
-	
 	hp := checkCooked()
 	
 	if (hp < 1) {
@@ -8701,67 +7858,42 @@ return
 	}
 	
 	IniWrite, %rank%, settings.ini, settings, rank
-	
 	SendClientMessage(prefix . "Dein Rang wurde auf " . csecond . rank . cwhite . " geupdated.")
 }
 return
 
 :?:/bc::
 {
-	if (tv) { 
-		return
-	}		
-	
 	SendChat("/roadbarrier create")
 }
 return
 
 :?:/bd::
 {
-	if (tv) { 
-		return
-	}		
-	
 	SendChat("/roadbarrier delete")
 }
 return
 
 :?:/bda::
 {
-	if (tv) { 
-		return
-	}		
-	
 	SendChat("/roadbarrier deleteall")
 }
 return
 
 :?:/rb::
 {
-	if (tv) { 
-		return
-	}		
-	
 	SendChat("/roadblock create")
 }
 return
 
 :?:/db::
 {
-	if (tv) { 
-		return
-	}	
-	
 	SendChat("/roadblock delete")
 }
 return
 
 :?:/dba::
 {
-	if (tv) { 
-		return
-	}	
-	
 	SendChat("/roadblock deleteall")
 }
 return
@@ -8770,17 +7902,17 @@ return
 :?:/rr::
 :?:/robres::
 {
-	if (tv) { 
-		return
-	}		
-	
 	if (!isPlayerAtLocal()) {
 		SendClientMessage(prefix . "Fehler: Du bist nicht in der Nähe einer Restaurant-Kette.")
-	} else if (IsPlayerInAnyVehicle()) {
-		SendClientMessage(prefix . "Fehler: Du darfst dich in keinem Fahrzeug befinden.")
-	} else {
-		addLocalToStats()
+		return
 	}
+	
+	if (IsPlayerInAnyVehicle()) {
+		SendClientMessage(prefix . "Fehler: Du darfst dich in keinem Fahrzeug befinden.")
+		return
+	} 
+
+	addLocalToStats()
 }
 return
 
@@ -8790,14 +7922,9 @@ return
 }
 return
 
-
 :?:/cd::
 :?:/countdown::
 {
-	if (tv) { 
-		return
-	}	
-	
 	if (countdownRunning) {
 		SetTimer, CountdownTimer, Off
 		
@@ -8815,8 +7942,9 @@ return
 		
 		cdChat := PlayerInput("Chat: ")
 		
-		if (cdChat == "")
+		if (cdChat == "") {
 			cdChat := "l"
+		}
 		
 		SendChat("/" . cdChat . " Countdown:")
 		
@@ -8834,24 +7962,18 @@ return
 :?:/geld::
 :?:/bank::
 {
-	if (tv) { 
-		return
-	}	
-	
 	SendChat("Sehe ich aus wie ein Geldautomat?")
 }
 return
 
 :?:/taxi::
 {
-	if (tv) { 
-		return
-	}	
-	
 	if (keybinderFrac == "FBI") {
-		SendChat("/l Wir sind kein Taxiunternehmen, wir sind Agenten.")
-	} else {
-		SendChat("/l Wir sind kein Taxiunternehmen, wir sind Beamte.")
+		SendChat("Wir sind kein Taxiunternehmen, wir sind Agenten.")
+	} else if (keybinderFrac == "LSPD") {
+		SendChat("Wir sind kein Taxiunternehmen, wir sind Beamte.")
+	} else if (keybinderFrac == "Army") {
+		SendChat("Wir sind kein Taxiunternehmen, wir sind Soldaten.")
 	}
 }
 return
@@ -8865,11 +7987,7 @@ return
 
 :?:/np::
 {
-	if (tv) { 
-		return
-	}	
-	
-	Random, rand, 1, 3
+	random, rand, 1, 3
 	
 	if (rand == 1) {
 		SendChat("Kein Problem!")
@@ -8883,139 +8001,99 @@ return
 
 :?:/beweise::
 {
-	if (tv) { 
-		return
-	}	
-	
 	SendChat("Haben Sie dafür Beweise? (Screenshots, Video, o.ä.)")
 }
 return
 
 :?:/zeuge::
 {
-	if (tv) { 
-		return
-	}	
-	
 	SendChat("Zeugen zählen nicht und werden nicht weiter beachtet.")
 }
 return
 
 :?:/warte::
 {
-	if (tv) { 
-		return
-	}	
-	
 	SendChat("Einen Moment bitte, der Fall wird überprüft.")
 }
 return
 
 :?:/beschwerde::
 {
-	if (tv) { 
-		return
-	}	
-	
-	SendChat("/l Sie haben das Recht, eine Beschwerde im Forum zu erstellen.")
+	SendChat("Sie haben das Recht, eine Beschwerde im Forum zu erstellen.")
 
 	if (!admin) {
 		Sleep, 400
 	}
 
-	SendChat("/l Wir bitten Sie hierbei, die Beschwerdeninformationen zu beachten.")
+	SendChat("Wir bitten Sie hierbei, die Beschwerdeninformationen zu beachten.")
 }
 return
 
 :?:/rechte::
 {
-	if (tv) {
-		return
-	}
-	
-	SendChat("/l Sie haben das Recht zu schweigen. Alles was Sie sagen, kann und wird vor Gericht gegen Sie verwendet werden.")
+	SendChat("Sie haben das Recht zu schweigen. Alles was Sie sagen, kann und wird vor Gericht gegen Sie verwendet werden.")
 	
 	if (!admin) { 
 		Sleep, 750
 	}
 	
-	SendChat("/l Sie haben das Recht auf einen Anwalt. Können Sie sich keinen leisten wird Ihnen einer gestellt.")
+	SendChat("Sie haben das Recht auf einen Anwalt. Können Sie sich keinen leisten wird Ihnen einer gestellt.")
 	
 	if (!admin) {
 		Sleep, 750
 	}
 	
-	SendChat("/l Haben Sie Ihre Rechte verstanden, welche ich Ihnen vorgelesen hab?")
+	SendChat("Haben Sie Ihre Rechte verstanden, welche ich Ihnen vorgelesen hab?")
 }
 return
 
 :?:/warten::
 {
-	if (tv) { 
-		return
-	}	
-
-	SendChat("/l Bitte warten Sie einen Moment, ich überprüfe die Gültigkeit Ihrer Dokumente.")
+	SendChat("Bitte warten Sie einen Moment, ich überprüfe die Gültigkeit Ihrer Dokumente.")
 }
 return
 
 :?:/passieren::
 {
-	if (tv) { 
-		return
-	}	
-
-	SendChat("/l Sie dürfen passieren.")
+	SendChat("Sie dürfen passieren.")
 	
 	if (!admin) {
 		Sleep, 750
 	}	
 	
-	SendChat("/l Ich wünsche Ihnen eine gute Weiterfahrt. Auf Wiedersehen!")
+	SendChat("Ich wünsche Ihnen eine gute Weiterfahrt. Auf Wiedersehen!")
 }
 return
 
 :?:/runter::
 {
-	if (tv) { 
-		return
-	}	
-	
-	SendChat("/l Steigen Sie bitte umgehend vom Fahrzeug.")
+	SendChat("Steigen Sie bitte umgehend vom Fahrzeug.")
 
 	if (!admin) {
 		Sleep, 750
 	}
 	
-	SendChat("/l Ansonsten sind wir gezwungen Sie wegen Verweigerung zu verhaften.")
+	SendChat("Ansonsten sind wir gezwungen Sie wegen Verweigerung zu verhaften.")
 }
 return
 
 :?:/hdf::
 :?:/ruhe::
 {
-	if (tv) { 
-		return
-	}	
-	
-	Random, tmp, 1, 3
+	random, tmp, 1, 3
 	
 	if (tmp == 1) {
-		SendChat("/l Sein Sie bitte still.")
+		SendChat("Sein Sie bitte still.")
 	} else if (tmp == 2) {
-		SendChat("/l Können Sie bitte ruhig sein?")
+		SendChat("Können Sie bitte ruhig sein?")
 	} else if (tmp == 3) {
-		SendChat("/l Bitte sein Sie leise..")
+		SendChat("Bitte sein Sie leise..")
 	}
 }
 return
 
 :?:/tuch::
 {
-	if (tv) {
-		return
-	}
-	
 	SendChat("Warum weinen Sie, möchten Sie ein Taschentuch?")
 }
 return
@@ -9024,7 +8102,7 @@ return
 {
 	SendChat("/time")
 	
-	Sleep, 100
+	Sleep, 200
 	
 	adrGTA2 := getModuleBaseAddress("gta_sa.exe", hGTA)
 	cText := readString(hGTA, adrGTA2 + 0x7AAD43, 512)
@@ -9033,16 +8111,16 @@ return
 		time := formatTime(cText_2)
 		
 		writeString(hGTA, adrGTA2 + 0x7AAD43, cText_1 . "Noch " . time . " im KH")
-		SendClientMessage(prefix . "Du bist noch " . csecond . time . " {FFFFFF}im Krankenhaus.")
+		SendClientMessage(prefix . "Du bist noch " . csecond . time . cwhite . " im Krankenhaus.")
 	} else if (RegExMatch(cText, "(.+)Knastzeit: (\d+)", cText_)) {
 		time := formatTime(cText_2)
 		
 		if (getPlayerInteriorId() == 1) {
 			writeString(hGTA, adrGTA2 + 0x7AAD43, cText_1 . "Noch " . time . " im Prison")
-			SendClientMessage(prefix . "Du bist noch " . csecond . time . " {FFFFFF}im Prison.")
+			SendClientMessage(prefix . "Du bist noch " . csecond . time . cwhite . " im Prison.")
 		} else {
 			writeString(hGTA, adrGTA2 + 0x7AAD43, cText_1 . "Noch " . time . " im Knast")
-			SendClientMessage(prefix . "Du bist noch " . csecond . time . " {FFFFFF}im Knast, die Kaution beträgt " . csecond . FormatNumber(Floor(cText_2 / 60) * 500) . cwhite . "$.")
+			SendClientMessage(prefix . "Du bist noch " . csecond . time . cwhite . " im Knast, die Kaution beträgt " . csecond . formatNumber(Floor(cText_2 / 60) * 500) . cwhite . "$.")
 		}
 	}
 }
@@ -9082,10 +8160,6 @@ return
 
 :?:/fan::
 {
-	if (tv) {
-		return
-	}	
-	
 	name := PlayerInput("Fan: ")
 	if (name == "" || name == " ") {
 		return
@@ -9111,11 +8185,9 @@ return
 	
 	players := 0
 	
-	Loop, 100 {
-		chat := readChatLine(players)
-		
-		if (InStr(chat, "Punkte")) {
-			players++
+	Loop, 100 {		
+		if (InStr(readChatLine(players), "Punkte")) {
+			players ++
 		} else {
 			SendClientMessage(prefix . "Spieler im Paintball: " . csecond . players)
 			return
@@ -9146,11 +8218,7 @@ return
 
 :?:/uc::
 {	
-	if (tv) {
-		return
-	}	
-	
-	if (getPlayerInteriorId() == 0) {
+	if (!getPlayerInteriorId()) {
 		SendClientMessage(prefix . "Fehler: Du befindest dich in keinem Gebäude.")
 		return
 	}		
@@ -9161,11 +8229,7 @@ return
 
 :?:/auc::
 {
-	if (tv) {
-		return
-	}	
-	
-	if (getPlayerInteriorId() == 0) {
+	if (!getPlayerInteriorId()) {
 		SendClientMessage(prefix . "Fehler: Du befindest dich in keinem Gebäude.")
 		return
 	}	
@@ -9178,30 +8242,18 @@ return
 
 :?:/jas::
 {
-	if (tv) {
-		return
-	}		
-	
 	SendChat("Ja Sir, was kann ich für Sie tun?")
 }
 return
 
 :?:/jam::
 {
-	if (tv) {
-		return
-	}		
-	
 	SendChat("Ja Madam, was kann ich für Sie tun?")
 }
 return
 
 :?:/ja::
 {
-	if (tv) {
-		return
-	}		
-	
 	SendChat("Ja, was kann ich für Sie tun?")
 }
 return
@@ -9230,7 +8282,7 @@ return
 			}
 		}
 		
-		distanceSMS++
+		distanceSMS ++
 	}
 	
 	if (sms_2 != "") {
@@ -9239,7 +8291,7 @@ return
 		
 		SendInput, /sms %sms_3%{space}
 	} else {
-		SendClientMessage(prefix . "Keiner hat dich angeschrieben!")
+		SendClientMessage(prefix . "Fehler: Es wurde keine SMS gefunden.")
 	}
 }
 return
@@ -9259,42 +8311,44 @@ return
 		
 		SendInput, /sms %ad_3%{space}
 	} else {
-		SendClientMessage(prefix . "Keine letzte Werbung gefunden!")
+		SendClientMessage(prefix . "Fehler: Es wurde keine Werbung gefunden.")
 	}
 }
 return
 
 :?:/kcall::
 {	
-	
-	name := PlayerInput("Name: ")
-	if (name == "" || name == " ")
+	name := PlayerInput("Wen möchtest du anrufen?: ")
+	if (name == "" || name == " ") {
 		return
+	}
 	
 	if (getFullName(name) == "") {
 		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
 		return
 	}
 	
+	if (getFullName(name) == getUserName()) {
+		SendClientMessage(prefix . "Fehler: Du kannst dich selbst nicht anrufen.")
+		return
+	}	
+	
 	SendChat("/number " . name)
 	
 	Sleep, 200
-	
-	chat := readChatLine(0)
-	
-	if (RegExMatch(chat, "Name: (\S*), Ph: (\d*)", number_)) {
-		SendClientMessage(prefix . "Ausgewählter Spieler: " . csecond . number_1)
 		
+	if (RegExMatch(readChatLine(0), "Name: (\S*), Ph: (\d*)", number_)) {
+		SendClientMessage(prefix . "Ausgewählter Spieler: " . csecond . number_1)
 		SendChat("/call " . number_2)
 	} else {
-		SendClientMessage(prefix . "Anruf fehlgeschlagen!")
+		SendClientMessage(prefix . "Fehler: Es konnte kein Spieler gefunden werden.")
 	}
 }
 return
 
 :?:/calarm::
 {
-	name := PlayerInput("Name: ")
+	name := PlayerInput("Wen möchtest du vorm O-Amt warnen?: ")
 	if (name == "" || name == " ") {
 		return
 	}
@@ -9304,25 +8358,27 @@ return
 		return
 	}
 	
+	if (getFullName(name) == getUserName()) {
+		SendClientMessage(prefix . "Fehler: Du kannst dir selbst keine SMS senden.")
+		return
+	}	
+	
 	SendChat("/number " . name)
 	
 	Sleep, 200
-	
-	chat := readChatLine(0)
-	
-	if (RegExMatch(chat, "Name: (\S*), Ph: (\d*)", number_)) {
-		SendClientMessage(prefix . "Ausgewählter Spieler: " . csecond . number_1)
 		
+	if (RegExMatch(readChatLine(0), "Name: (\S*), Ph: (\d*)", number_)) {
+		SendClientMessage(prefix . "Ausgewählter Spieler: " . csecond . number_1)
 		SendChat("/" . number_2 . " Geh lieber offline, dein Car wird vom O-Amt abgeschleppt, gönne dennen nicht.")
 	} else {
-		SendClientMessage(prefix . "Senden der SMS fehlgeschlagen!")
+		SendClientMessage(prefix . "Fehler: Es konnte kein Spieler gefunden werden.")
 	}
 }
 return
 
 :?:/ksms::
 {
-	name := PlayerInput("Name: ")
+	name := PlayerInput("Wen möchtest du deine SMS senden?: ")
 	if (name == "" || name == " ") {
 		return
 	}
@@ -9332,18 +8388,21 @@ return
 		return
 	}
 	
+	if (getFullName(name) == getUserName()) {
+		SendClientMessage(prefix . "Fehler: Du kannst dir selbst keine SMS senden.")
+		return
+	}
+	
 	SendChat("/number " . name)
 	
 	Sleep, 200
-	
-	chat := readChatLine(0)
-	
-	if (RegExMatch(chat, "Name: (\S*), Ph: (\d*)", number_)) {
+		
+	if (RegExMatch(readChatLine(0), "Name: (\S*), Ph: (\d*)", number_)) {
 		SendClientMessage(prefix . "Ausgewählter Spieler: " . csecond . number_1)
 		
 		SendInput, t/sms %number_2%{space}
 	} else {
-		SendClientMessage(prefix . "Senden der SMS fehlgeschlagen!")
+		SendClientMessage(prefix . "Fehler: Es konnte kein Spieler gefunden werden.")
 	}
 }
 return
@@ -9351,10 +8410,6 @@ return
 :?:/p::
 :?:/pickup::
 {
-	if (tv) {
-		return
-	}		
-	
 	called := false
 	
 	Loop, Read, %A_MyDocuments%\GTA San Andreas User Files\SAMP\chatlog.txt
@@ -9442,17 +8497,13 @@ return
 		
 		SendChat("/hangup")
 	} else {
-		SendClientMessage(prefix . "Niemand hat dich angerufen!")
+		SendClientMessage(prefix . "Niemand hat dich angerufen.")
 	}
 }
 return
 
 :?:/ab::
 {
-	if (tv) {
-		return
-	}		
-	
 	called := false
 	
 	Loop, Read, %A_MyDocuments%\GTA San Andreas User Files\SAMP\chatlog.txt
@@ -9498,21 +8549,13 @@ return
 return
 
 :?:/tag::
-{
-	if (tv) {
-		return
-	}		
-	
+{	
 	SendChat("Guten " . getDayTime() . ", wie kann ich Ihnen behilflich sein?")
 }
 return
 
 :?:/bye::
 {
-	if (tv) {
-		return
-	}		
-	
 	SendChat("Ich wünsche Ihnen noch einen schönen " . getDayTime() . ". Auf Wiedersehen!")
 }
 return
@@ -9542,11 +8585,19 @@ return
 
 :?:/ap::
 {
-	if (tv) {
-		return
-	}		
-	
 	SendChat("/accept paket")
+	
+	Sleep, 200
+		
+	if (InStr(readChatLine(0) . readChatLine(1) . readChatLine(2), "Du hast bereits ein Erste-Hilfe-Paket")) {
+		if (paketInfo) {
+			SendChat("/l Vielen Dank " . medicName . ", doch ich habe bereits ein Paket!")
+		}
+	} else if (RegExMatch(readChatLine(0) . readChatLine(1) . readChatLine(2), "\* Du hast für \$(\d+) ein Erste-Hilfe-Paket von (\S+) gekauft\.", chat_)) {
+		if (paketInfo) {
+			SendChat("/l Vielen Dank " . chat_2 . " für das Erste-Hilfe-Paket!")
+		}
+	}	
 }
 return
 
@@ -9556,21 +8607,19 @@ return
 	if (!isPlayerInAnyVehicle() || !isPlayerDriver()) {
 		SendClientMessage(prefix . "Fehler: Du bist nicht der Fahrer eines Fahrzeuges.")
 		return
-	} else if (!isPlayerAtGasStation()) {
+	} 
+	
+	if (!isPlayerAtGasStation()) {
 		SendClientMessage(prefix . "Fehler: Du bist nicht in der Nähe einer Tankstelle.")
 		return
-	} else {
-		refillCar()
 	}
+	
+	refillCar()
 }
 return
 
 :?:/sbd::
 {
-	if (tv) {
-		return
-	}			
-	
 	SendInput, /showbadge{space}
 }
 return
@@ -9594,7 +8643,7 @@ return
 	
 	if (seconds != "") {
 		minutes := Floor(seconds / 60)
-		SendClientMessage(prefix . csecond . FormatNumber(seconds) . " {FFFFFF}Sekunden sind " . csecond . FormatNumber(minutes) " {FFFFFF}Minuten.")
+		SendClientMessage(prefix . csecond . formatNumber(seconds) . cwhite . " Sekunden sind " . csecond . FormatNumber(minutes) . cwhite . " Minuten.")
 	}
 }
 return
@@ -9621,11 +8670,11 @@ return
 		}
 			
 		if (linkresult) {
-			SendClientMessage(prefix . "{2090B3}|________________________________________|")
+			SendClientMessage(prefix . cblue . "|________________________________________|")
 			SendClientMessage(prefix . "Es wurde ein Link abkopiert und gespeichert:")
 			SendClientMessage(prefix . csecond . clipboard)
 			SendClientMessage(prefix . "Du kannst diesen nun überall einfügen.")
-			SendClientMessage(prefix . "{2090B3}|________________________________________|")
+			SendClientMessage(prefix . cblue . "|________________________________________|")
 			return
 		}
 	}
@@ -9657,20 +8706,12 @@ return
 
 :?:/wagen::
 {
-	if (tv) { 
-		return
-	}
-	
 	SendChat("/d HQ: Ich benötige dringend einen Streifenwagen, aktuelle Position: " . getLocation())
 }
 return
 
 :?:/sani::
 {
-	if (tv) { 
-		return
-	}
-	
 	SendChat("/d HQ: Ich benötige dringend einen Rettungswagen, aktuelle Position: " . getLocation())
 	SendChat("/service")
 	
@@ -9906,114 +8947,6 @@ accept9Label:
 	}	
 	
 	acceptTicket(9)
-}
-return
-
-:?:/supov::
-{
-	if (keybinderVersion == "nooverlay") {
-		SendClientMessage(prefix . "Fehler: Du benutzt die Overlay lose Version")
-		return
-	}
-	
-	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
-		return
-	}	
-	
-	if (overlayOn) {
-		SetTimer, updateOverlay, Off
-		
-		TextDestroy(sup_heading)
-		TextDestroy(sup_page)
-		TextDestroy(sup_text)
-		BoxDestroy(sup_box)
-		
-		overlayOn := false
-	} else {
-		sup_box := BoxCreate(500, 400, 275, 175, 0xDD000000, true)
-		
-		BoxSetBorder(sup_box, 2, true)
-		BoxSetBorderColor(sup_box, 0xFF5AE342)
-		
-		sup_heading := TextCreate("Arial", 7, true, false, 503, 403, 0xFF5AE342, "--- --- --- --- --- --- --- --- --- --- --- --- --- ---     Ticket #01     --- --- --- --- --- --- --- --- --- --- --- --- --- ---", false, false)
-		sup_page := TextCreate("Arial", 7, true, false, 503, 560, 0xFF5AE342, "--- --- --- --- --- --- --- --- --- --- --- --- --- --- --    Seite 01   -- --- --- --- --- --- --- --- --- --- --- --- --- --- ---", false, false)
-		sup_text := TextCreate("Arial", 7, true, false, 503, 413, 0xFFFFFFFF, "", false, false)
-		
-		TextSetShown(sup_heading, true)
-		TextSetShown(sup_page, true)
-		TextSetShown(sup_text, true)
-		
-		SetTimer, updateOverlay, 50
-		
-		overlayOn := true
-	}
-}
-return
-
-~^Up::
-{
-	if (overlayOn == true) {
-		if (page == 1) {
-			return
-		}
-		
-		page--
-	}
-}
-return
-
-~^Down::
-{
-	if (overlayOn == true) {
-		page++
-	}
-}
-return
-
-~^Right::
-{
-	if (overlayOn == true) {
-		if (numID == 15) {
-			numID := 1
-		} else {
-			numID++
-		}
-		
-		Loop, parse, sup_text_%numID%, `n, `r
-		{
-			index := A_Index
-		}
-		
-		page := Floor((index - 1) / 14) + 1
-		
-		if (page == 0) {
-			page := 1
-		}
-	}
-}
-return
-
-~^Left::
-{
-	if (overlayOn == true) {
-		if (numID == 1) {
-			numID := 15
-		} else {
-			numID--
-		}
-		
-		Loop, parse, sup_text_%numID%, `n, `r
-		{
-			index := A_Index
-		}
-		
-		page := Floor((index - 1) / 14) + 1
-		
-		if (page == 0) {
-			page := 1
-		}
-	}
 }
 return
 
@@ -12000,7 +10933,7 @@ MainTimer:
 			oldSpotifyTrack := spotifytrack
 			
 			if (spotifyPrivacy) {
-				SendClientMessage(prefix . "Neuer Spotify-Track: " . COLOR_GREEN . spotifytrack)
+				SendClientMessage(prefix . "Neuer Spotify-Track: " . cgreen . spotifytrack)
 			}
 			
 			if (spotifyPublic) {
@@ -12544,16 +11477,7 @@ TicketTimer:
 		oldchat := chat
 	}
 	
-	if (RegExMatch(chat, "\(\( Ticket (\d+) (\S+): (.*) \)\)", var)) {
-		addStr(var1, var2, var3)
-	} else if (RegExMatch(chat, "\.\.\.(.*) \)\)", var)) {
-		chat_ := readChatLine(1)
-		
-		if (RegExMatch(chat_, "\(\( Ticket (\d+) (\S+): (.*)\.\.\.", var_)) {
-			addStr(var_1, var_2, var_3)
-			addStr(var_1, var_2, var1)
-		}
-	} else if (RegExMatch(chat, "Du hast das Ticket von (\S+) (.+).", var)) {
+	if (RegExMatch(chat, "Du hast das Ticket von (\S+) (.+).", var)) {
 		if (var2 == "geschlossen") {
 			saveTicket(var1)
 		} else if (var2 == "zurückgelegt") {
@@ -12571,14 +11495,10 @@ return
 
 RespawnCarTimer:
 {
-	if (!WinActive("GTA:SA:MP")) {
+	if (!WinActive("GTA:SA:MP") || !admin) {
 		return
 	}
-	
-	if (!admin) {
-		return
-	}
-	
+
 	if (racTime == 0) {
 		SendChat("/rac")
 		SendChat("/rac")
@@ -12595,59 +11515,6 @@ RespawnCarTimer:
 	}
 	
 	racTime--
-}
-return
-
-UpdateOverlay:
-{
-	if (!WinActive("GTA:SA:MP")) {
-		return
-	}
-	
-	if (keybinderVersion == "nooverlay" || overlayOn == false) {
-		SetTimer, UpdateOverlay, off
-		return
-	}
-	
-	index := 0
-	reading := false
-	str := ""
-	
-	Loop, parse, sup_text_%numID%, `n, `r
-	{
-		if (page == 1) {
-			reading := true
-		} else if (A_Index == (page - 1) * 14 + 1) {
-			reading := true
-		}
-		
-		if (reading) {
-			index ++
-			str := str . A_LoopField . "`n"
-			
-			if (index == 14) {
-				break
-			}
-		}
-	}
-	
-	TextSetString(sup_text, str)
-	
-	if (numID < 10) {
-		numStr := "0" . numID
-	} else {
-		numStr := numID
-	}
-	
-	TextSetString(sup_heading, "--- --- --- --- --- --- --- --- --- --- --- --- --- ---     Ticket #" . numStr . "     --- --- --- --- --- --- --- --- --- --- --- --- --- ---")
-	
-	if (page < 10) {
-		zeileStr := "0" . page
-	} else {
-		zeileStr := page
-	}
-	
-	TextSetString(sup_page, "--- --- --- --- --- --- --- --- --- --- --- --- --- --- --    Seite " . zeileStr . "  -- --- --- --- --- --- --- --- --- --- --- --- --- --- ---")
 }
 return
 
@@ -12714,12 +11581,6 @@ findInfo(name) {
 	playerScore := getPlayerScoreById(playerID)
 	
 	SendClientMessage(prefix . "Die Suche nach " . player . " (ID: " . playerID . ") wurde gestartet.")
-	; if (playerScore <= 5) {
-	; 	SendClientMessage(prefix . "Level: " . COLOR_RED . playerScore)
-	; } else {
-	;	SendClientMessage(prefix . "Level: " . COLOR_GREEN . playerScore)
-	;}
-		
 	Sleep, 200
 	
 	SendChat("/mdc " . player)
@@ -12788,34 +11649,6 @@ acceptTicket(ticketID) {
 	
 	SendChat("/aw " . ticketID . " " . greeting . "!")
 	SendChat("/aw " . ticketID . " Du sprichst mit " . getUsername() . ", ich bin für Deine Fragen und Problemen offen!")
-}
-
-addStr(id, name, inhalt) {
-	overlayfs := "FF8000"
-	overlayfa := "0099FF"
-	
-	StringReplace, inhalt, inhalt, ä, ae, All
-	StringReplace, inhalt, inhalt, ö, oe, All
-	StringReplace, inhalt, inhalt, ü, ue, All
-	StringReplace, inhalt, inhalt, ß, ss, All
-	
-	if (name == getUsername()) {
-		name := "{" . overlayfs . "}" . getUsername()
-	} else {
-		sup_name_%id% := name
-		name := "{" . overlayfa . "}" . name
-	}
-	
-	sup_text_%id% := sup_text_%id% . name . cwhite . ": " . inhalt . "`n"
-	
-	global numID := id
-	
-	Loop, parse, sup_text_%numID%, `n, `r
-	{
-		index := A_Index
-	}
-	
-	global page := Floor((index - 1) / 14) + 1
 }
 
 saveTicket(name) {
