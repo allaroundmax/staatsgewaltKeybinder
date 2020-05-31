@@ -231,7 +231,7 @@ Start:
 	IniRead, escInfo, settings.ini, infos, escInfo, 0
 	IniRead, afkInfo, settings.ini, infos, afkInfo, 0
 
-	IniRead, taxes, settings.ini, settings, taxes, 0
+	IniRead, taxes, settings.ini, settings, taxes, 1
 	IniRead, max_kmh, settings.ini, settings, max_kmh, 0
 	IniRead, lottoNumber, settings.ini, settings, lottoNumber, %A_Space%
 	IniRead, department, settings.ini, settings, department, %A_Space%
@@ -2680,11 +2680,18 @@ handleChatMessage(message, index, arr) {
 					if (!deathArrested) {
 						wanteds := line0_2 / 3
 						amoney := wanteds * 750
-								
+						
 						if (amoney > 16000) {
 							amoney := 16000
 						}
-								
+						
+						IniRead, taxes, settings.ini, settings, taxes, 1
+						if (taxes == 1) {
+							getTaxes()
+							
+							Sleep, 500
+						}
+						
 						amoney := Floor(amoney * taxes)
 						paydayMoney += numberFormat(amoney)
 						totalArrestMoney += numberFormat(amoney)
@@ -2753,6 +2760,14 @@ handleChatMessage(message, index, arr) {
 						amoney := 16000
 					}
 					
+					IniRead, taxes, settings.ini, settings, taxes, 1
+					
+					if (taxes == 1) {
+						getTaxes()
+						
+						Sleep, 500
+					}
+						
 					amoney := Floor(amoney * taxes)
 					paydayMoney += numberFormat(amoney)
 					totalArrestMoney += numberFormat(amoney)
@@ -2995,7 +3010,7 @@ return
 	IniRead, drugs, settings.ini, Items, drugs, 0
 	IniRead, pakcooldown, settings.ini, Cooldown, pakcooldown, 0
 
-	if (isBlocked() || isPaintball || damageTime > getUnixTimestamp(A_Now) || !autoUse || isPlayerInAnyVehicle() || getPlayerArmor() >= 46) {
+	if (isBlocked() || isPaintball || !autoUse || isPlayerInAnyVehicle() || getPlayerArmor() >= 46) {
 		return
 	}
 
@@ -3064,6 +3079,13 @@ return
 	}
 }
 return
+
+:?:/test::
+{
+	SendClientMessage("HQ: Alle Einheiten, Deputy jacob.tremblay hat den Auftrag ausgeführt.")
+	SendClientMessage("HQ: Jürgen wurde eingesperrt, Haftzeit: 60 Minuten, Geldstrafe: 0$")
+}
+return 
 
 ~^R::
 {
@@ -6729,8 +6751,12 @@ return
 :?:/pd::
 :?:/payday::
 {
+	IniRead, taxes, settings.ini, settings, taxes, 1
+	
 	if (taxes == 1) {
-		SendClientMessage(prefix . "Es wurde noch kein Steuersatz eingetragen, gib bitte " . csecond . "/settax" . cwhite . "ein.")
+		getTaxes()
+		
+		Sleep, 500
 	}
 	
 	SendClientMessage(prefix . "Geld am nächsten Payday: $" . csecond . formatNumber(paydayMoney) . cwhite . " (Brutto) $" . csecond . formatNumber(Round(paydayMoney * taxes)) . cwhite . " (Netto)")
@@ -6758,6 +6784,14 @@ return
 :?:/resetpd::
 :?:/resetpayday::
 {
+	IniRead, taxes, settings.ini, settings, taxes, 1
+	
+	if (taxes == 1) {
+		getTaxes()
+		
+		Sleep, 500
+	}	
+	
 	SendClientMessage(prefix . "Geld am nächsten Payday: " . csecond . FormatNumber(paydayMoney) . cwhite . "$ (Brutto) " . csecond . FormatNumber(Round(paydayMoney * taxes)) . cwhite . "$ (Netto)")
 	
 	paydayMoney := 0
@@ -6831,6 +6865,8 @@ return
 				partners[partnerID] := partnerName
 				
 				SendChat("/d HQ: " . partnerName . " wurde als Streifenpartner " . partnerID . " eingetragen!")
+				
+				IniRead, taxes, settings.ini, settings, taxes, 1
 				
 				if (taxes == 1) {
 					SendClientMessage(prefix . "Du musst noch deine Steuerklasse eintragen, verwende " . csecond . "/settax")
@@ -10824,6 +10860,8 @@ return
 
 PartnerMoneyTimer:
 {
+	SendClientMessage(prefix . numberFormat(totalArrestMoney))
+	
 	payPartnerMoney(numberFormat(totalArrestMoney), "arrest_money")
 	
 	totalArrestMoney := 0
@@ -11109,12 +11147,6 @@ MainTimer:
 		damage := healthOld - getPlayerHealth()
 
 		healthOld := getPlayerHealth()
-
-		if (autoUse) {
-			if (damage > 5 && getPlayerHealth() < 90) {
-				damageTime := (getUnixTimestamp(A_Now) + 10)
-			}
-		}
 
 		if (damageInfo) {
 			if (damage > 5 && !isPaintball ) {
@@ -12060,7 +12092,7 @@ payPartnerMoney(money, stat) {
 	global username
 	global password
 	
-	partnerStake := Round(money / (partners.Length() + 1), 0)
+	partnerStake := round(money / (partners.Length() + 1), 0)
 	
 	IniRead, statMoney, stats.ini, Verhaftungen, Money, 0
 
@@ -13364,4 +13396,16 @@ checkVars(String) {
 	}
 
 	return string
+}
+
+getTaxes() {
+	SendChat("/tax")
+	
+	Sleep, 250
+	
+	RegExMatch(readChatLine(4 - taxClass), "Steuerklasse 4: (\d*) Prozent", chat_)
+	taxes := (100 - chat_1) / 100
+	
+	IniWrite, %taxes%, settings.ini, settings, taxes
+	SendClientMessage(prefix . "Der Steuersatz (Steuerklasse " . cSecond . taxClass . cwhite . ") wurde auf " . cSecond . chat_1 . cwhite . " Prozent gesetzt.")
 }
