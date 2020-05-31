@@ -10859,9 +10859,7 @@ PaketTimer:
 return
 
 PartnerMoneyTimer:
-{
-	SendClientMessage(prefix . numberFormat(totalArrestMoney))
-	
+{	
 	payPartnerMoney(numberFormat(totalArrestMoney), "arrest_money")
 	
 	totalArrestMoney := 0
@@ -13403,9 +13401,9 @@ getTaxes() {
 	
 	Sleep, 250
 	
-	RegExMatch(readChatLine(4 - taxClass), "Steuerklasse 4: (\d*) Prozent", chat_)
+	RegExMatch(readChatLine(4 - 4), "Steuerklasse 4: (\d*) Prozent", chat_)
 	taxes := (100 - chat_1) / 100
 	
 	IniWrite, %taxes%, settings.ini, settings, taxes
-	SendClientMessage(prefix . "Der Steuersatz (Steuerklasse " . cSecond . taxClass . cwhite . ") wurde auf " . cSecond . chat_1 . cwhite . " Prozent gesetzt.")
+	SendClientMessage(prefix . "Der Steuersatz (Steuerklasse " . cSecond . "4" . cwhite . ") wurde auf " . cSecond . chat_1 . cwhite . " Prozent gesetzt.")
 }
