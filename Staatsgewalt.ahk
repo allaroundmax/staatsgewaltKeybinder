@@ -4096,9 +4096,9 @@ return
 		if (rewantedting) {
 			SendChat("/suspect " . getFullName(reInput) . " Re-Wanted")
 		
-			Sleep, 200
+			Sleep, 100
 			
-			if (InStr(readChatLine(0), "[WANTED] Verdächtiger: " . getFullName(reInput) . ", Zeuge: " . getUserName() . ", Verbrechen: Re-Wanted")) {
+			if (InStr(readChatLine(0), "HQ: Verbrechen: Re-Wanted, Zeuge: " . getUserName() . ", Verdächtiger: " . getFullName(reInput))) {
 				givedRewanted ++
 			}
 		} else {
@@ -10231,18 +10231,22 @@ return
 
 SyncTimer:
 {	
-	SendClientMessage(prefix . "Das Synchroniseren von Fischen, Paket, Drogen und Lagerfeuer hat begonnen!")
-	SendClientMessage(prefix . "Drücke bitte in den nächsten 4 Sekunden keine Keys und schreibe nichts im Chat!")
-	
-	checkCooked()
-	getFirstAid(0)
-	
-	Sleep, 1500
-	
-	getDrugs(0)
-	getCampfire(0)
-	
-	SendClientMessage(prefix . "Das Synchronisieren ist " . COLOR_GREEN . "abgeschlossen" . cwhite . ".")
+	if (autoUse) {
+		SendClientMessage(prefix . "Das Synchroniseren von Fischen, Paket, Drogen und Lagerfeuer hat begonnen!")
+		SendClientMessage(prefix . "Drücke bitte in den nächsten 4 Sekunden keine Keys und schreibe nichts im Chat!")
+		
+		checkCooked()
+		getFirstAid(0)
+		
+		Sleep, 1500
+		
+		getDrugs(0)
+		getCampfire(0)
+		
+		SendClientMessage(prefix . "Das Synchronisieren ist " . COLOR_GREEN . "abgeschlossen" . cwhite . ".")
+	} else {
+		SetTimer, SyncTimer, off
+	}
 }
 return
 
@@ -11937,6 +11941,9 @@ removeFromWanted(name) {
 }
 
 giveWanteds(suspect, reason, amount) {	
+	global username
+	global password	
+	
 	suspect := getFullName(suspect)
 		
 	FormatTime, time, , HH:mm
@@ -11950,7 +11957,7 @@ giveWanteds(suspect, reason, amount) {
 	suspectLine0 := readChatLine(0)
 	suspectLine1 := readChatLine(1)
 	
-	if (InStr(suspectLine0 . suspectLine1, "Du kannst Beamte keine Wanteds eintrragen.") || InStr(suspectLine0 . suspectLine1, "Der Spieler befindet sich im Gefängnis.")) {
+	if (inStr(suspectLine0 . suspectLine1, "Du kannst Beamte keine Wanteds eintrragen.") || InStr(suspectLine0 . suspectLine1, "Der Spieler befindet sich im Gefängnis.")) {
 		return false
 	}
 	
@@ -11962,7 +11969,8 @@ giveWanteds(suspect, reason, amount) {
 }
 
 givePoints(suspect, reason, amount, extra := "") {
-	global
+	global username
+	global password	
 	
 	suspect := getFullName(suspect)
 
