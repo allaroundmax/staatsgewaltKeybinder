@@ -1,3 +1,0 @@
-[31.05.2020 17:52:43] Loginergebnis: true
-[31.05.2020 17:52:50] Loginergebnis: true
-[31.05.2020 18:01:07] Loginergebnis: true
