@@ -11978,7 +11978,7 @@ giveWanteds(suspect, reason, amount) {
 	suspect := getFullName(suspect)
 		
 	FormatTime, time, , HH:mm
-    result := URLDownloadToVar(baseURL . "api/catalog-new?username=" . username . "&password=" . password . "&type=wanteds&suspect=" . suspect)
+    result := URLDownloadToVar(baseURL . "api/catalog-new?username=" . username . "&password=" . password . "&type=wanteds&suspect=" . suspect . "&reason=" . reason)
 	
     try {
         data := JSON.Load(result)
@@ -11993,7 +11993,7 @@ giveWanteds(suspect, reason, amount) {
         SendClientMessage(prefix . "Fehler: " . data["error"])
     } else {
         if (!data["registered"]) {
-			SendClientMessage(prefix . "|========================| Doppelete Vergabe |========================|")
+			SendClientMessage(prefix . "|========================| Doppelte Vergabe |========================|")
 			SendClientMessage(prefix . "Es wurde eine doppelte Wantedvergabe erkannt. Informationen:")
 			SendClientMessage(prefix . "Spieler: " . csecond . suspect . cwhite . ", letzte Vergabe mit dem selben Grund um: " . csecond . data["time"] . cwhite . " Uhr.")
 			SendClientMessage(prefix . "Vergeben von: " . data["lastoffical"])
@@ -12035,24 +12035,51 @@ givePoints(suspect, reason, amount, extra := "") {
 	
 	suspect := getFullName(suspect)
 	
-	; #BAUM FÜG HIER MAL DOPPEL PUNKTEVERGABE (15min) ein und PUNKTE ERST AB RANG 5!!!
-
-	SendChat("/punkte " . suspect . " " . amount . " " . reason . extra)
+	result := URLDownloadToVar(baseURL . "api/catalog-new?username=" . username . "&password=" . password . "&type=points&suspect=" . suspect . "&reason=" . reason)
 	
-	Sleep, 200
+    try {
+        data := JSON.Load(result)
+    } catch {
+        SendClientMessage(prefix . "Fehler: Es ist ein Scriptinterner Fehler aufgetreten.")
+        FormatTime, time, , dd.MM.yyyy HH:mm:ss
+        FileAppend, [%time%] Beim Laden der Punkte-Vergabe ist ein Fehler aufgetreten: %result%`n, log.txt
+        return false
+    }
+    
+    if (data["error"] != "") {
+        SendClientMessage(prefix . "Fehler: " . data["error"])
+    } else {
+		 if (!data["registered"]) {
+			SendClientMessage(prefix . "|========================| Doppelte Vergabe |========================|")
+			SendClientMessage(prefix . "Es wurde eine doppelte Punktevergabe erkannt. Informationen:")
+			SendClientMessage(prefix . "Spieler: " . csecond . suspect . cwhite . ", letzte Vergabe mit dem selben Grund um: " . csecond . data["time"] . cwhite . " Uhr.")
+			SendClientMessage(prefix . "Vergeben von: " . data["lastoffical"])
+			SendClientMessage(prefix . "Möchtest du die Punkte trotzdem vergeben? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
+            
+            KeyWait, X, D, T10
+            
+            if (ErrorLevel) {
+                return false
+            }
+        }
+		SendChat("/punkte " . suspect . " " . amount . " " . reason . extra)
 	
-	pointsLine0 := readChatLine(0)
-	pointsLine1 := readChatLine(1)
-	
-	if (InStr(pointsLine0 . pointsLine1, "Du kannst dir keine Punkte geben.")) {
-		return false
+		Sleep, 200
+		
+		pointsLine0 := readChatLine(0)
+		pointsLine1 := readChatLine(1)
+		
+		if (InStr(pointsLine0 . pointsLine1, "Du kannst dir keine Punkte geben.")) {
+			return false
+		}
+		
+		points := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=points&value=" . amount)
+		IniWrite, %points%, stats.ini, Vergaben, Points
+		
+		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(points) . cwhite . " Punkte vergeben.")
+		return true
 	}
-	
-	points := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=points&value=" . amount)
-	IniWrite, %points%, stats.ini, Vergaben, Points
-	
-	SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(points) . cwhite . " Punkte vergeben.")
-	return true
+	return false
 }
 
 giveTicket(player, money, reason) {
