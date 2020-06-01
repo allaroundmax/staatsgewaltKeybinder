@@ -9988,7 +9988,7 @@ return
 	}		
 	
     SendChat("/announce Du hast Fragen oder Probleme, benutze '/sup [Deine Frage]'.")
-    SendChat("/announce Regelbrecher wie Hacker, Buguser können mit '/a' oder '/report' gemeldet werden!")
+    SendChat("/announce Regelbrecher wie Hacker, Buguser können mit '/a' oder '/cheater' gemeldet werden!")
 }
 return
 
@@ -12676,8 +12676,6 @@ addLocalToStats() {
 		if (RegExMatch(chat, "HQ: Die Restaurant-Kette (.+) wurde von Staat San Andreas eingenommen\.", output1_)) {
 			if (output1_1 != oldLocal) {
 				SendChat("/d HQ: Ich habe die Kette " . output1_1 . " von ihrem Erpresser befreit!")
-
-			
 				; STAT
 				IniRead, Restaurants, stats.ini, Übernahmen, Restaurants, 0 ; #BAUM
 				Restaurants ++
