@@ -1,2 +1,4 @@
 *.bak
 *.ini
+*.txt
+.idea/*
