@@ -601,7 +601,6 @@ Start:
 		SetTimer, WantedTimer, 1000
 	}
 
-
 	if (admin) {
 		SetTimer, TicketTimer, 1000
 	}
@@ -623,11 +622,11 @@ Start:
 		
 	Gui, Add, Text, x245 y12 w460 h55 , %fullProjectName%
 		
-	if (getFractionName() == "LSPD") {
+	if (userFraction == 2) {
 		Gui, Add, Picture, x12 y0 w80 h80, images\LogoSmallFBI.png
-	} else if (getFractionName() == "LSPD") {
+	} else if (userFraction == 1) {
 		Gui, Add, Picture, x12 y0 w80 h80, images\LogoSmallLSPD.png
-	} else if (getFractionName() == "Army") {
+	} else if (userFraction == 3) {
 		Gui, Add, Picture, x12 y0 w80 h80, images\LogoSmallArmy.png
 	}
 	
@@ -12035,6 +12034,8 @@ givePoints(suspect, reason, amount, extra := "") {
 	global password	
 	
 	suspect := getFullName(suspect)
+	
+	; #BAUM FÜG HIER MAL DOPPEL PUNKTEVERGABE (15min) ein und PUNKTE ERST AB RANG 5!!!
 
 	SendChat("/punkte " . suspect . " " . amount . " " . reason . extra)
 	
