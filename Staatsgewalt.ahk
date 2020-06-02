@@ -2263,7 +2263,7 @@ handleChatMessage(message, index, arr) {
 		if (antiSpam) {
 			blockChatInput()
 			
-			SendClientMessage(prefix . "Das Antispam System wurde " . COLOR_GREEN . "aktiviert" . cwhite . ".")
+			SendClientMessage(prefix . "Das Antispam System wurde " . cgreen . "aktiviert" . cwhite . ".")
 			
 			SetTimer, SpamTimer, -1500
 		}
@@ -10730,7 +10730,7 @@ return
 SpamTimer:
 {		
 	unBlockChatInput()
-	SendClientMessage(prefix . "Das Antispam System wurde " . COLOR_RED . "deaktiviert" . cwhite . ".")
+	SendClientMessage(prefix . "Das Antispam System wurde " . cred . "deaktiviert" . cwhite . ".")
 	
 	SetTimer, SpamTimer, off
 }
