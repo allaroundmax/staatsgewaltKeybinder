@@ -64,25 +64,29 @@ if (username != "" && password != "") {
 	if (loginResult == "true") {
 		Goto, Start
 	} else if (loginResult == "false") {
+		MsgBox, 16, Account deaktiviert, Dein Account wurde deaktiviert, bitte wende dich an deinen Leader / Administrator.
 		ExitApp
 	} else {
-		ExitApp
+		MsgBox, 16, Falsche Accountdaten, Der Account konnte nicht gefunden werden.`nBitte neue Daten eingeben.
+		Goto, LoginGUI
 	}
 } else {
-
-	IniWrite, % "", login.ini, login, username
-	IniWrite, % "", login.ini, login, password
-	
-	Gui, Add, Text, x12 y9 w530 h60 +BackgroundTrans +Center, Staatsgewalt - Login
-	Gui, Add, Text, x12 y49 w100 h20 +BackgroundTrans, Benutzername
-	Gui, Add, Text, x12 y79 w100 h20 +BackgroundTrans, Passwort
-	
-	Gui, Add, Edit, x112 y49 w180 h20 vusername,
-	Gui, Add, Edit, x112 y79 w180 h20 +Password vpassword,
-	Gui, Add, Button, x442 y189 w100 h30 gdoLogin, Login
-	Gui, Show, w564 h236, Login
-	return
+	Goto, LoginGUI
 }
+return
+
+LoginGUI:
+IniWrite, % "", login.ini, login, username
+IniWrite, % "", login.ini, login, password
+
+Gui, Add, Text, x12 y9 w530 h60 +BackgroundTrans +Center, Staatsgewalt - Login
+Gui, Add, Text, x12 y49 w100 h20 +BackgroundTrans, Benutzername
+Gui, Add, Text, x12 y79 w100 h20 +BackgroundTrans, Passwort
+
+Gui, Add, Edit, x112 y49 w180 h20 vusername,
+Gui, Add, Edit, x112 y79 w180 h20 +Password vpassword,
+Gui, Add, Button, x442 y189 w100 h30 gdoLogin, Login
+Gui, Show, w564 h236, Login
 return
 
 doLogin:
@@ -143,40 +147,40 @@ Start:
 		FileCreateDir, images
 	
 	IfNotExist, images/LogoSmallFBI.png
-		URLDownloadToFile, %baseURL%keybinder/download/images/LogoSmallFBI.png, images\LogoSmallFBI.png
+		URLDownloadToFile, %baseURL%download/images/LogoSmallFBI.png, images\LogoSmallFBI.png
 	
 	IfNotExist, images/LogoSmallLSPD.png
-		URLDownloadToFile, %baseURL%keybinder/download/images/LogoSmallLSPD.png, images\LogoSmallLSPD.png	
+		URLDownloadToFile, %baseURL%download/images/LogoSmallLSPD.png, images\LogoSmallLSPD.png	
 	
 	IfNotExist, images/LogoSmallArmy.png
-		URLDownloadToFile, %baseURL%keybinder/download/images/LogoSmallArmy.png, images\LogoSmallArmy.png	
+		URLDownloadToFile, %baseURL%download/images/LogoSmallArmy.png, images\LogoSmallArmy.png	
 	
 	IfNotExist, sounds
 		FileCreateDir, sounds
 	
 	IfNotExist, sounds/bk.mp3
-		URLDownloadToFile, %baseURL%keybinder/download/sounds/bk.mp3, sounds\bk.mp3
+		URLDownloadToFile, %baseURL%download/sounds/bk.mp3, sounds\bk.mp3
 		
 	IfNotExist, sounds/call.mp3
-		URLDownloadToFile, %baseURL%keybinder/download/sounds/call.mp3, sounds\call.mp3
+		URLDownloadToFile, %baseURL%download/sounds/call.mp3, sounds\call.mp3
 	
 	IfNotExist, sounds/sms.mp3
-		URLDownloadToFile, %baseURL%keybinder/download/sounds/sms.mp3, sounds\sms.mp3
+		URLDownloadToFile, %baseURL%download/sounds/sms.mp3, sounds\sms.mp3
 	
 	IfNotExist, sounds/double.mp3
-		URLDownloadToFile, %baseURL%keybinder/download/sounds/double.mp3, sounds\double.mp3
+		URLDownloadToFile, %baseURL%download/sounds/double.mp3, sounds\double.mp3
 		
 	IfNotExist, sounds/triple.mp3
-		URLDownloadToFile, %baseURL%keybinder/download/sounds/triple.mp3, sounds\triple.mp3
+		URLDownloadToFile, %baseURL%download/sounds/triple.mp3, sounds\triple.mp3
 		
 	IfNotExist, sounds/quadra.mp3
-		URLDownloadToFile, %baseURL%keybinder/download/sounds/quadra.mp3, sounds\quadra.mp3
+		URLDownloadToFile, %baseURL%download/sounds/quadra.mp3, sounds\quadra.mp3
 	
 	IfNotExist, sounds/penta.mp3
-		URLDownloadToFile, %baseURL%keybinder/download/sounds/penta.mp3, sounds\penta.mp3
+		URLDownloadToFile, %baseURL%download/sounds/penta.mp3, sounds\penta.mp3
 		
 	IfNotExist, sounds/hexa.mp3
-		URLDownloadToFile, %baseURL%keybinder/download/sounds/hexa.mp3, sounds\hexa.mp3
+		URLDownloadToFile, %baseURL%download/sounds/hexa.mp3, sounds\hexa.mp3
 
 	UnBlockChatInput()
 	
@@ -2093,58 +2097,49 @@ handleChatMessage(message, index, arr) {
 		SendChat("/f Agent " . agentID . " meldet sich vom Dienst ab!")
 		agentID := -1
 	} else if (RegExMatch(message, "^Du beginnst in einer Mülltonne rumzuschnüffeln\.$", message_)) {
-		iniRead, trashs, Stats.ini, Mülltonnen, trashs, 0 ; #BAUM
-		trashs ++
-		iniWrite, % trashs, Stats.ini, Mülltonnen, trashs
+		trashs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trash&value=1")
+		iniWrite, %trashs%, Stats.ini, Mülltonnen, trashs
 		
 		SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(trashs) . cwhite . " Mülltonnen durchwühlt.")
 	} else if (RegExMatch(message, "^Du (.*) in der Mülltonne gefunden.$", message_)) {
 		if (RegExMatch(message_1, "^hast nichts$", msg_)) {
-			iniRead, nothing, Stats.ini, Mülltonnen, nothing, 0 ; #BAUM
-			nothing ++
-			iniWrite, % nothing, Stats.ini, Mülltonnen, nothing
+			nothing := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashNothing&value=1")
+			iniWrite, %nothing%, Stats.ini, Mülltonnen, nothing
 			
 			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(nothing) . cwhite . " nichts in Mülltonnen gefunden.")
 		} else if (RegExMatch(message_1, "^hast ein Lagerfeuer$", msg_)) {
-			iniRead, campfire, Stats.ini, Mülltonnen, campfire, 0 ; #BAUM
-			campfire ++
-			iniWrite, % campfire, Stats.ini, Mülltonnen, campfire
+			campfire:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashCampfire&value=1")
+			iniWrite, %campfire%, Stats.ini, Mülltonnen, campfire
 			
 			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(campfire) . cwhite . " Lagerfeuer in Mülltonnen gefunden.")
 		} else if (RegExMatch(message_1, "^hast (.*)\$$", msg_)) {
-			iniRead, money, Stats.ini, Mülltonnen, money, 0 ; #BAUM
-			money += numberFormat(msg_1)
-			iniWrite, % money, Stats.ini, Mülltonnen, money
+			money := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashMoney&value=" . msg_1)
+			iniWrite, %money%, Stats.ini, Mülltonnen, money
 			
 			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(money) . cwhite . "$ in Mülltonnen gefunden.")
 		} else if (RegExMatch(message_1, "^hast (\d+) Stunden (\S+)$", msg_)) {
 			if (RegExMatch(msg_2, "VIP")) {
-				iniRead, vip, Stats.ini, Mülltonnen, vip, 0 ; #BAUM
-				vip += msg_1
-				iniWrite, % vip, Stats.ini, Mülltonnen, vip
+				vip := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashVIP&value=" . msg_1)
+				iniWrite, %vip%, Stats.ini, Mülltonnen, vip
 				SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(vip) . cwhite . " Stunden VIP in Mülltonnen gefunden.")
 			} else if (RegExMatch(msg_2, "Premium")) {
-				iniRead, prem, Stats.ini, Mülltonnen, prem, 0 ; #BAUM
-				prem += msg_1
-				iniWrite, % prem, Stats.ini, Mülltonnen, prem
+				prem := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashPremium&value=" . msg_1)
+				iniWrite, %prem%, Stats.ini, Mülltonnen, prem
 				SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(prem) . cwhite . " Stunden Premium in Mülltonnen gefunden.")
 			}
 		} else if (RegExMatch(message_1, "^hast (\d+) Respektpunkte$", msg_)) {
-			iniRead, respect, Stats.ini, Mülltonnen, respect, 0 ; #BAUM
-			respect += msg_1
-			iniWrite, % respect, Stats.ini, Mülltonnen, respect
+			respect:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashRespect&value=" . msg_1)
+			iniWrite, %respect%, Stats.ini, Mülltonnen, respect
 			
 			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(respect) . cwhite . " Respektpunkte in Mülltonnen gefunden.")
 		} else if (RegExMatch(message_1, "^hast (\d+)g Marihuana$", msg_)) {
-			iniRead, drugs, Stats.ini, Mülltonnen, drugs, 0 ; #BAUM
-			drugs += msg_1
-			iniWrite, % drugs, Stats.ini, Mülltonnen, drugs
+			drugs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashDrugs&value=" . msg_1)
+			iniWrite, %drugs%, Stats.ini, Mülltonnen, drugs
 			
 			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(drugs) . cwhite . "g Drogen in Mülltonnen gefunden.")
 		} else if (RegExMatch(message_1, "^hast eine Schlagwaffe \((.*)\)$", msg_)) {
-			iniRead, weaps, Stats.ini, Mülltonnen, weaps, 0 ; #BAUM
-			weaps ++
-			iniWrite, % weaps, Stats.ini, Mülltonnen, weaps
+			weaps := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashWeapon&value=1")
+			iniWrite, %weaps%, Stats.ini, Mülltonnen, weaps
 			
 			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(weaps) . cwhite . " Waffen in Mülltonnen gefunden.")
 		}
@@ -2279,8 +2274,7 @@ handleChatMessage(message, index, arr) {
 		SetTimer, PaketTimer, 1
 	} else if (RegExMatch(message, "^Paintball: (\S+) wurde von (\S+) getötet\.$", message_)) {
 		if (message_1 == getUsername()) {
-			IniRead, pbdeaths, stats.ini, stats, pbdeaths, 0 ; #BAUM
-			pbdeaths ++
+			pbdeaths := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=pbdeaths&value=1")
 			IniWrite, %pbdeaths%, stats.ini, stats, pbdeaths
 			
 			IniRead, pbdeaths, stats.ini, stats, pbdeaths, 0
@@ -2296,8 +2290,7 @@ handleChatMessage(message, index, arr) {
 			
 			pbKillStreak := 0
 		} else if (message_2 == getUsername()) {			
-			IniRead, pbkills, stats.ini, stats, pbkills, 0 ; #BAUM
-			pbkills ++
+			pbkills := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=pbkills&value=1")
 			IniWrite, %pbkills%, stats.ini, stats, pbkills
 			
 			IniRead, pbkills, stats.ini, stats, pbkills, 0
@@ -2305,9 +2298,7 @@ handleChatMessage(message, index, arr) {
 			
 			SendClientMessage(prefix . "Kills: " . csecond . FormatNumber(pbkills) . cwhite . " | Tode: " . csecond . FormatNumber(pbDeaths) . cwhite . " | K/D: " . csecond . round(pbkills/pbdeaths, 3))
 			
-			pbKillStreak ++
-			
-			IniRead, pbHighestKillStreak, stats.ini, stats, Killstreak, 0 ; #BAUM
+			pbKillStreak := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=pbKillstreak&value=1")
 			
 			if (pbKillStreak > pbHighestKillStreak) {
 				IniWrite, %pbKillStreak%, stats.ini, stats, Killstreak
@@ -2374,8 +2365,7 @@ handleChatMessage(message, index, arr) {
 			SendClientMessage(prefix . "Beobachtungsmodus " . COLOR_RED . "deaktiviert" . cwhite . ".")
 		}
 	} else if (RegExMatch(message, "^Du hast dich ausgerüstet, es wurden (.*) Materialien benötigt\. \(Verbleibend: (.*) Materialien\)$", line0_)) {
-		IniRead, Equipmats, stats.ini, Allgemein, Equipmats, 0 ; #BAUM
-		Equipmats += numberFormat(line0_1)
+		equipMats:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=equipMats&value=" . line0_1)
 		IniWrite, %equipmats%, stats.ini, Allgemein, Equipmats
 		IniRead, DailyMats, stats.ini, stats, %A_DD%_%A_MM%_%A_YYYY%_Mats, 0 ; (( vielleicht son allgemeinen Log noch extra mit Tages, Wochen und Monats equip im CP ?? ))
 		DailyMats += numberFormat(line0_1)
@@ -2394,8 +2384,7 @@ handleChatMessage(message, index, arr) {
 		hasEquip := 1
 	} else if (RegExMatch(message, "^\HQ: (.+) (\S+) hat eine Straßensperre in (.+) aufgebaut\.", line0_)) {
 		if (line0_2 == getUserName())  {
-			IniRead, roadblocks, stats.ini, Allgemein, roadblocks, 0 ; #BAUM
-			roadblocks ++
+			roadblocks := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=roadblock&value=1")
 			IniWrite, %roadblocks%, stats.ini, Allgemein, Roadblocks
 			
 			SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(roadblocks) . cwhite . " Straßensperren aufgebaut.")
@@ -2403,14 +2392,13 @@ handleChatMessage(message, index, arr) {
 	} else if (RegExMatch(message, "^HQ: (.+) (\S+) hat (\S+) (\d+) (\S+) aus der Akte entfernt\.$", line0_)) {
 		if (line0_2 == getUserName()) {
 			if (line0_5 == "Strafpunkte") {
-				IniRead, Pointsclear, stats.ini, Vergaben, Pointsclear, 0 ; #BAUM
-				Pointsclear += line0_4
+				Pointsclear := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=pclear&value=" . line0_4)
 				IniWrite, %Pointsclear%, stats.ini, Vergaben, Pointsclear
 				
 				SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(Pointsclear) . cwhite . " Strafpunkte gelöscht.")
 			} else if (line0_5 == "Wanteds") {
-				IniRead, Wantedsclear, stats.ini, Vergaben, Wantedsclear ; #BAUM
-				Wantedsclear += line0_4
+				
+				Wantedsclear := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=wclear&value=" . line0_4)
 				IniWrite, %Wantedsclear%, stats.ini, Vergaben, Wantedsclear
 				
 				SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(Wantedsclear) . cwhite . " Wanteds gelöscht.")
@@ -2425,8 +2413,7 @@ handleChatMessage(message, index, arr) {
 			wantedTickets.Push(wantedTicket)
 		}
 		 
-		IniRead, Ticketrequests, stats.ini, Tickets, Ticketrequests, 0 ; #BAUM
-		Ticketrequests ++
+		Ticketrequests := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=tickets&value=1")
 		IniWrite, %Ticketrequests%, stats.ini, Tickets, Ticketrequests
 		
 		SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(Ticketrequests) . cwhite . " Tickets ausgestellt.")
@@ -2436,8 +2423,7 @@ handleChatMessage(message, index, arr) {
 		
 		payPartnerMoney(numberFormat(ticketMoney), "ticket_money")
 
-		IniRead, Tickets, stats.ini, Tickets, Tickets, 0 ; #BAUM
-		Tickets ++
+		Tickets := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=tickets_accepted&value=1")
 		IniWrite, %Tickets%, stats.ini, Tickets, Tickets
 		
 		SendClientMessage(prefix . "Es wurden bereits " . csecond . FormatNumber(Tickets) . cwhite . " Tickets von dir angenommen.")
@@ -2458,22 +2444,19 @@ handleChatMessage(message, index, arr) {
 		}
 	} else if (RegExMatch(message, "^\* Du hast (\S+) seinen (\S+) weggenommen\.$", message_)) {
 		if (message_2 == "Flugschein") {
-			IniRead, Flugschein, stats.ini, Scheine, Flugschein, 0 ; #BAUM
-			Flugschein ++
+			fstakes := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=fstakes&value=1")
 			IniWrite, %fstakes%, stats.ini, Scheine, Flugschein
 			
-			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Flugschein) . cwhite . " Flugscheine entzogen.")
-			SendClientMessage(prefix . "Der Schaden durch Flugscheine beläuft sich auf " . csecond . formatNumber(Flugschein * 12000) . "$")
+			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(fstakes) . cwhite . " Flugscheine entzogen.")
+			SendClientMessage(prefix . "Der Schaden durch Flugscheine beläuft sich auf " . csecond . formatNumber(fstakes * 12000) . "$")
 		} else if (message_2 == "Bootschein") {
-			IniRead, Bootschein, stats.ini, Scheine, Bootschein, 0 ; #BAUM
-			Bootschein ++
+			Bootschein := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=bstakes&value=1")
 			IniWrite, %Bootschein%, stats.ini, Scheine, Bootschein
 			
 			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Bootschein) . cwhite . " Bootscheine entzogen.")
 			SendClientMessage(prefix . "Der Schaden durch Bootscheine beläuft sich auf " . csecond . formatNumber(Bootschein * 6000) . "$")
 		} else if (message_2 == "Waffenschein") {
-			IniRead, Waffenschein, stats.ini, Scheine, Waffenschein, 0 ; #BAUM
-			Waffenschein ++
+			Waffenschein := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=wstakes&value=1")
 			IniWrite, %Waffenschein%, stats.ini, Scheine,  Waffenschein
 			
 			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Waffenschein) . cwhite . " Waffenscheine entzogen.")
@@ -2501,12 +2484,10 @@ handleChatMessage(message, index, arr) {
 			}
 			
 			if (arrested) {
-				IniRead, Money, stats.ini, Verhaftungen, Money, 0 ; #BAUM
-				Money += numberFormat(line1_1)
+				Money := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=arrest_money&value=" . line1_1)
 				IniWrite, %Money%, stats.ini, Verhaftungen, Money
 				
-				IniRead, Arrests, stats.ini, Verhaftungen, Arrests, 0 ; #BAUM
-				Arrests ++
+				Arrests := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=arrests&value=1")
 				IniWrite, %arrests%, stats.ini, Verhaftungen, Arrests				
 				
 				SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(Arrests) . cwhite . " Verbrecher eingesperrt.")
@@ -2520,8 +2501,7 @@ handleChatMessage(message, index, arr) {
 			}
 		}
 		
-		IniRead, Drugs, stats.ini, Kontrollen, Drugs, 0 ; #BAUM
-		Drugs += numberFormat(line0_2)
+		drugs:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=drugs&value=" . line0_2)
 		IniWrite, %drugs%, stats.ini, Kontrollen, Drugs
 		
 		SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(drugs) . "g" . cwhite . " Drogen weggenommen.")
@@ -2532,7 +2512,7 @@ handleChatMessage(message, index, arr) {
 			}
 		}
 		
-		IniRead, Seeds, stats.ini, Kontrollen, Seeds, 0 ; #BAUM
+		IniRead, Seeds, stats.ini, Kontrollen, Seeds, 0 
 		Seeds += numberFormat(line0_2)
 		IniWrite, %seeds%, stats.ini, Kontrollen, Seeds
 		
@@ -2544,8 +2524,7 @@ handleChatMessage(message, index, arr) {
 			}
 		}
 		
-		IniRead, Mats, stats.ini, Kontrollen, Mats, 0 ; #BAUM
-		Mats += numberFormat(line0_2)
+		Mats:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=mats&value=" . line0_2)
 		IniWrite, %Mats%, stats.ini, Kontrollen, Mats
 		
 		SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(Mats) . cwhite . " Materialien weggenommen.")
@@ -2556,8 +2535,7 @@ handleChatMessage(message, index, arr) {
 			}
 		}
 		
-		IniRead, Matpackets, stats.ini, Kontrollen, Matpackets, 0 ; #BAUM
-		Matpackets += numberFormat(line0_2)
+		Matpackets := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=matpackets&value=" . line0_2)
 		IniWrite, %Matpackets%, stats.ini, Kontrollen, Matpackets
 		
 		SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(Matpackets) . cwhite . " Materialpakete weggenommen.")
@@ -2568,21 +2546,18 @@ handleChatMessage(message, index, arr) {
 			}
 		}
 		
-		IniRead, Matbombs, stats.ini, Kontrollen, Matbombs, 0 ; #BAUM
-		Matbombs += line0_2
+		Matbombds := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=matBombds&value=" . line0_2)
 		IniWrite, %Matbombs%, stats.ini, Kontrollen, Matbombs
 		
 		SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(Matbombs) . cwhite . " Haftbomben weggenommen.")
 	} else if (RegExMatch(message, "^Du hast (.*) (.+) aus dem Kofferraum konfisziert\.$", message_)) {
 		if (message_2 == "Materialien") {
-			IniRead, Mats, stats.ini, Kontrollen, Mats, 0 ; #BAUM
-			Mats += numberFormat(message_1)
+			Mats := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=mats&value=" . line0_1)
 			IniWrite, %Mats%, stats.ini, Kontrollen, Mats
 			
-			SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(mats) . cwhite . " Materialien weggenommen.")
+			SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(Mats) . cwhite . " Materialien weggenommen.")
 		} else if (message_2 == "Gramm Drogen") {
-			IniRead, drugs, stats.ini, Kontrollen, drugs, 0 ; #BAUM
-			drugs += numberFormat(message_1)
+			drugs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=drugs&value=" . line0_1)
 			IniWrite, %drugs%, stats.ini, Kontrollen, Drugs
 		
 			SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(drugs) . "g " . cwhite . "Drogen weggenommen.")
@@ -2593,8 +2568,7 @@ handleChatMessage(message, index, arr) {
 		}
 		
 		if (getUserName() == message_1 || agentID == agent_ID) {
-			IniRead, tazer, stats.ini, Allgemein, tazer, 0 ; #BAUM
-			tazer ++
+			tazer:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=tazer&value=1")
 			IniWrite, %tazer%, stats.ini, Allgemein, Tazer
 		
 			SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(tazer) . cwhite . " Spieler getazert.")
@@ -2633,11 +2607,11 @@ handleChatMessage(message, index, arr) {
 		}
 	} else if (RegExMatch(message, "^\* Der Staat übernimmt die Kosten\.$", message_)) {
 		if (REgExMatch(arr[index - 1], "^\* Du hast (.*) Liter getankt für (.*)\$\.$", line0_)) {
-			IniRead, govfills, stats.ini, Allgemein, govfills, 0 ; #BAUM
+			IniRead, govfills, stats.ini, Allgemein, govfills, 0
 			govfills += numberFormat(line0_1)
 			IniWrite, %govfills%, stats.ini, Allgemein, govfills
 			
-			IniRead, govfillprice, stats.ini, Allgemein, govfillprice, 0 ; #BAUM
+			IniRead, govfillprice, stats.ini, Allgemein, govfillprice, 0
 			govfillprice += numberFormat(line0_2)
 			IniWrite, %govfillprice%, stats.ini, Allgemein, govfillprice
 			
@@ -2651,8 +2625,7 @@ handleChatMessage(message, index, arr) {
 			}			
 			
 			if (line1_2 == getUserName()) {
-				IniRead, Crimekills, stats.ini, Verhaftungen, Crimekills, 0 ; #BAUM
-				Crimekills ++
+				Crimekills := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=suspect_kills&value=1")
 				IniWrite, %Crimekills%, stats.ini, Verhaftungen, Crimekills
 				
 				SendClientMessage(prefix . "Dies war dein " . csecond . FormatNumber(Crimekills) . cwhite . " getöteter Verbrecher.")
@@ -2696,8 +2669,7 @@ handleChatMessage(message, index, arr) {
 						totalArrestMoney += numberFormat(amoney)
 						
 						if (!deathArrested) {
-							IniRead, Arrests, stats.ini, Verhaftungen, Arrests, 0 ; #BAUM
-							Arrests ++
+							arrests := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=arrests&value=1")
 							IniWrite, %arrests%, stats.ini, Verhaftungen, Arrests
 							
 							SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(arrests) . cwhite . " Verbrecher eingesperrt.")
@@ -2707,8 +2679,7 @@ handleChatMessage(message, index, arr) {
 					} else {
 						deathArrested := false
 					
-						IniRead, Deatharrests, stats.ini, Verhaftungen, Deatharrests, 0 ; #BAUM
-						Deatharrests ++
+						deathArrest := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=darrests&value=1")
 						IniWrite, %deathArrests%, stats.ini, Verhaftungen, Deatharrests
 						
 						SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(deathArrests) . cwhite . " Verbrecher nach dem Tod eingesperrt.")
@@ -2719,8 +2690,7 @@ handleChatMessage(message, index, arr) {
 					if (deathArrested) {
 						deathArrested := false
 		
-						IniRead, deathprison, stats.ini, Verhaftungen, deathprison, 0 ; #BAUM
-						deathprison ++
+						deathPrison := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=dprison&value=1")
 						IniWrite, %deathPrison%, stats.ini, Verhaftungen, deathprison
 						
 						SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(deathPrison) . cwhite . " Verbrecher nach dem Tod ins Prison gesteckt.")
@@ -2746,8 +2716,7 @@ handleChatMessage(message, index, arr) {
 				
 			if (line1_2 == getUserName()) {
 				if (line0_2 > 0) {
-					IniRead, Offlineprison, stats.ini, Verhaftungen, Offlineprison, 0 ; #BAUM
-					Offlineprison ++
+					offlinePrison := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=oprison&value=1")
 					IniWrite, %offlinePrison%, stats.ini, Verhaftungen, Offlineprison
 					
 					SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(offlinePrison) . cwhite . " Verbrecher offline ins Prison gesteckt.")
@@ -2771,8 +2740,7 @@ handleChatMessage(message, index, arr) {
 					paydayMoney += numberFormat(amoney)
 					totalArrestMoney += numberFormat(amoney)
 				
-					IniRead, offlinearrests, stats.ini, Verhaftungen, offlinearrests, 0 ; #BAUM
-					offlinearrests ++
+					offlineArrests := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=oarrests&value=1")
 					IniWrite, %offlineArrests%, stats.ini, Verhaftungen, offlinearrests
 					
 					SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(offlineArrests) . cwhite . " Verbrecher offline eingesperrt.")
@@ -2792,7 +2760,7 @@ handleChatMessage(message, index, arr) {
 			}				
 		}
 	/* else if (RegExMatch(message, "^HQ: (.+) " . getUsername() . " hat das Marihuana in (.+) gefunden und zerstört\.$", chat_)) {
-		IniRead, plants, stats.ini, Marihuana, plants, 0 ; #BAUM
+		IniRead, plants, stats.ini, Marihuana, plants, 0
 		plants ++
 		IniWrite, %plants%, stats.ini, Marihuana, Plants
 		
@@ -2893,8 +2861,7 @@ handleChatMessage(message, index, arr) {
 		if (RegExMatch(vehDriver, "^Fahrzeugführer: (\S+) \(ID: (\d+)\)$", driver_)) {
 			kmh := max_kmh
 			
-			IniRead, Radarcontrols, stats.ini, Kontrollen, Radarcontrols, 0 ; #BAUM
-			Radarcontrols ++
+			Radarcontrols := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=radarcontrols&value=1")
 			IniWrite, %Radarcontrols%, stats.ini, Kontrollen, Radarcontrols
 			
 			SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(Radarcontrols) . cwhite . " Fahrzeuge geblitzt.")
@@ -4870,11 +4837,10 @@ checkTrunkLabel:
 				SendChat("/trunk check")
 			}
 			
-			IniRead, Trunkcontrols, stats.ini, Kontrollen, Trunkcontrols, 0 ; #BAUM
-			Trunkcontrols ++
+			trunkControls := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trunkControls&value=1")
 			IniWrite, %trunkcontrols%, stats.ini, Kontrollen, Trunkcontrols
 			
-			SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(Trunkcontrols) . " {FFFFFF}Kofferäume durchsucht.")
+			SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(trunkcontrols) . " {FFFFFF}Kofferäume durchsucht.")
 			
 			Sleep, 200
 			
@@ -5465,8 +5431,7 @@ autoAcceptEmergencyLabel:
 					Sleep, 100
 					SendChat("/d HQ: übernehme Notruf-ID " . emergency2 . " von " . emergency1)
 					
-					IniRead, Services, stats.ini, Übernahmen, Services, 0 ; #BAUM
-					Services ++
+					services := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=services&value=1")
 					IniWrite, %services%, stats.ini, Übernahmen, Services
 					
 					Sleep, 100
@@ -5494,8 +5459,7 @@ autoAcceptEmergencyLabel:
 				Sleep, 100
 				SendChat("/d HQ: Übernehme Ladenüberfall von " . emergency3 . "(" . getPlayerIdByName(emergency3) . ") - GK: " . emergency1 . " (" . emergency2 . ")")
 				
-				IniRead, storerobs, stats.ini, Übernahmen, storerobs, 0 ; #BAUM
-				storerobs ++
+				storerobs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=storerobs&value=1")
 				IniWrite, %storerobs%, stats.ini, Übernahmen, Storerobs
 				
 				SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(storerobs) . cwhite . " Raubüberfälle übernommen.")
@@ -5509,7 +5473,7 @@ autoAcceptEmergencyLabel:
 			KeyWait, X, D, T10
 			
 			if (!ErrorLevel) {
-				playerToFind := emergency1
+				playerToFind := emergency3
 				autoFindMode := 2
 				
 				findPlayer()
@@ -5543,8 +5507,7 @@ acceptEmergencyLabel:
 					Sleep, 100
 					SendChat("/d HQ: Übernehme Notruf-ID " . serviceName . " von " . getFullName(serviceName))
 					
-					IniRead, Services, Stats.ini, Übernahmen, Services, 0 ; #BAUM
-					Services ++
+					services := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=services&value=1")
 					IniWrite, %services%, stats.ini, Übernahmen, Services
 	
 					Sleep, 100
@@ -7701,8 +7664,7 @@ return
 			}
 		}
 		
-		IniRead, Fishmoney, stats.ini, Allgemein, Fishmoney, 0 ; #BAUM
-		Fishmoney += numberFormat(sellFishMoney)
+		Fishmoney:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=fish_money&value=" . sellFishMoney)
 		IniWrite, %Fishmoney%, stats.ini, Allgemein, Fishmoney
 		
 		SendClientMessage(prefix . "Du hast für deine Fische $" . csecond . FormatNumber(sellFishMoney) . cwhite . " erhalten.")
@@ -12316,8 +12278,7 @@ check(name) {
 				SendChat("/take Drogen " . name)
 				
 				if (drugsFound) {
-					IniRead, drugs, stats.ini, Kontrollen, Drugs, 0 ; #BAUM
-					drugs += drugsFound		
+					drugs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=drugs&value=" . drugsFound)
 					IniWrite, %drugs%, stats.ini, Kontrollen, Drugs
 					SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(drugs) . "g " . cwhite . "Drogen weggenommen.")
 				}
@@ -12326,7 +12287,7 @@ check(name) {
 			}
 			
 			if (seedsFound) {
-				IniRead, seeds, stats.ini, Kontrollen, seeds, 0 ; #BAUM
+				IniRead, seeds, stats.ini, Kontrollen, seeds, 0
 				seeds += seedsFound		
 				IniWrite, %seeds%, stats.ini, Kontrollen, Seeds
 				SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(seeds) . cwhite . " Samen weggenommen.")
@@ -12341,22 +12302,19 @@ check(name) {
 			SendChat("/take Materialien " . name)
 			
 			if (matsFound) {
-				IniRead, mats, stats.ini, Kontrollen, mats, 0 ; #BAUM
-				mats += matsFound			
+				mats:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=mats&value=" . matsFound)
 				IniWrite, %mats%, stats.ini, Kontrollen, Mats
 				SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(mats) . cwhite . " Materialien weggenommen.")
 			}	
 			
 			if (packetsFound) {
-				IniRead, matpackets, stats.ini, Kontrollen, matpackets, 0 ; #BAUM
-				matpackets += packetsFound
+				matpackets := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=matpackets&value=" . packetsFound)
 				IniWrite, %matpackets%, stats.ini, Kontrollen, Matpackets
 				SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(matpackets) . cwhite . " Materialpakete weggenommen.")
 			} 
 			
 			if (bombsFound) {
-				IniRead, matbombs, stats.ini, Kontrollen, matbombs, 0 ; #BAUM
-				matbombs ++
+				matbombs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=matBombs&value=1")
 				IniWrite, %matbombs%, stats.ini, Kontrollen, Matbombs
 				SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(matbombs) . cwhite . " Haftbomben weggenommen.")
 			}
@@ -12677,8 +12635,7 @@ addLocalToStats() {
 			if (output1_1 != oldLocal) {
 				SendChat("/d HQ: Ich habe die Kette " . output1_1 . " von ihrem Erpresser befreit!")
 				; STAT
-				IniRead, Restaurants, stats.ini, Übernahmen, Restaurants, 0 ; #BAUM
-				Restaurants ++
+				Restaurants := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=restaurants&value=1")
 				IniWrite, %Restaurants%, stats.ini, Übernahmen, Restaurants
 			
 				SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(Restaurants) . cwhite . " Restaurants übernommen.")
@@ -12701,9 +12658,7 @@ addControlsToStats(frisk_name) {
 	
 		if (InStr(chat, "* " . getUserName() . " hat " . frisk_name . " nach Waffen durchsucht.")) {
 			if (frisk_name != oldFrisk) {
-				; STAT
-				IniRead, controls, stats.ini, Kontrollen, controls, 0 ; #BAUM
-				controls ++
+				controls := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=controls&value=1")
 				IniWrite, %controls%, stats.ini, Kontrollen, controls
 		
 				SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(controls) . cwhite . " Kontrollen durchgeführt.")
