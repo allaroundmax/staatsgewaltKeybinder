@@ -584,7 +584,7 @@ Start:
 	global tv 					:= false
 		
 	global oldVehicleName		:= "none"
-	global oldSpotifyTrack		:= "notFound"
+	global oldSpotifyTrack		:= ""
 	
 	if (admin) {
 		IfNotExist Tickets
@@ -2158,13 +2158,13 @@ handleChatMessage(message, index, arr) {
 		
 		if (message_1 == getUserName() || agent_ID == agentID) {
 			for index, grabName in grabList {
-				if (name == message_2) {
+				if (grabName == message_2) {
 					isArrested := true
 				}
 			}
 			
 			for index, arrestName in arrestList {
-				if (name == message_2) {
+				if (arrestName == message_2) {
 					isCuffed := true
 				}
 			}		
@@ -2177,7 +2177,7 @@ handleChatMessage(message, index, arr) {
 				grabList.Push(message_2)
 			}
 			
-			isArrested := false
+			isArrested := false 
 			isCuffed := false
 		}
 	} else if (RegExMatch(message, "^\* Du hast (\S+)'s Handschellen entfernt\.$", message_)) {
@@ -2590,13 +2590,13 @@ handleChatMessage(message, index, arr) {
 			SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(tazer) . cwhite . " Spieler getazert.")
 			
 			for index, grabName in grabList {
-				if (name == message_2) {
+				if (grabName == message_2) {
 					isArrested := true
 				}
 			}
 			
 			for index, arrestName in arrestList {
-				if (name == message_2) {
+				if (arrestName == message_2) {
 					isCuffed := true
 				}
 			}		
@@ -3077,13 +3077,6 @@ return
 }
 return
 
-:?:/test::
-{
-	SendClientMessage("HQ: Alle Einheiten, Deputy jacob.tremblay hat den Auftrag ausgeführt.")
-	SendClientMessage("HQ: Jürgen wurde eingesperrt, Haftzeit: 60 Minuten, Geldstrafe: 0$")
-}
-return 
-
 ~^R::
 {
 	if (isInChat() || IsDialogOpen() || IsPlayerInMenu()) {
@@ -3091,10 +3084,13 @@ return
 	}
 }
 :?:/relog::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	stopFinding()
 	
-		global tempo 				:= 80
+	global tempo 				:= 80
 	global currentTicket 		:= 1
 	global maxTickets 			:= 1
 	global currentFish 			:= 1
@@ -4286,6 +4282,9 @@ healLabel:
 	}
 }
 :?:/heal::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	healPlayer()
 }
@@ -4763,6 +4762,9 @@ openTrunkLabel:
 	}
 }
 :?:/to::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (!isPlayerInAnyVehicle()) {
 		SendChat("/trunk open")
@@ -4779,6 +4781,9 @@ checkTrunkLabel:
 	}
 }
 :?:/tc::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	blockDialog()
 	SendChat("/trunk check")
@@ -5579,8 +5584,6 @@ stopwatchLabel:
 }
 return
 
-:?:
-
 useDrugsLabel:
 {
 	if (isBlocked() || tv) {
@@ -5588,6 +5591,9 @@ useDrugsLabel:
 	}
 }
 :?:/usedrugs::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (getPlayerArmor()) {
 		SendClientMessage(prefix . "Fehler: Du kannst mit Armor keine Drogen nehmen.")
@@ -5656,6 +5662,9 @@ firstAidLabel:
 	}
 }
 :?:/erstehilfe::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (getPlayerArmor()) {
 		SendClientMessage(prefix . "Fehler: Du kannst mit Armor kein Erste-Hilfe-Paket benutzen.")
@@ -5706,6 +5715,9 @@ thanksLabel:
 	}
 }
 :?:/thx::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	random, rand, 1, 3
 	
@@ -5726,6 +5738,9 @@ sorryLabel:
 	}
 }
 :?:/sry::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	random, rand, 1, 3
 	
@@ -5835,12 +5850,18 @@ pauseLabel:
 return
 
 :?:/ts::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/d LSPD und FBI Teamspeak³ Server: lspd.lennartf.com")
 }
 return
 
 :?:/fts::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/f LSPD und FBI Teamspeak³ Server: lspd.lennartf.com")
 }
@@ -5894,7 +5915,7 @@ return
 				Sleep, 750
 			}
 
-			SendChat("/gov " . preposition . " " . fraction . " ist aktuell auf der Suche nach '" . title . "' neuen " . title . ".")
+			SendChat("/gov " . preposition . " " . fraction . " ist aktuell auf der Suche nach '" . searchCount . "' neuen " . title . ".")
 
 			if (!admin) {
 				Sleep, 750
@@ -5927,6 +5948,9 @@ return
 return
 
 :?:/fpsunlock::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
     if (fpsUnlock()) {
         SendClientMessage(prefix . COLOR_GREEN . "Die Beschränkung deiner FPS wurde aufgehoben.")
@@ -5937,6 +5961,9 @@ return
 return
 
 :?:/bossmode::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	IniRead, autoUse, settings.ini, settings, autoUse, 1
 	
@@ -5955,6 +5982,9 @@ return
 return
 
 :?:/zollhelp::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendClientMessage(prefix . ".:: Zoll-Informationen ::.")
 	SendClientMessage(prefix . csecond . "/zollinfo [Zoll-ID]{FFFFFF} - Zollinformationen nach ID")
@@ -5973,6 +6003,9 @@ return
 return
 
 :?:/zollinfo::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	customsID := PlayerInput("Zoll-ID: ")
 	
@@ -6029,6 +6062,9 @@ return
 return
 
 :?:/kd::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	IniRead, Kills, Stats.ini, Stats, Kills, 0
 	IniRead, Deaths, Stats.ini, Stats, Deaths, 0
@@ -6041,6 +6077,9 @@ return
 return
 
 :?:/fkd::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	IniRead, Kills, Stats.ini, Stats, Kills, 0
 	IniRead, Deaths, Stats.ini, Stats, Deaths, 0
@@ -6053,6 +6092,9 @@ return
 return
 
 :?:/dkd::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	IniRead, Kills, Stats.ini, Stats, Kills, 0
 	IniRead, Deaths, Stats.ini, Stats, Deaths, 0
@@ -6065,6 +6107,9 @@ return
 return
 
 :?:/resetdkd::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	IniWrite, 0, Stats.ini, Stats, DDeaths[%A_DD%:%A_MM%:%A_YYYY%]
 	IniWrite, 0, Stats.ini, Stats, DKills[%A_DD%:%A_MM%:%A_YYYY%]
@@ -6074,12 +6119,18 @@ return
 return
 
 :?:/setkd::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	updateKD()
 }
 return
 
 :?:/items::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	IniRead, drugs, settings.ini, Items, drugs, 0
 	IniRead, firstaid, settings.ini, Items, firstaid, 0
@@ -6112,6 +6163,9 @@ return
 return
 
 :?:/gk::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	gkid := PlayerInput("Gebäudekomplex: ")
 	if (gkid == "") {
@@ -6120,6 +6174,100 @@ return
 	
 	if (RegExMatch(gkid, "^(\d+)\.(\d+)$")) {
 		gk(gkid)
+	}
+}
+return
+
+:?:/test::
+if (isInChat()) {
+	SendInput, {Enter}
+}
+{
+	SendClientMessage(getLabelText())
+}
+return
+
+:?:/gkadd::
+:?:/addgk::
+if (isInChat()) {
+	SendInput, {Enter}
+}
+{
+	if (getPlayerInteriorId()) {
+		SendChat("/members")
+		
+		Sleep, 250
+		
+		Loop, 20 {
+			if (RegExMatch(readChatLine(A_Index - 1), "^" . getUserName() . "(.+), GK (\d+)$", gk_)) {
+				gk := gk_2
+				break
+			}
+		}
+		
+		Sleep, 250
+		
+		SendInput, {Enter}
+
+		Sleep, 500
+		
+		if (RegExMatch(getLabelText(), "^Dieses Haus vermietet Zimmer\.\n\nBesitzer: (\S+)\nMiet-Preis: (\d+)\$\nBeschreibung: (.+)\nTippe \/renthouse\.$", label_)) {
+			owner := label_1
+			description := label_3
+		} else if (RegExMatch(getLabelText(), "^(.+)\nDrücke Enter\.$", label_)) {
+			owner := label_1
+			description := ""
+		} else if (RegExMatch(getLabelText(), "^Dieses Haus gehört (\S+)\.\n\nPreis: (.*)\nBeschreibung: (.+)\n\n(.+)$", label_)) {
+			owner := label_1
+			description := label_3
+		}
+			
+		getPlayerPos(posX, posY, posZ)
+
+		if (!gk) {
+			gk := PlayerInput("GK: ")
+			if (gk == "") {
+				return
+			}
+		}
+			
+		if (!owner) {
+			owner := PlayerInput("Besitzer: ")
+			if (owner == "") {
+				return
+			}
+		}
+		
+		if (!description) {
+			description := PlayerInput("Beschreibung: ")
+			if (description == "") {
+				return
+			}
+		}
+		
+		SendClientMessage(prefix . "Trage einen der folgenden Typen ein: public, faction, house")
+		
+		type := PlayerInput("Typ: ")
+		if (type == "public" || type == "faction" || type == "house") {
+			SendClientMessage(prefix . "Möchtest du folgendes Gebäudekomplex eintragen? Du kannst mit '" csecond . "X" . cwhite . "' bestätigen!")
+			SendClientMessage(prefix . "GK: " . gk)
+			SendClientMessage(prefix . "Besitzer: " . owner)
+			SendClientMessage(prefix . "Beschreibung: " . description)
+			SendClientMessage(prefix . "Location: " . getPlayerZone() . ", " . getPlayerCity())
+				
+			KeyWait, X, D, T10
+				
+			if (!ErrorLevel && !isBlocked()) {
+				string := "GK: " . gk . ", Besitzer: " . owner . ", Beschreibung: " . description . ", X: " . posX . ", Y: " . posY . "`n"
+				
+				FileAppend, %string%, komplexes.txt
+				SendClientMessage(prefix . "Gebäudekomplex " . csecond . gk . cwhite . " von " . csecond . owner . cwhite . " (" . getPlayerZone() . ", " . getPlayerCity() . ") wurde gespeichert!")
+			}
+		} else {
+			SendClientMessage(prefix . "Trage einen der folgenden Typen ein: public, faction, house")
+		}
+	} else {
+		SendClientMessage(prefix . "Du musst dich direkt im Eingang eines Gebäudes befinden.")
 	}
 }
 return
@@ -6196,36 +6344,54 @@ return
 return
 
 :?:/mr::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/mauready")
 }
 return
 
 :?:/mn::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/maunext")
 }
 return
 
 :?:/md::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/maudraw")
 }
 return
 
 :?:/ml::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/mauleave")
 }
 return
 
 :?:/am::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/accept maumau")
 }
 return
 
 :?:/mhelp::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	caption := cwhite . projectName . ": Mau Mau Hilfen"
 	
@@ -6288,6 +6454,9 @@ return
 return
 
 :?:/pbexit::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	cantExit := 0
 	
@@ -6317,6 +6486,9 @@ return
 
 :?:/rz::
 :?:/razzia::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {	
 	IniRead, department, settings.ini, settings, department, %A_Space%
 	
@@ -6331,6 +6503,9 @@ return
 return
 
 :?:/weiter::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	IniRead, department, settings.ini, settings, department, %A_Space%
 
@@ -6391,6 +6566,9 @@ return
 return
 
 :?:/nt::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (currentTicketMoney > 0) {
 		giveTicket(lastTicketPlayer, currentTicketMoney, lastTicketReason)
@@ -6509,6 +6687,9 @@ return
 return
 
 :?:/aticket::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (autoName != "") {
 		if (autoSpeed == 0) {
@@ -6526,6 +6707,9 @@ return
 return
 
 :?:/apunkte::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (autoName != "") {
 		if (autoSpeed == 0) {
@@ -6543,12 +6727,18 @@ return
 return
 
 :?:/top::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/l Möchten Sie nun ein Ticket oder Strafpunkte?")
 }
 return
 
 :?:/tot::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/l Möchten Sie nun einen Strafzettel oder einen Entzug der Lizenz?")
 }
@@ -6741,6 +6931,9 @@ return
 
 :?:/pd::
 :?:/payday::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	IniRead, taxes, settings.ini, settings, taxes, 1
 	
@@ -6755,6 +6948,9 @@ return
 return
 
 :?:/hi::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/f Hi")
 
@@ -6774,6 +6970,9 @@ return
 	
 :?:/resetpd::
 :?:/resetpayday::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	IniRead, taxes, settings.ini, settings, taxes, 1
 	
@@ -6821,6 +7020,9 @@ return
 return
 
 :?:/fahrer::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (showDriver) {
 		showDriver := false
@@ -6869,6 +7071,9 @@ return
 return
 
 :?:/partners::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	partnerCount := 0
 	
@@ -6887,6 +7092,9 @@ return
 :?:/delpartners::
 :?:/rempartners::
 :?:/resetpartners::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	partners := []
 	
@@ -6895,6 +7103,9 @@ return
 return
 
 :?:/oa::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (!updateTextLabelData()) {
 		SendInput, /offlinearrest  0{left 2}
@@ -6920,6 +7131,9 @@ return
 return
 
 :?:/op::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (!updateTextLabelData()) {
 		SendInput, /offlinearrest  1{left 2}
@@ -6945,6 +7159,9 @@ return
 return
 
 :?:/da::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (!updateTextLabelData()) {
 		SendInput, /deatharrest  0{left 2}
@@ -6974,6 +7191,9 @@ return
 return
 
 :?:/dp::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (!updateTextLabelData()) {
 		SendInput, /deatharrest  1{left 2}
@@ -7003,6 +7223,9 @@ return
 return
 
 :?:/arrestlist::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	arrestCount := 0
 	
@@ -7023,6 +7246,9 @@ return
 return
 
 :?:/cufflist::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	grabCount := 0
 	
@@ -7043,6 +7269,9 @@ return
 return
 
 :?:/fahrt::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/l Die allgemeine Kontrolle ist nun beendet. Ich danke für Ihre Kooperation!")
 
@@ -7061,18 +7290,27 @@ return
 return
 
 :?:/tcm::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/trunk clear mats")
 }
 return
 
 :?:/tcd::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/trunk clear drugs")
 }
 return
 
 :?:/wtd::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("Guten Tag,")
 
@@ -7085,6 +7323,9 @@ return
 return
 
 :?:/dtd::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (tv) { 
 		return
@@ -7274,6 +7515,9 @@ return
 
 :?:/cpos::
 :?:/crewpos::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (tv) { 
 		return
@@ -7284,12 +7528,18 @@ return
 return
 
 :?:/wo::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/d HQ: Wo befindet ihr euch?")
 }
 return
 
 :?:/ver::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {	
 	if (isPlayerInAnyVehicle()) {
 		if (isPlayerDriver()) {
@@ -7304,6 +7554,9 @@ return
 return
 
 :?:/fver::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (isPlayerInAnyVehicle()) {
 		if (isPlayerDriver()) {
@@ -7318,6 +7571,9 @@ return
 return
 
 :?:/rver::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (isPlayerInAnyVehicle()) {
 		if (isPlayerDriver()) {
@@ -7333,6 +7589,9 @@ return
 
 :?:/nbk::
 :?:/needbk::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/d HQ: Wird Verstärkung weiterhin gefordert?")
 }
@@ -7444,6 +7703,9 @@ return
 return
 
 :?:/go::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {	
 	if (rank > 0 && rank < 7) {
 		extra := "/d HQ:"
@@ -7459,12 +7721,18 @@ return
 return
 
 :?:/fgo::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/f HQ: Einsaztleitung erlaubt Zugriff, GOGOGO!")
 }
 return
 
 :?:/rgo::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/r HQ: Einsaztleitung erlaubt Zugriff, GOGOGO!")
 }
@@ -7482,6 +7750,9 @@ return
 return
 
 :?:/kabholung::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (abholungChat != "") {
 		SendChat("/" . abholungChat . " HQ: Eine Abholung wird nicht mehr benötigt.")
@@ -7558,12 +7829,18 @@ return
 return
 
 :?:/air::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/d HQ: Fordere Luftüberwachung im Sektor " . getLocation() . " an!")
 }
 return
 
 :?:/maumodus::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (maumode) {
 		maumode := 0
@@ -7580,6 +7857,9 @@ return
 
 :?:/wasser::
 :?:/wassermodus::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (watermode) {
 		watermode := 0
@@ -7596,6 +7876,9 @@ return
 
 :?:/luft::
 :?:/luftmodus::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {	
 	if (airmode) {
 		airmode := 0
@@ -7623,6 +7906,9 @@ return
 return
 
 :?:/ksperrzone::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (sperrzone != "") {
 		SendChat("/gov Die Sperrzone " . sperrzone . " wird hiermit aufgehoben.")
@@ -7661,6 +7947,9 @@ return
 return
 
 :?:/afish::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (tv) { 
 		return
@@ -7671,6 +7960,9 @@ return
 return
 
 :?:/asell::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (IsPlayerInRangeOfPoint(2.3247, -28.8923, 1003.5494, 10)) {
 		SendClientMessage(prefix . "Deine Fische werden nun verkauft!")
@@ -7707,6 +7999,9 @@ return
 return
 
 :?:/acook::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (!getPlayerInteriorId()) {
 		IniRead, campfire, settings.ini, Items, campfire, 0
@@ -7744,6 +8039,9 @@ return
 
 :?:/fp::
 :?:/fische::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendClientMessage(prefix . "Überprüfung der ungekochten Fische:")
 	
@@ -7755,6 +8053,9 @@ return
 
 :?:/hp::
 :?:/cooked::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendClientMessage(prefix . "Überprüfung der gekochten Fische:")
 	
@@ -7834,36 +8135,54 @@ return
 return
 
 :?:/bc::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/roadbarrier create")
 }
 return
 
 :?:/bd::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/roadbarrier delete")
 }
 return
 
 :?:/bda::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/roadbarrier deleteall")
 }
 return
 
 :?:/rb::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/roadblock create")
 }
 return
 
 :?:/db::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/roadblock delete")
 }
 return
 
 :?:/dba::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/roadblock deleteall")
 }
@@ -7872,6 +8191,9 @@ return
 :?:/rs::
 :?:/rr::
 :?:/robres::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (!isPlayerAtLocal()) {
 		SendClientMessage(prefix . "Fehler: Du bist nicht in der Nähe einer Restaurant-Kette.")
@@ -7888,6 +8210,9 @@ return
 return
 
 :?:/sr::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/showres")
 }
@@ -7932,12 +8257,18 @@ return
 
 :?:/geld::
 :?:/bank::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("Sehe ich aus wie ein Geldautomat?")
 }
 return
 
 :?:/taxi::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("Ich bin kein Taxifahrer, sondern ein " . getFractionTitle() . "!")
 }
@@ -7945,12 +8276,18 @@ return
 
 :?:/gf::
 :?:/gfs::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/gangfights")
 }
 return
 
 :?:/np::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	random, rand, 1, 3
 	
@@ -7965,24 +8302,36 @@ return
 return
 
 :?:/beweise::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("Haben Sie dafür Beweise? (Screenshots, Video, o.ä.)")
 }
 return
 
 :?:/zeuge::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("Zeugen zählen nicht und werden nicht weiter beachtet.")
 }
 return
 
 :?:/warte::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("Einen Moment bitte, der Fall wird überprüft.")
 }
 return
 
 :?:/beschwerde::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("Sie haben das Recht, eine Beschwerde im Forum zu erstellen.")
 
@@ -7995,6 +8344,9 @@ return
 return
 
 :?:/rechte::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("Sie haben das Recht zu schweigen. Alles was Sie sagen, kann und wird vor Gericht gegen Sie verwendet werden.")
 	
@@ -8013,12 +8365,18 @@ return
 return
 
 :?:/warten::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("Bitte warten Sie einen Moment, ich überprüfe die Gültigkeit Ihrer Dokumente.")
 }
 return
 
 :?:/passieren::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("Sie dürfen passieren.")
 	
@@ -8031,6 +8389,9 @@ return
 return
 
 :?:/runter::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("Steigen Sie bitte umgehend vom Fahrzeug.")
 
@@ -8044,6 +8405,9 @@ return
 
 :?:/hdf::
 :?:/ruhe::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	random, tmp, 1, 3
 	
@@ -8058,12 +8422,18 @@ return
 return
 
 :?:/tuch::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("Warum weinen Sie, möchten Sie ein Taschentuch?")
 }
 return
 
 :?:/time::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/time")
 	
@@ -8110,6 +8480,9 @@ return
 return
 
 :?:/alotto::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (!lottoNumber) {
 		Random, randomNumber, 1, 100
@@ -8143,6 +8516,9 @@ return
 
 :?:/pb::
 :?:/paintball::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/paintball")
 	
@@ -8162,6 +8538,9 @@ return
 return
 
 :?:/savestats::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	FormatTime, time,, dd.MM.yyyy HH:mm
 	
@@ -8193,6 +8572,9 @@ return
 return
 
 :?:/auc::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (!getPlayerInteriorId()) {
 		SendClientMessage(prefix . "Fehler: Du befindest dich in keinem Gebäude.")
@@ -8206,18 +8588,27 @@ return
 return
 
 :?:/jas::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("Ja Sir, was kann ich für Sie tun?")
 }
 return
 
 :?:/jam::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("Ja Madam, was kann ich für Sie tun?")
 }
 return
 
 :?:/ja::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("Ja, was kann ich für Sie tun?")
 }
@@ -8374,6 +8765,9 @@ return
 
 :?:/p::
 :?:/pickup::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	called := false
 	
@@ -8411,6 +8805,9 @@ return
 
 :?:/h::
 :?:/hangup::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (tv) {
 		return
@@ -8461,6 +8858,9 @@ return
 return
 
 :?:/ab::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	called := false
 	
@@ -8507,24 +8907,36 @@ return
 return
 
 :?:/tag::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("Guten " . getDayTime() . ", wie kann ich Ihnen behilflich sein?")
 }
 return
 
 :?:/bye::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("Ich wünsche Ihnen noch einen schönen " . getDayTime() . ". Auf Wiedersehen!")
 }
 return
 
 :?:/ac::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/activity")
 }
 return
 
 :?:/ga::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/gpsaus")
 	SendClientMessage(prefix . "Du hast den GPS Marker deaktiviert.")
@@ -8532,6 +8944,9 @@ return
 return
 
 :?:/fg::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (!getPlayerInteriorId()) {
 		SendChat("/festgeld 1")
@@ -8542,6 +8957,9 @@ return
 return
 
 :?:/ap::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/accept paket")
 
@@ -8561,6 +8979,9 @@ return
 
 :?:/fill::
 :?:/tanken::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	if (!isPlayerInAnyVehicle() || !isPlayerDriver()) {
 		SendClientMessage(prefix . "Fehler: Du bist nicht der Fahrer eines Fahrzeuges.")
@@ -8607,6 +9028,9 @@ return
 return
 
 :?:/link::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	linkresult := false
 	
@@ -8644,6 +9068,9 @@ return
 return
 
 :?:/savechat::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	FileCreateDir, %A_MyDocuments%\GTA San Andreas User Files\SAMP\ChatlogBackups
 	FormatTime, zeit, %A_Now%,dd.MM.yy - HH.mm
@@ -8655,6 +9082,9 @@ return
 
 :?:/cc::
 :?:/chatclear::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	Loop, 25 {
 		SendClientMessage("")
@@ -8663,12 +9093,18 @@ return
 return
 
 :?:/wagen::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/d HQ: Ich benötige dringend einen Streifenwagen, aktuelle Position: " . getLocation())
 }
 return
 
 :?:/sani::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/d HQ: Ich benötige dringend einen Rettungswagen, aktuelle Position: " . getLocation())
 	SendChat("/service")
@@ -8681,6 +9117,9 @@ return
 
 :?:/oamt::
 :?:/abschlepp::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	SendChat("/d HQ: Ich benötige dringend einen Ordnungsbeamten, aktuelle Position: " . getLocation())
 	SendChat("/service")
@@ -8730,6 +9169,9 @@ return
 return
 
 :?:/coords::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	getPlayerPos(posX, posY, posZ)
 	SendClientMessage(prefix . "X: " . csecond . posX . cwhite . ", Y: " . csecond . posY . cwhite . " Z: " . csecond . posZ)
@@ -8738,6 +9180,9 @@ return
 
 :?:/reload::
 :?:/restart::
+if (isInChat()) {
+	SendInput, {Enter}
+}
 {
 	Reload
 }
@@ -10895,19 +11340,17 @@ MainTimer:
 		SendClientMessage(prefix . "Willkommen, " . csecond . username . cwhite . "! Fraktion: " . getFractionName() . ", Rang: " . rank)
 	}
 	
-	if (spotifyPublic || spotifyPrivacy) {
-		WinGetTitle, spotifytrack, ahk_exe Spotify.exe
+	WinGetTitle, title, ahk_exe Spotify.exe
+	
+	if (title != oldSpotifyTrack) {
+		oldSpotifyTrack := title
 
-		if (oldSpotifyTrack != spotifytrack && spotifytrack != "") {
-			oldSpotifyTrack := spotifytrack
+		if (spotifyPrivacy) {
+			SendClientMessage(prefix . "Neuer Spotify-Track: " . cgreen . spotifytrack)
+		}
 
-			if (spotifyPrivacy) {
-				SendClientMessage(prefix . "Neuer Spotify-Track: " . cgreen . spotifytrack)
-			}
-
-			if (spotifyPublic) {
-				SendChat("/l Spotify-Track wurde gewechselt: " . spotifytrack)
-			}
+		if (spotifyPublic) {
+			SendChat("/l Spotify-Track wurde gewechselt: " . spotifytrack)
 		}
 	}
 	
@@ -11087,7 +11530,7 @@ MainTimer:
 				DKills ++
 				
 				IniWrite, %Kills%, Stats.ini, Stats, Kills
-				IniWrite, %DKills%, Stats.ini, Stats,  DKills[%A_DD%:%A_MM%:%A_YYYY%]
+				IniWrite, %DKills%, Stats.ini, Stats, DKills[%A_DD%:%A_MM%:%A_YYYY%]
 				
 				Streak ++
 
