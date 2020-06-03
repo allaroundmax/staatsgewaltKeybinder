@@ -76,17 +76,16 @@ if (username != "" && password != "") {
 return
 
 LoginGUI:
-IniWrite, % "", login.ini, login, username
-IniWrite, % "", login.ini, login, password
+{
+	Gui, Add, Text, x12 y9 w530 h60 +BackgroundTrans +Center, Staatsgewalt - Login
+	Gui, Add, Text, x12 y49 w100 h20 +BackgroundTrans, Benutzername
+	Gui, Add, Text, x12 y79 w100 h20 +BackgroundTrans, Passwort
 
-Gui, Add, Text, x12 y9 w530 h60 +BackgroundTrans +Center, Staatsgewalt - Login
-Gui, Add, Text, x12 y49 w100 h20 +BackgroundTrans, Benutzername
-Gui, Add, Text, x12 y79 w100 h20 +BackgroundTrans, Passwort
-
-Gui, Add, Edit, x112 y49 w180 h20 vusername,
-Gui, Add, Edit, x112 y79 w180 h20 +Password vpassword,
-Gui, Add, Button, x442 y189 w100 h30 gdoLogin, Login
-Gui, Show, w564 h236, Login
+	Gui, Add, Edit, x112 y49 w180 h20 vusername,
+	Gui, Add, Edit, x112 y79 w180 h20 +Password vpassword,
+	Gui, Add, Button, x442 y189 w100 h30 gdoLogin, Login
+	Gui, Show, w564 h236, Login
+}
 return
 
 doLogin:
@@ -506,6 +505,7 @@ Start:
 		prefix := ownprefix . " "
 	}
 
+	global tasks 				:= []
 	global chat 				:= []
 	global partners 			:= []
 	global grabList 			:= []
@@ -598,6 +598,7 @@ Start:
 	SetTimer, MainTimer, 200
 	SetTimer, TimeoutTimer, 1000
 	SetTimer, SecondTimer, 1000
+	SetTimer, TaskCheckTimer, 5000
 
 	if (autoUncuff) {
 		SetTimer, UncuffTimer, 500
@@ -1823,27 +1824,36 @@ HelpGUI:
 
 .:: Punkte / Scheine / Tickets / Takes ::.
 /setkmh -> Blitzergeschwindigkeit (max. erlaubt) einstellen 
+
 /tst -> Strafpunkte löschen
 /cws -> Waffenschein entsperren
 /cfs -> Flugschein entsperren
 /cds -> Führerschein entsperren
+
 /top -> Möchten Sie ein Ticket o. Strafpunkte?
 /tot -> Möchten Sie ein Ticket o. Scheinentzug?
+
 /stvo -> Ticket oder Punkte für StVO Vergehen anfragen
 /stvof -> Ticket für Flugschein anbieten
 /stvow -> Ticket für Waffenschein anbieten
 /stvob -> Ticket für Bootschein anbieten
 /speed -> Ticket oder Punkte für Geschw. Vergehen anfragen
+
 /fst -> Flugscheinticket geben
 /wst -> Waffenscheinticket geben
 /bst -> Bootscheinticket geben
+
 /aticket -> Automatisch Ticket vergebene (/stvo, /speed etc...)
 /apunkte -> Automatisch Ticket vergeben (/stvo, /speed etc...)
+
 /nt -> nächstes Ticket anbieten
+
 /wtd -> Möchten Sie ein Ticket für Ihre Wanteds?
 /dtd -> Möchten Sie ein Ticket für Ihre Drogen?
+
 /twd -> Ticket für Wanteds anbieten
 /tdd -> Ticket für Drogen anbieten
+
 /tw -> Waffen wegnehmen
 /td -> Drogen wegnehmen
 /tm -> Materialien wegnehmen
@@ -1855,16 +1865,20 @@ HelpGUI:
 .:: Streifendienst ::.
 /arrestlist -> Arrest-Liste anzeigen
 /cufflist -> Cuff-Liste anzeigen
+
 /partner -> Partner eintragen
 /partners -> Alle Partner anzeigen
 /rpartners -> Alle Partner zurücksetzen
+
 /af -> Spieler automatisch finden
 /as -> Spieler einen anderen Spieler anzeigen
 /fahrer -> Fahrer eintragen für Find (/as)
+
 /rew -> Re-Wanted geben
 /sb -> Sachbeschdägigung geben (wtd)
 /entf -> Entführung geben (wtd)
 /coop -> Optimale Wanteds zum clearen anzeigen
+
 /rz /razzia -> Razzia ankündigen (/m)
 /weiter -> Alle Personen WEITERFAHREN (/m)
 /cd -> Countdown starten
@@ -1878,6 +1892,7 @@ HelpGUI:
 /hdf -> Sein Sie bitte still
 /tuch -> Möchten Sie ein Taschentuch?
 /runter -> Runter von dem Fahrzeug!
+
 /wo -> Wo befindet ihr euch, was ist das Problem? (/d)
 /nbk -> Wird Verstärkung weiterhin gefordert? (/d)
 /ver -> Habe verstanden! (/d)
@@ -1898,12 +1913,15 @@ HelpGUI:
 /wagen -> Benötige eine Streife in ... (/d)
 /sani -> Benötige einen RTW in ... + /service (/d)
 /abschlepp /oamt -> Benötige einen Abschleppwagen in ... + /service (/d)
+
 /oa -> Spieler offline einsperren
 /da -> Spieler tot einsperren
 /op -> Spieler offline ins Prison sperren
 /dp -> Spieler tot ins Prison sperren
+
 /wasser -> Wasser-Modus an/ausschalten
 /luft -> Luft-Modus an/ausschalten
+
 /rb -> Straßensperre aufbauen
 /db -> Straßensperre abbauen
 /dba -> Alle Straßensperren abbauen
@@ -1913,14 +1931,28 @@ HelpGUI:
 
 /sperrzone -> Sperrzone ankündigen
 /ksperrzone -> Sperrzone aufheben
+
 /rs -> Restaurantkette einbringen
 /sr -> Restaurantketten anzeigen
-/dsp -> Marihuana zerstören
+
 /ci -> Fahrzeuginformationen anzeigen
 /pi -> Spielerinformationen anzeigen
 /uc -> Undercover gehen
 /auc -> Random Undercover Skin
 /sbd -> Dienstmarke zeigen
+
+/gk -> Gebäudekomplex aufrufen
+/sgk -> Letzten Robstore anzeigen
+/showgk -> Gebäudekomplex auf Karte anzeigen
+/addgk -> Gebäudekomplex in .txt Speichern
+
+/afk -> Sich afk / anwesend melden
+/afklist -> Alle afk gemeldeten anzeigen
+
+/tasks -> Alle verfügbaren Aufgaben anzeigen
+/ontasks -> Alle verfügbaren Aufgaben anzeigen die online sind 
+/addtask -> Aufgabe hinzugefügen
+/deltask -> Aufgabe entfernen
 
 .:: MauMau System ::. 
 /mr -> /mauready
@@ -1942,6 +1974,7 @@ HelpGUI:
 /ja -> Ja, was kann ich für Sie tun?
 /tag -> Guten Tag, wie kann ich helfen?
 /bye -> Ich wünsche Ihnen einen schönen Tag!
+
 /p -> Anruf annehmen
 /h -> Anruf beenden
 /ab -> Anrufbeantworter
@@ -1950,18 +1983,21 @@ HelpGUI:
 /ksms -> Spieler per Name SMS senden
 /kcall -> Spieler per Name anrufen
 /calarm -> Spieler vor Abschleppung des O-Amts warnen
+
 /ap -> Erste-Hilfe-Paket kaufen
 /fg -> Festgeld anlegen
 /ac -> Aktitivätsbonus anzeigen
 /ga -> Gps deaktivieren
 /pb -> Abkürzung für /paintball
 /gf -> Gangfights anzeigen
+
 /to -> Kofferraum öffnen
 /tc -> Kofferraum durchsuchen
 /tput -> Etwas in Kofferraum legen
 /tcm -> Mats aus dem Kofferraum taken
 /tcd -> Drogen aus Kofferraum taken
 /cpos -> Position in Crew-Chat anzeigen
+
 /hi -> In allen Chats "Hi" sagen
 /dep -> Department (für Vorwarnung) eintragen
 /settax -> Steuerklasse setzen
@@ -1980,6 +2016,8 @@ HelpGUI:
 /coords -> aktuelle Koordinaten anzeigen
 /restart -> Keybinder reloaden
 /relog -> Ingame reloggen
+/fpsunlock -> FPS Beschränkung aufheben / setzen
+
 /afish -> Schnelles fischen
 /asell -> Schnelles Fische verkaufen
 /acook -> Schnelles Fische kochen
@@ -1987,7 +2025,7 @@ HelpGUI:
 /fische -> Ungekochte Fische checken
 /hp -> Gekochte Fische checken
 /sellfish -> Jemanden deine gekochten Fische schenken
-/fpsunlock
+
 
 .:: Überarbeite Serverbefehle ::. 
 /q -> Setzt Variablen zurück 
@@ -5485,20 +5523,21 @@ autoAcceptEmergencyLabel:
 				break
 			}
 		} else if (RegExMatch(chat, "HQ: Verbrechen: Überfall GK (\S+) \((\S+)\), Zeuge: Niemand, Verdächtiger: (\S+)", emergency)) {
-			currentStore := emergency1
-		
-			gk(emergency1, emergency2, true)
+			currentStore := emergency1			
 		
 			if (oldStore != currentStore) {
+				oldStore := emergency1
+				
+				storerobs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=storerobs&value=1")
+				IniWrite, %storerobs%, stats.ini, Übernahmen, Storerobs				
+				
 				Sleep, 100
 				SendChat("/d HQ: Übernehme Ladenüberfall von " . emergency3 . "(" . getPlayerIdByName(emergency3) . ") - GK: " . emergency1 . " (" . emergency2 . ")")
 				
-				storerobs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=storerobs&value=1")
-				IniWrite, %storerobs%, stats.ini, Übernahmen, Storerobs
-				
+				Sleep, 100
 				SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(storerobs) . cwhite . " Raubüberfälle übernommen.")
 				
-				oldStore := emergency1
+				gk(emergency1, emergency2, true)				
 			}
 			
 			Sleep, 100
@@ -5788,6 +5827,7 @@ pauseLabel:
 		SetTimer, MainTimer, off
 		SetTimer, TimeoutTimer, off
 		SetTimer, SecondTimer, off
+		SetTimer, TaskCheckTimer, off
 
 		if (autoLotto) {
 			SetTimer, LottoTimer, off
@@ -5820,6 +5860,7 @@ pauseLabel:
 		SetTimer, MainTimer, 200
 		SetTimer, TimeoutTimer, 1000
 		SetTimer, SecondTimer, 1000
+		SetTimer, TaskCheckTimer, 5000
 
 		IniRead, bossmode, settings.ini, settings, bossmode, 1
 		
@@ -5847,6 +5888,245 @@ pauseLabel:
 			SetTimer, SyncTimer, 600000
 		}
 	}
+return
+
+:?:/tasks::
+{
+	taskCount := tasks.Length()
+	
+	if (taskCount == 0) {
+		SendClientMessage(prefix . "Es sind keine offenen Tasks vorhanden.")
+		return
+	}
+	
+	Sleep, 200
+	
+	pageCount := Ceil(taskCount / 15)
+	taskPageID := 0
+	page := 0
+	openTasks := "{FFBB00}ID {FFFFFF}- {FFBB00}Zeit {FFFFFF}- {FF4040}Spieler {FFFFFF}- {00F0CC}Aufgabe {FFFFFF}- {99CC00}Auftraggeber`n"
+	
+	for index, task in tasks {
+		if (taskPageID >= 15) {
+			ShowDialog(0, "Ausstehende Tasks", openTasks, "Weiter >>")
+			
+			openTasks := "{FFBB00}ID {FFFFFF}- {FFBB00}Zeit {FFFFFF}- {FF4040}Spieler {FFFFFF}- {00F0CC}Aufgabe {FFFFFF}- {99CC00}Auftraggeber`n"
+			taskPageID := 0
+			page++
+			
+			Sleep, 500
+			
+			Loop {
+				if (IsInChat()) {
+					continue
+				} else {
+					break
+				}
+			}
+		}
+		
+		taskSubjectID := getPlayerIdByName(task["subject"])
+		
+		if (taskSubjectID == -1) {
+			openTasks .= "`n{FFBB00}" . task["id"] . " {FFFFFF}- {FFBB00}" . task["time"] . " {FFFFFF}- {FF4040}" . task["subject"] . "{FFFFFF} - {00F0CC}" . task["task"] . " {FFFFFF}- {99CC00}" . task["creator"]
+		} else {
+			openTasks .= "`n{FFBB00}" . task["id"] . " {FFFFFF}- {FFBB00}" . task["time"] . " {FFFFFF}- {33CC00}" . task["subject"] . " (" . taskSubjectID . ") {FFFFFF}- {00F0CC}" . task["task"] . "{FFFFFF} - {99CC00}" . task["creator"]
+		}
+		
+		taskPageID++
+	}
+	ShowDialog(0, "Ausstehende Tasks", openTasks, "OK")
+}
+return
+
+:?:/ontasks::
+{
+	if (tasks.Length() == 0) {
+		SendClientMessage(prefix . "Es sind keine offenen Tasks vorhanden.")
+		return
+	}
+	
+	taskSubjectsOnline := 0
+	
+	for index, task in tasks {
+		taskSubjectID := getPlayerIdByName(task["subject"])
+		
+		if (taskSubjectID != -1) {
+			AddChatMessage(PREFIX . csecond . task["id"] . cwhite . ": " . csecond . task["subject"] . cwhite . " (ID: " . csecond . taskSubjectID . cwhite . ") - " . csecond . task["task"])
+			taskSubjectsOnline++
+		}
+	}
+	
+	if (!taskSubjectsOnline) {
+		SendClientMessage(prefix . "Es ist kein Spieler online, für den ein Task existiert.")
+	}
+}
+return
+
+:?:/addtask::
+{
+	subject := PlayerInput("Spieler: ")
+	fullSubject := getFullName(subject)
+	
+	if (fullSubject != "") {
+		subject := fullSubject
+	}
+	
+	newTask := PlayerInput("Aufgabe: ")
+	if (newTask == "" || newTask == " ") {
+		return
+	}
+	
+	url := baseURL . "api/tasks?username=" . username . "&password=" . password . "&action=add&subject=" . subject . "&task=" . newTask
+	
+	addtaskResult := UrlDownloadToVar(url)
+	
+	if (addtaskResult == "ERROR_BAD_LINK") {
+		SendClientMessage(prefix . "Fehlerhafte Parameterübergabe.")
+	} else if (addtaskResult == "ERROR_USER_NOT_FOUND") {
+		SendClientMessage(prefix . "Der Account mit dem Namen " . username . " wurde nicht gefunden.")
+	} else if (addtaskResult == "ERROR_WRONG_PASSWORD") {
+		SendClientMessage(prefix . "Zugriff verweigert, das Passwort ist falsch.")
+	} else if (addtaskResult == "ERROR_ACCESS_DENIED") {
+		SendClientMessage(prefix . "Zugriff verweigert.")
+	} else if (addtaskResult == "ERROR_NO_SUCH_ACTION") {
+		SendClientMessage(prefix . "Diese Aktion wird nicht unterstützt.")
+	} else if (addtaskResult == "ERROR_MYSQL_QUERY") {
+		SendClientMessage(prefix . "Es ist ein Fehler bei der MySQL-Abfrage aufgetreten.")
+	} else if (addtaskResult == "ERROR_CONNECTION") {
+		SendClientMessage(prefix . "Aktuell liegt ein Fehler in der Verbindung zum Server vor.")
+	} else if (addtaskResult == "SUCCESS") {
+		SendChat("/d HQ: Neuer Task - Betreffender Spieler: " . subject . ", Aufgabe: " . newTask)
+	} else {
+		SendClientMessage(prefix . "Es ist ein unbekannter Fehler aufgetreten: " . csecond . addtaskResult)
+	}
+}
+return
+
+:?:/dtask::
+:?:/deltask::
+{
+	deltaskID := PlayerInput("Task-ID: ")
+	if (deltaskID == "" || deltaskID == " ") {
+		return
+	}
+	
+	url := baseURL . "api/tasks?username=" . username . "&password=" . password . "&action=delete&id=" . deltaskID
+	
+	deltaskResult := UrlDownloadToVar(url)
+	
+	if (deltaskResult == "ERROR_BAD_LINK") {
+		SendClientMessage(prefix . "Fehlerhafte Parameterübergabe.")
+	} else if (deltaskResult == "ERROR_USER_NOT_FOUND") {
+		SendClientMessage(prefix . "Der Account mit dem Namen " . username . " wurde nicht gefunden.")
+	} else if (deltaskResult == "ERROR_WRONG_PASSWORD") {
+		SendClientMessage(prefix . "Zugriff verweigert, das Passwort ist falsch.")
+	} else if (deltaskResult == "ERROR_ACCESS_DENIED") {
+		SendClientMessage(prefix . "Zugriff verweigert.")
+	} else if (deltaskResult == "ERROR_NO_SUCH_ACTION") {
+		SendClientMessage(prefix . "Diese Aktion wird nicht unterstützt.")
+	} else if (deltaskResult == "ERROR_MYSQL_QUERY") {
+		SendClientMessage(prefix . "Es ist ein Fehler bei der MySQL-Abfrage aufgetreten.")
+	} else if (deltaskResult == "ERROR_CONNECTION") {
+		SendClientMessage(prefix . "Aktuell liegt ein Fehler in der Verbindung zum Server vor.")
+	} else if (deltaskResult == "SUCCESS") {
+		SendChat("/d HQ: Task " . deltaskID . " wurde bearbeitet und gelöscht!")
+	} else {
+		SendClientMessage(prefix . "Es ist ein unbekannter Fehler aufgetreten: " . csecond . deltaskResult)
+	}
+}
+return
+
+:?:/afk::
+if (isInChat()) {
+	SendInput, {Enter}
+}
+{
+	afk := UrlDownloadToVar(baseURL . "api/isafk?username=" . username . "&password=" . password) ; # BAUM
+	StringSplit, afk_, afk, ~
+	
+	if (afk_1 == "error") {
+		SendClientMessage(prefix . "Es ist ein Fehler aufgetreten: " . csecond . afk_2)
+		return
+	} else if (afk_1) {
+		SendChat("/f HQ: Ich bin nun nicht mehr afk und melde mich zurück!")
+	} else {
+		afkTime := PlayerInput("Zeit: ")
+		if (afkTime != "") {
+			if (afkTime is number) {
+				SendChat("/f HQ: Ich melde für " . afkTime . " Minuten afk!")
+			} else {
+				SendClientMessage(prefix . "Fehler: Du musst eine Zeit in Minuten angeben")
+				return
+			}
+		}
+	}
+	
+	Sleep, 250
+	afk := UrlDownloadToVar(baseURL . "api/afk?username=" . username . "&password=" . password . "&time=" . afkTime) ; # BAUM
+	
+	StringSplit, afk_, afk, ~
+	
+	if (afk_1 == "error") {
+		SendClientMessage(prefix . "Es ist ein Fehler aufgetreten: " . csecond . afk_2)
+	} else {
+		SendClientMessage(prefix . csecond . afk_2)
+	}
+}
+return
+
+:?:/afklist::
+if (isInChat()) {
+	SendInput, {Enter}
+}
+{
+	result := UrlDownloadToVar(baseURL . "api/afklist?username=" . username . "&password=" . password) ; # BAUM
+	
+	if (result == "ERROR_BAD_LINK") {
+		SendClientMessage(prefix . "Fehlerhafte Parameterübergabe.")
+	} else if (result == "ERROR_USER_NOT_FOUND") {
+		SendClientMessage(prefix . "Der Account mit dem Namen " . username . " wurde nicht gefunden.")
+	} else if (result == "ERROR_WRONG_PASSWORD") {
+		SendClientMessage(prefix . "Zugriff verweigert, das Passwort ist falsch.")
+	} else if (result == "ERROR_ACCESS_DENIED") {
+		SendClientMessage(prefix . "Zugriff verweigert.")
+	} else if (result == "ERROR_MYSQL_QUERY") {
+		SendClientMessage(prefix . "Es ist ein Fehler bei der MySQL-Abfrage aufgetreten.")
+	} else if (result == "ERROR_CONNECTION") {
+		SendClientMessage(prefix . "Aktuell liegt ein Fehler in der Verbindung zum Server vor.")
+	} else if (result == "ERROR_NOBODY_AFK") {
+		SendClientMessage(prefix . "Es hat sich niemand AFK gemeldet.")
+	} else {
+		Loop, Parse, result, `n
+		{
+			StringSplit, result_, A_LoopField, ~
+			SendClientMessage(prefix . csecond . result_1 . cwhite . " - AFK gemeldet um: " . csecond . result_2 . cwhite . " Uhr, " . "Bis: " . csecond . result_3 . cwhite . " Uhr")
+		}
+	}
+}
+return
+
+:?:/sgk::
+if (isInChat()) {
+	SendInput, {Enter}
+}
+{
+	i := 75
+	Loop {
+		if (i < 0) {
+			SendClientMessage(prefix . "Fehler: Es wurde kein Raubüberfall gefunden.")
+			break
+		}
+		
+		if (RegExMatch(readChatLine(i), "HQ: Verbrechen: Überfall GK (\S+) \((\S+)\), Zeuge: Niemand, Verdächtiger: (\S+)", emergency)) {
+			AddChatMessage(PREFIX . "Ladenüberfall von " . csecond . emergency3 . cwhite . " (ID: " . getPlayerIdByName(emergency3) . ") im GK " . csecond . emergency1 . cwhite . " (" . emergency2 . ")")
+			gk(emergency3, emergency4, true)
+			break
+		}
+		
+		i --
+	}
+}
 return
 
 :?:/ts::
@@ -6178,11 +6458,26 @@ if (isInChat()) {
 }
 return
 
+:?:/showgk::
+if (isInChat()) {
+	SendInput, {Enter}
+}
+{
+	gkid := PlayerInput("GK-ID: ")
+	showGK(gkid)
+}
+return
+
 :?:/test::
 if (isInChat()) {
 	SendInput, {Enter}
 }
 {
+	if (getuserName() != "jacob.tremblay") {
+		SendClientMessage(prefix . "Du kannst diesen Befehl nicht verwenden.")
+		return
+	}	
+	
 	SendClientMessage(getLabelText())
 }
 return
@@ -6193,82 +6488,112 @@ if (isInChat()) {
 	SendInput, {Enter}
 }
 {
+	if (getuserName() != "jacob.tremblay") {
+		SendClientMessage(prefix . "Du kannst diesen Befehl nicht verwenden.")
+		return
+	}
+	
+	SendChat("/members")
+	
+	Sleep, 250
+	
+	Loop, 15 {
+		if (RegExMatch(readChatLine(A_Index), "" . getUserName() . "(.*), GK (\d+)\.(\d+)", gk_)) {
+			gk := gk_2 . "." . gk_3
+			break
+		}
+	}
+	
+	Sleep, 500
+	
 	if (getPlayerInteriorId()) {
-		SendChat("/members")
+		SendChat("/exit")
+	}
+	
+	Sleep, 2000
+	
+	if (RegExMatch(getLabelText(), "^Dieses Haus vermietet Zimmer\.\n\nBesitzer: (\S+)\nMiet-Preis: (\d+)\$\nBeschreibung: (.+)\nTippe \/renthouse\.$", label_)) { ; Mietbares Haus
+		owner := label_1
+		type := "house"
+		description := label_3
+		SendClientMessage(prefix . "Besitzer: " . csecond . label_1)
+	} else if (RegExMatch(getLabelText(), "^(.+)\nDrücke Enter\.$", label_)) { ; Fraktionsbase
+		owner := label_1
+		type := "faction"
+		description := ""
+		SendClientMessage(prefix . "Besitzer: " . csecond . label_1)
+	} else if (RegExMatch(getLabelText(), "^Dieses Haus gehört (\S+)\.\n\nPreis: (.*)\nBeschreibung: (.+)\n\n(.+)$", label_)) { ; Crewhaus (unmietbar)
+		owner := label_1
+		type := "house"
+		description := label_3
+		SendClientMessage(prefix . "Besitzer: " . csecond . label_1)
+	} else if (RegExMatch(getLabelText(), "^Dieses Haus vermietet Zimmer\.\n\nBesitzer: (\S+)\nMiet-Preis: (.*)\nBeschreibung: (.+)\nTippe \/renthouse\.\n\n(.+)$", label_)) {
+		owner := label_1
+		type := "house"
+		description := label_3
+		SendClientMessage(prefix . "Besitzer: " . csecond . label_1)
+	} else if (RegExMatch(getLabelText(), "^Dieses Haus gehört (\S+)\.\n\nPreis: (.*)\nBeschreibung: (.+)$", label_)) { ; Unmietbares Haus
+		owner := label_1
+		type := "house"
+		description := label_3
+		SendClientMessage(prefix . "Besitzer: " . csecond . label_1)
+	} else if (RegExMatch(getLabelText(), "^Dieses Haus steht zum Verkauf\.\n\nPreis: (.*)\nBeschreibung: (.+)\nTippe \/buyhouse\.$", label_)) { ; Haus Verkauft
+		owner := "niemand"
+		type := "house"
+		description := label_2
+		SendClientMessage(prefix . "Besitzer: " . csecond . owner)
+	}
+	
+	Sleep, 200
 		
-		Sleep, 250
-		
-		Loop, 20 {
-			if (RegExMatch(readChatLine(A_Index - 1), "^" . getUserName() . "(.+), GK (\d+)$", gk_)) {
-				gk := gk_2
-				break
-			}
-		}
-		
-		Sleep, 250
-		
-		SendInput, {Enter}
+	getPlayerPos(posX, posY, posZ)
 
-		Sleep, 500
-		
-		if (RegExMatch(getLabelText(), "^Dieses Haus vermietet Zimmer\.\n\nBesitzer: (\S+)\nMiet-Preis: (\d+)\$\nBeschreibung: (.+)\nTippe \/renthouse\.$", label_)) {
-			owner := label_1
-			description := label_3
-		} else if (RegExMatch(getLabelText(), "^(.+)\nDrücke Enter\.$", label_)) {
-			owner := label_1
-			description := ""
-		} else if (RegExMatch(getLabelText(), "^Dieses Haus gehört (\S+)\.\n\nPreis: (.*)\nBeschreibung: (.+)\n\n(.+)$", label_)) {
-			owner := label_1
-			description := label_3
+	if (!gk) {
+		gk := PlayerInput("GK: ")
+		if (gk == "") {
+			return
 		}
-			
-		getPlayerPos(posX, posY, posZ)
-
-		if (!gk) {
-			gk := PlayerInput("GK: ")
-			if (gk == "") {
-				return
-			}
-		}
-			
-		if (!owner) {
-			owner := PlayerInput("Besitzer: ")
-			if (owner == "") {
-				return
-			}
-		}
+	}
 		
-		if (!description) {
-			description := PlayerInput("Beschreibung: ")
-			if (description == "") {
-				return
-			}
+	if (!owner) {
+		owner := PlayerInput("Besitzer: ")
+		if (owner == "") {
+			return
 		}
-		
-		SendClientMessage(prefix . "Trage einen der folgenden Typen ein: public, faction, house")
-		
+	}
+	
+	if (!description) {
+		description := PlayerInput("Beschreibung: ")
+	}
+	
+	SendClientMessage(prefix . "Trage einen der folgenden Typen ein: public, faction, house")
+	
+	if (!type) {
 		type := PlayerInput("Typ: ")
-		if (type == "public" || type == "faction" || type == "house") {
-			SendClientMessage(prefix . "Möchtest du folgendes Gebäudekomplex eintragen? Du kannst mit '" csecond . "X" . cwhite . "' bestätigen!")
-			SendClientMessage(prefix . "GK: " . gk)
-			SendClientMessage(prefix . "Besitzer: " . owner)
-			SendClientMessage(prefix . "Beschreibung: " . description)
-			SendClientMessage(prefix . "Location: " . getPlayerZone() . ", " . getPlayerCity())
-				
-			KeyWait, X, D, T10
-				
-			if (!ErrorLevel && !isBlocked()) {
-				string := "GK: " . gk . ", Besitzer: " . owner . ", Beschreibung: " . description . ", X: " . posX . ", Y: " . posY . "`n"
-				
-				FileAppend, %string%, komplexes.txt
-				SendClientMessage(prefix . "Gebäudekomplex " . csecond . gk . cwhite . " von " . csecond . owner . cwhite . " (" . getPlayerZone() . ", " . getPlayerCity() . ") wurde gespeichert!")
-			}
-		} else {
-			SendClientMessage(prefix . "Trage einen der folgenden Typen ein: public, faction, house")
+	}
+	
+	if (type == "public" || type == "faction" || type == "house") {
+		SendClientMessage(prefix . "Möchtest du folgendes Gebäudekomplex eintragen? Du kannst mit '" csecond . "X" . cwhite . "' bestätigen!")
+		SendClientMessage(prefix . "GK: " . gk)
+		SendClientMessage(prefix . "Besitzer: " . owner)
+		SendClientMessage(prefix . "Beschreibung: " . description)
+		SendClientMessage(prefix . "Location: " . getPlayerZone() . ", " . getPlayerCity())
+			
+		KeyWait, X, D, T10
+			
+		if (!ErrorLevel && !isBlocked()) {
+			string := "GK: " . gk . ", Besitzer: " . owner . ", Beschreibung: " . description . ", X: " . posX . ", Y: " . posY . "`n"
+			
+			FileAppend, %string%, komplexes.txt
+			SendClientMessage(prefix . "Gebäudekomplex " . csecond . gk . cwhite . " von " . csecond . owner . cwhite . " (" . getPlayerZone() . ", " . getPlayerCity() . ") wurde gespeichert!")
 		}
 	} else {
-		SendClientMessage(prefix . "Du musst dich direkt im Eingang eines Gebäudes befinden.")
+		SendClientMessage(prefix . "Trage einen der folgenden Typen ein: public, faction, house")
 	}
+	
+	owner := ""
+	gk := ""
+	description := ""
 }
 return
 
@@ -10883,6 +11208,81 @@ SecondTimer:
 }
 return
 
+TaskCheckTimer:
+{
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP")) {
+		return
+	}
+	
+	tasksResult := UrlDownloadToVar(baseURL . "api/tasks?username=" . username . "&password=" . password . "&action=get")
+	
+	if (tasksResult == "ERROR_BAD_LINK") {
+	} else if (tasksResult == "ERROR_USER_NOT_FOUND") {
+	} else if (tasksResult == "ERROR_WRONG_PASSWORD") {
+	} else if (tasksResult == "ERROR_ACCESS_DENIED") {
+	} else if (tasksResult == "ERROR_NO_SUCH_ACTION") {
+	} else if (tasksResult == "ERROR_MYSQL_QUERY") {
+	} else if (tasksResult == "ERROR_NO_TASKS") {
+	} else if (tasksResult == "ERROR_CONNECTION") {
+	} else {
+		tasksLoaded := JSON.Load(tasksResult)
+		tasksToRemove := []
+		
+		for newIndex, newEntry in tasksLoaded {
+			contains := false
+		
+			for index, entry in tasks {
+				if (entry["id"] == newEntry["id"]) {
+					contains := true
+				}
+			}
+			
+			if (!contains) {
+				tasks.Push(newEntry)
+			}
+		}
+		
+		for index, entry in tasks {
+			contains := false
+		
+			for newIndex, newEntry in tasksLoaded {
+				if (entry["id"] == newEntry["id"]) {
+					contains := true
+				}
+			}
+			
+			if (!contains) {
+				tasksToRemove.Push(entry["id"])
+			}
+		}
+		
+		tasksRemoved := 0
+		
+		for i, id in tasksToRemove {
+			tasksRemoved += removeTask(id)
+		}
+	}
+	
+	for index, task in tasks {
+		if (task["online"]) {
+			taskSubjectID := getPlayerIdByName(task["subject"])
+			if (taskSubjectID == -1) {
+				task["online"] := false
+			}
+		} else {
+			taskSubjectID := getPlayerIdByName(task["subject"])
+			
+			if (taskSubjectID != -1) {
+				SendClientMessage(prefix . "Spieler mit Task ist online: " . csecond . task["subject"] . cwhite . " (ID: " . csecond . taskSubjectID . cwhite . ")")
+				SendClientMessage(prefix . "Task (ID " . csecond . "" . task["id"] . cwhite . "): " . csecond . task["task"])
+			}
+		
+			task["online"] := true
+		}
+	}
+}
+return
+
 CloseZollTimer:
 {
 	if (closeZoll != "") {
@@ -12998,13 +13398,13 @@ showGK(gk, ignoreExisting := false) {
                 zPos := 20
             
             if (setCheckpoint(data["x"], data["y"], zPos, 5)) {
-                SendClientMessage(prefix . "Der Checkpoint zum GK mit der ID " . SECCOL . gk . " {FFFFFF}wurde erfolgreich gesetzt!")
+                SendClientMessage(prefix . "Der Checkpoint zum GK mit der ID " . csecond . gk . cwhite . " wurde erfolgreich gesetzt!")
             } else {
                 SendClientMessage(prefix . "Beim Setzen des Checkpoints ist ein Fehler aufgetreten!")
             }
         }
     } else {
-        SendClientMessage(prefix . "GK Fehler: Die ID wurde falsch formatiert. " . cSecond . "Beispiel: public.12")
+        SendClientMessage(prefix . "Die ID wurde falsch formatiert. Beispiel: " . csecond . "public.12")
     }
 }
 
@@ -13858,4 +14258,23 @@ getTaxes() {
 	
 	IniWrite, %taxes%, settings.ini, settings, taxes
 	SendClientMessage(prefix . "Der Steuersatz (Steuerklasse " . cSecond . "4" . cwhite . ") wurde auf " . cSecond . chat_1 . cwhite . " Prozent gesetzt.")
+}
+
+removeTask(id) {
+	global tasks
+	
+	indexToRemove := -1
+	
+	for index, entry in tasks {
+		if (entry["id"] == id) {
+			indexToRemove := index
+		}
+	}
+	
+	if (indexToRemove != -1) {
+		tasks.RemoveAt(indexToRemove)
+		return removeTask(id) + 1
+	} else {
+		return 0
+	}
 }
