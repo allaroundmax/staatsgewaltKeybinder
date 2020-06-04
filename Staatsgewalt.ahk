@@ -44,11 +44,6 @@ global cgreen				:= "{00962B}"
 global cyellow				:= "{FFEE00}"
 global corange				:= "{FF8100}"
 
-/*
-	LOGIN SYSTEM
-	** Stats markiert fürs CP mit folgendem Keyword -> #BAUM
-*/
-
 IniRead, username, login.ini, login, username, %A_Space%
 IniRead, password, login.ini, login, password, %A_Space%
 
@@ -530,6 +525,7 @@ Start:
 	global maumode				:= 0
 	global watermode 			:= 0
 	global airmode 				:= 0
+	global admission			:= 0
 	global deathArrested 		:= 0
 	global lastSpeed 			:= 0	
 	global hasEquip				:= 0
@@ -889,6 +885,7 @@ Folgende Variablen können im Killspruch verwendet werden:
 | -> Trennvariable für mehrere Chatzeilen
 [SLEEP (Zeit in Millisekunden)] -> für Verzögerungen
 [LOCAL] -> Im eigenen Chat senden (SendClientMessage())
+[ENTER] -> Sendet den Killspruch ab
 [Name] -> Aktueller Name
 [ID] -> Aktuelle ID
 [FPS] -> Aktuelle FPS
@@ -910,6 +907,12 @@ Folgende Variablen können im Killspruch verwendet werden:
 [MURDERERWEAPART] -> Artikel (eine, einer, einem (( bezogen auf Waffe )) )
 [DEATHPLACE] -> Todesort (Kurz)
 [DEATHPLACEFULL] -> Todesort (mit Fahrzeug)
+[KILLS] -> Alle Kills
+[DEATHS] -> Alle Tode
+[DKILLS] -> Tages-Kills
+[DDEATHS] -> Tages-Tode
+[KD] -> K/D anzeigen
+[DKD] -> Tages-KD anzeigen
 	)
 	Gui, Variables: Add, Button, x12 y549 w130 h40 gVariablesClose, Schließen
 	Gui, Variables: Show, w600 h600, %Keybinder%
@@ -2954,7 +2957,7 @@ handleChatMessage(message, index, arr) {
 					
 					Sleep, 500
 					
-					SendChat("/m << " . department . ", Radarkontrolle! " . driver_1 . ", halten Sie SOFORT an und fahren Sie rechts ran! >>")
+					useMegaphone(0)
 				}
 			}
 		}
@@ -3384,17 +3387,8 @@ megaFollowLabel:
 	if (isBlocked() || tv) {
 		return
 	}
-
-	if (watermode) {
-		SendChat("/m << Küstenwache, bitte folgen Sie dem Boot >>")
-	} else if (getPlayerSkinID() == 285) {
-		SendChat("/m << S.W.A.T., bitte folgen Sie dem Einsatzfahrzeug >>")
-	} else if (airmode) {
-		SendChat("/m << C.A.S., bitte folgen Sie dem Helikopter! >>")
-	} else {
-		IniRead, department, settings.ini, settings, department, %A_Space%
-		SendChat("/m << " . department . ", bitte folgen Sie dem Einsatzfahrzeug >>")
-	}
+	
+	useMegaphone(1)
 }
 return
 
@@ -3405,17 +3399,7 @@ megaControlLabel:
 	}
 	
 	if (!maumode) {
-		
-		if (watermode) {
-			SendChat("/m << Küstenwache, Wasserverkehrskontrolle. Halten Sie bitte an >>")
-		} else if (getPlayerSkinID() == 285) {
-			SendChat("/m << S.W.A.T., Allgemeine Kontrolle, bitte halten Sie SOFORT an! >>")
-		} else if (airmode) {
-			SendChat("/m << C.A.S., Luftverkehrskontrolle. Landen Sie umgehend! >>")
-		} else {
-			IniRead, department, settings.ini, settings, department, %A_Space%
-			SendChat("/m << " . department . ", Allgemeine Kontrolle, bitte halten Sie an! >>")
-		}
+		useMegaphone(2)
 	} else {
 		SendClientMessage(prefix . "Mau-Modus: Mau 1 wird gelegt:")
 		SendChat("/mau 1")
@@ -3430,23 +3414,7 @@ megaStopLabel:
 	}
 	
 	if (!maumode) {
-
-		if (watermode) {
-			SendChat("/m << Küstenwache, stoppen Sie SOFORT Ihr Boot! >>")
-		} else if (getPlayerSkinID() == 285) {
-			SendChat("/m << S.W.A.T., halten Sie SOFORT an! >>")
-		} else if (airmode) {
-			SendChat("/m << C.A.S., landen Sie SOFORT! >>")
-		} else {
-			IniRead, department, settings.ini, settings, department, %A_Space%
-			SendChat("/m << " . department . ", bleiben Sie SOFORT stehen >>")
-		}
-		
-		SendChat("/m << Letzte Mahnung, sollten Sie verweigern, wenden wir härte Maßnahmen an! >>")
-
-		SetTimer, ShotAllowedCar, 30000
-		SetTimer, ShotAllowedBike, 5000
-		SetTimer, TazerAllowed, 5000
+		useMegaphone(3)
 	} else {
 		SendClientMessage(prefix . "Mau-Modus: Mau 2 wird gelegt:")
 		SendChat("/mau 2")
@@ -3461,19 +3429,7 @@ megaByNameLabel:
 	}
 		
 	if (!maumode) {
-		playerToFindName := getFullName(playerToFind)
-	
-		if (playerToFindName == "" || playerToFind == "") {
-			SendClientMessage(prefix . "Fehler: Du suchst aktuell niemanden.")
-		} else {
-			IniRead, department, settings.ini, settings, department, %A_Space%
-			SendChat("/m << " . playerToFindName . ", bleiben Sie SOFORT stehen! >>")
-			SendChat("/m << Letzte Mahnung, sollten Sie verweigern, wenden wir härte Maßnahmen an! >>")
-		
-			SetTimer, ShotAllowedCar, 30000
-			SetTimer, ShotAllowedBike, 5000
-			SetTimer, TazerAllowed, 5000
-		}
+		useMegaphone(4)
 	} else {
 		SendClientMessage(prefix . "Mau-Modus: Mau 3 wird gelegt:")
 		SendChat("/mau 3")
@@ -3488,18 +3444,7 @@ megaGetOutOfCarLabel:
 	}
 	
 	if (!maumode) {
-		if (watermode) {
-			dept := "Küstenwache"
-		} else if (getPlayerSkinID() == 285) {
-			dept := "S.W.A.T."
-		} else if (airmode) {
-			dept := "C.A.S."
-		} else {
-			IniRead, department, settings.ini, settings, department, %A_Space%
-			dept := department
-		}
-		
-		SendChat("/m << " . dept . ", steigen Sie mit erhobenen Händen aus Ihrem Fahrzeug! >>")
+		useMegaphone(5)
 	} else {
 		SendClientMessage(prefix . "Mau-Modus: Mau 4 wird gelegt:")
 		SendChat("/mau 4")
@@ -3514,17 +3459,7 @@ megaClearLabel:
 	}
 	
 	if (!maumode) {
-		
-		if (watermode) {
-			SendChat("/m << Küstenwache, fahren Sie umgehend zur Seite! >>")
-		} else if (getPlayerSkinID() == 285) {
-			SendChat("/m >> S.W.A.T., räumen Sie SOFORT die Straße! >>")
-		} else if (airmode) {
-			SendChat("/m << C.A.S., räumen Sie umgehend den Luftraum! >>")
-		} else {
-			IniRead, department, settings.ini, settings, department, %A_Space%
-			SendChat("/m << " . department . ", räumen Sie umgehend die Straße! >>")
-		}
+		useMegaphone(6)
 	} else {
 		SendClientMessage(prefix . "Mau-Modus: Mau 5 wird gelegt:")
 		SendChat("/mau 5")
@@ -3539,13 +3474,7 @@ megaWeaponsLabel:
 	}
 	
 	if (!maumode) {
-
-		if (getPlayerSkinID() == 285) {
-			SendChat("/m << S.W.A.T., SOFORT die Waffen niederlegen, ansonsten gebrauchen wir Gewalt! >>")
-		} else {
-			IniRead, department, settings.ini, settings, department, %A_Space%
-			SendChat("/m << Hier spricht das " . department . ", SOFORT die Waffen niederlegen, ansonsten gebrauchen wir Gewalt! >>")
-		}
+		useMegaphone(7)
 	} else {
 		SendClientMessage(prefix . "Mau-Modus: Mau 6 wird gelegt:")
 		SendChat("/mau 6")
@@ -3560,23 +3489,7 @@ megaLeaveLabel:
 	}
 	
 	if (!maumode) {
-
-		if (watermode) {
-			dept := "Küstenwache"
-		} else if (getPlayerSkinID() == 285) {
-			dept := "S.W.A.T."
-		} else if (airmode) {
-			dept := "C.A.S."
-		} else {
-			IniRead, department, settings.ini, settings, department, %A_Space%
-			dept := department
-		}
-		
-		if (!getPlayerInteriorId()) {
-			SendChat("/m << " . dept . ", verlassen Sie SOFORT dieses Gelände! >>")
-		} else {
-			SendChat("/m << " . dept . ", verlassen Sie SOFORT dieses Gebäude! >>")
-		}
+		useMegaphone(8)
 	} else {
 		SendClientMessage(prefix . "Mau-Modus: Mau 9 wird gelegt:")
 		SendChat("/mau 9")
@@ -3590,19 +3503,7 @@ megaStopFollowLabel:
 		return
 	}
 	
-
-	if (watermode) {
-		dept := "Küstenwache"
-	} else if (getPlayerSkinID() == 285) {
-		dept := "S.W.A.T."
-	} else if (airmode) {
-		dept := "C.A.S."
-	} else {
-		IniRead, department, settings.ini, settings, department, %A_Space%
-		dept := department
-	}
-	
-	SendChat("/m << " . dept . ", unterlassen Sie SOFORT diese Verfolgung! >>")
+	useMegaphone(9)
 }
 return
 
@@ -3611,19 +3512,8 @@ megaRoadTrafficActLabel:
 	if (isBlocked() || tv) {
 		return
 	}
-
-	if (watermode) {
-		dept := "Küstenwache"
-	} else if (getPlayerSkinID() == 285) {
-		dept := "S.W.A.T."
-	} else if (airmode) {
-		dept := "C.A.S."
-	} else {
-		IniRead, department, settings.ini, settings, department, %A_Space%
-		dept := department
-	}
-		
-	SendChat("/m << " . dept . ", bitte halten Sie sich an die Straßenverkehrsordnung >>")
+	
+	useMegaphone(10)
 }
 return
 
@@ -4417,13 +4307,28 @@ backupLabel:
 		return
 	}
 	
+
+	
 	if (!bk) {
+		if (admission && rank > 6) {
+			SendChat("/hq +++ Einweisung - nicht Beachten! +++")
+			SendChat("/hq +++ Einweisung - nicht Beachten! +++")
+		}		
+		
+		Sleep, 250
+		
 		SendChat("/bk")
 		
 		bk := 1
 	}
 	
-	SendChat("/d HQ: Ich benötige DRINGEND Verstärkung in " . getLocation() . "! (HP: " . getPlayerHealth() . ", AM: " . getPlayerArmor() . ")")
+	if (admission) {
+		bkchat := "r"
+	} else {
+		bkchat := "d"
+	}
+	
+	SendChat("/" . bkchat . " HQ: Ich benötige DRINGEND Verstärkung in " . getLocation() . "! (HP: " . getPlayerHealth() . ", AM: " . getPlayerArmor() . ")")
 }
 return
 
@@ -4434,11 +4339,23 @@ backupWhLabel:
 	}
 	
 	if (!bk) {
+		if (admission && rank > 6) {
+			SendChat("/hq +++ Einweisung - nicht Beachten! +++")
+			SendChat("/hq +++ Einweisung - nicht Beachten! +++")
+		}			
+		
 		SendChat("/bk")
+		
 		bk := 1
 	}
 	
-	SendChat("/d HQ: Ich benötige DRIGEND Verstärkung in " . getLocation() . ", verfolge Wheelman!")
+	if (admission) {
+		bkchat := "r"
+	} else {
+		bkchat := "d"
+	}	
+	
+	SendChat("/" . bkchat . " HQ: Ich benötige DRIGEND Verstärkung in " . getLocation() . ", verfolge Wheelman!")
 }
 return
 
@@ -4453,7 +4370,20 @@ noBackupLabel:
 		
 		SendChat("/bk")
 		
-		SendChat("/d HQ: Verstärkung wird NICHT mehr benötigt!")
+		if (admission) {
+			bkchat := "r"
+		} else {
+			bkchat := "d"
+		}
+		
+		SendChat("/" . bkchat . " HQ: Verstärkung wird NICHT mehr benötigt!")
+		
+		Sleep, 250
+		
+		if (admission && rank > 6) {
+			SendChat("/hq +++ Einweisung - nicht Beachten! +++")
+			SendChat("/hq +++ Einweisung - nicht Beachten! +++")
+		}				
 	} else {
 		SendClientMessage(prefix . "Du hast keine Verstärkung angefordert.")
 	}
@@ -6065,7 +5995,7 @@ if (isInChat()) {
 	SendInput, {Enter}
 }
 {
-	afk := UrlDownloadToVar(baseURL . "api/isafk?username=" . username . "&password=" . password) ; # BAUM
+	afk := UrlDownloadToVar(baseURL . "api/isafk?username=" . username . "&password=" . password) ; #BAUM
 	StringSplit, afk_, afk, ~
 	
 	if (afk_1 == "error") {
@@ -6086,7 +6016,7 @@ if (isInChat()) {
 	}
 	
 	Sleep, 250
-	afk := UrlDownloadToVar(baseURL . "api/afk?username=" . username . "&password=" . password . "&time=" . afkTime) ; # BAUM
+	afk := UrlDownloadToVar(baseURL . "api/afk?username=" . username . "&password=" . password . "&time=" . afkTime) ; #BAUM
 	
 	StringSplit, afk_, afk, ~
 	
@@ -6103,7 +6033,7 @@ if (isInChat()) {
 	SendInput, {Enter}
 }
 {
-	result := UrlDownloadToVar(baseURL . "api/afklist?username=" . username . "&password=" . password) ; # BAUM
+	result := UrlDownloadToVar(baseURL . "api/afklist?username=" . username . "&password=" . password) ; #BAUM
 	
 	if (result == "ERROR_BAD_LINK") {
 		SendClientMessage(prefix . "Fehlerhafte Parameterübergabe.")
@@ -6182,15 +6112,15 @@ return
 	if (fracNumber == "1") {
 		fraction := "Los Santos Police Department"
 		preposition := "Das"
-		title := "Beamten"
+		copTitle := "Beamten"
 	} else if (fracNumber == "2") {
 		fraction := "Federal Bureau of Investigation"
 		preposition := "Das"
-		title := "Agenten"
+		copTitle := "Agenten"
 	} else if (fracNumber == "3") {
 		fraction := "Las Venturas Army"
 		preposition := "Die"
-		title := "Soldaten"
+		copTitle := "Soldaten"
 	} else {
 		SendClientMessage(prefix . "Fehler: Verwende eine Zahl für eine der folgenden Fraktionen:")
 		SendClientMessage(prefix . "Fehler: 1: LSPD, 2: FBI, 3: Army")
@@ -6218,7 +6148,7 @@ return
 				Sleep, 750
 			}
 
-			SendChat("/gov " . preposition . " " . fraction . " ist aktuell auf der Suche nach '" . searchCount . "' neuen " . title . ".")
+			SendChat("/gov " . preposition . " " . fraction . " ist aktuell auf der Suche nach '" . searchCount . "' neuen " . copTitle . ".")
 
 			if (!admin) {
 				Sleep, 750
@@ -6846,15 +6776,7 @@ if (isInChat()) {
 	SendInput, {Enter}
 }
 {	
-	IniRead, department, settings.ini, settings, department, %A_Space%
-	
-	if (getPlayerSkinID() == 285) {
-		SendChat("/m << S.W.A.T., dies ist eine Razzia! >>")
-	} else {
-		SendChat("/m << " . department . ", dies ist eine Razzia! >>")
-	}
-	
-	SendChat("/m << Nehmen Sie SOFORT die Hände hoch oder wir schießen! >>")
+	useMegaphone(11)
 }
 return
 
@@ -6863,13 +6785,7 @@ if (isInChat()) {
 	SendInput, {Enter}
 }
 {
-	IniRead, department, settings.ini, settings, department, %A_Space%
-
-	if (getPlayerSkinID() == 285) {
-		SendChat("/m << S.W.A.T., alle Personen bitte SOFORT weiterfahren! >>")
-	} else {
-		SendChat("/m << " . department . ", alle Personen bitte SOFORT weiterfahren! >>")
-	}
+	useMegaphone(12)
 }
 return
 
@@ -7401,7 +7317,7 @@ return
 			if (partners.HasKey(partnerID)) {
 				partnerName := partners.Delete(partnerID)
 				
-				SendChat("/d HQ: Der Streifendienst mit (" . partnerID . ") " . partnerName . " wurde beendet!")
+				SendChat("/l HQ: Der Streifendienst mit (" . partnerID . ") " . partnerName . " wurde beendet!")
 			} else {
 				partnerName := PlayerInput("Partner-ID/Name: ")
 				partnerName := getFullName(partnerName)
@@ -7413,7 +7329,7 @@ return
 				
 				partners[partnerID] := partnerName
 				
-				SendChat("/d HQ: " . partnerName . " wurde als Streifenpartner " . partnerID . " eingetragen!")
+				SendChat("/l HQ: " . partnerName . " wurde als Streifenpartner " . partnerID . " eingetragen!")
 				
 				IniRead, taxes, settings.ini, settings, taxes, 1
 				
@@ -7820,7 +7736,7 @@ return
 	}
 
 	autoFindMode := 1
-
+	
 	findPlayer()
 	findInfo(playerToFind)
 }
@@ -8245,6 +8161,23 @@ if (isInChat()) {
 		watermode := 0
 		
 		SendClientMessage(prefix . "Luftmodus " . cgreen . "aktiviert" . cwhite . ".")
+	}
+}
+return
+
+:?:/einweisung::
+if (isInChat()) {
+	SendInput, {Enter}
+}
+{
+	if (!admission) {
+		admission := 1
+		
+		SendClientMessage(prefix . "Du hast den Einweisungs-Modus " . cgreen . "aktiviert" . cwhite . ".")
+	} else {
+		admission := 0
+	
+		SendClientMessage(prefix . "Du hast den Einweisungs-Modus " . cred . "deaktiviert" . cwhite . ".")
 	}
 }
 return
@@ -11314,7 +11247,7 @@ TaskCheckTimer:
 }
 return
 
-/* # BAUM
+/* #BAUM
 UpdateComplexTimer:
 {
 	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !updateTextLabelData()) {
@@ -11722,35 +11655,45 @@ WantedIATimer:
 		
 		if (!ErrorLevel) {
 			if (InStr(wantedIAReason, "entführt mich")) {
-				giveWanteds(wantedIA, "Entführung eines Staatsbeamten (" . wantedContracter . ")", 4)
-				SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Entführng eingetragen!")
+				if (giveWanteds(wantedIA, "Entführung eines Staatsbeamten (" . wantedContracter . ")", 4)) {
+					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Entführng eingetragen!")
+				}
 			} else if (InStr(wantedIAReason, "begeht eine Verweigerung")) {
-				giveWanteds(wantedIA, "Verweigerung i.A. " . wantedContracter, 1)
-				SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Verweigerung eingetragen!")
+				if (giveWanteds(wantedIA, "Verweigerung i.A. " . wantedContracter, 1)) {
+					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Verweigerung eingetragen!")
+				}
 			} else if (InStr(wantedIAReason, "versuchte mich zu bestechen")) {
-				giveWanteds(wantedIA, "Beamtenbestechung i.A. " . wantedContracter, 1)
-				SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Beamtenbestechung eingetragen!")
+				if (giveWanteds(wantedIA, "Beamtenbestechung i.A. " . wantedContracter, 1)) {
+					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Beamtenbestechung eingetragen!")
+				}
 			} else if (InStr(wantedIAReason, "verwendet seine Schlag/Schusswaffen")) {
-				giveWanteds(wantedIA, "Waffengebrauch i.d.Ö. i.A. " . wantedContracter, 2)
-				SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Waffengebrauch i.d.Ö. eingetragen!")
+				if (giveWanteds(wantedIA, "Waffengebrauch i.d.Ö. i.A. " . wantedContracter, 2)) {
+					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Waffengebrauch i.d.Ö. eingetragen!")
+				}
 			} else if (InStr(wantedIAReason, "ist nicht im Besitz eines Waffenschein")) {
-				giveWanteds(wantedIA, "Illegaler Waffenbesitz i.A. " . wantedContracter, 2)
-				SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " illegaler Waffenbesitz eingetragen!")
+				if (giveWanteds(wantedIA, "Illegaler Waffenbesitz i.A. " . wantedContracter, 2)) {
+					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " illegaler Waffenbesitz eingetragen!")
+				}
 			} else if (InStr(wantedIAReason, "hat ein Unbrechtigtes Fahrzeug/Gelände")) {
-				giveWanteds(wantedIA, "Unautorisiertes Betreten i.A. " . wantedContracter, 2)
-				SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Einbruch eingetragen!")
+				if (giveWanteds(wantedIA, "Unautorisiertes Betreten i.A. " . wantedContracter, 2)) {
+					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Einbruch eingetragen!")
+				}
 			} else if (InStr(wantedIAReason, "Behindert die Justiz")) {
-				giveWanteds(wantedIA, "Behinderung der Justiz i.A. " . wantedContracter, 1)
-				SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Behinderung der Justiz eingetragen!")
+				if (giveWanteds(wantedIA, "Behinderung der Justiz i.A. " . wantedContracter, 1)) {
+					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Behinderung der Justiz eingetragen!")
+				}
 			} else if (InStr(wantedIAReason, "begeht einen Angriff / Beschuss")) {
-				giveWanteds(wantedIA, "Angriff/Beschuss i.A. " . wantedContracter, 2)
-				SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Angriff/Beschuss eingetragen!")
+				if (giveWanteds(wantedIA, "Angriff/Beschuss i.A. " . wantedContracter, 2)) {
+					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Angriff/Beschuss eingetragen!")
+				}
 			} else if (InStr(wantedIAReason, "Materialien")) {
-				giveWanteds(wantedIA, "Besitz von Materialien i.A. " . wantedContracter, 2)
-				SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Besitz von Materialien eingetragen!")
+				if (giveWanteds(wantedIA, "Besitz von Materialien i.A. " . wantedContracter, 2)) {
+					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Besitz von Materialien eingetragen!")
+				}
 			} else if (InStr(wantedIAReason, "Drogen")) {
-				giveWanteds(wantedIA, "Besitz von Drogen i.A. " . wantedContracter, 2)
-				SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Besitz von Drogen eingetragen!")
+				if (giveWanteds(wantedIA, "Besitz von Drogen i.A. " . wantedContracter, 2)) {
+					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Besitz von Drogen eingetragen!")
+				}
 			}
 		}
 	}
@@ -12095,10 +12038,10 @@ MainTimer:
 		}
 	}
 	
-	if (getPlayerHealth() != healthOld) {
-		damage := healthOld - getPlayerHealth()
+	if ((getPlayerHealth() + getPlayerArmor()) != healthOld) {
+		damage := healthOld - (getPlayerHealth() + getPlayerArmor())
 
-		healthOld := getPlayerHealth()
+		healthOld := (getPlayerHealth() + getPlayerArmor())
 
 		if (damageInfo) {
 			if (damage > 5 && !isPaintball ) {
@@ -12397,7 +12340,7 @@ AutoFindTimer:
 		return
 	}
 	
-	Sleep, 200
+	Sleep, 250
 	
 	adrGTA2 := getModuleBaseAddress("gta_sa.exe", hGTA)
 	cText := readString(hGTA, adrGTA2 + 0x7AAD43, 512)
@@ -12406,8 +12349,9 @@ AutoFindTimer:
 		return
 	}
 	
-	if (getDistanceBetween(CoordsFromRedmarker()[1], CoordsFromRedmarker()[2], CoordsFromRedmarker()[3], 1163.2358, -1323.2552, 15.3945, 5)) {
-		SendClientMessage(prefix . getFullName(playerToFind) . " befindet sich im " . cred . "Krankenhaus" . cwhite . ".")
+	
+	if (getDistanceBetween(coordsFromRedmarker()[1], coordsFromRedmarker()[2], coordsFromRedmarker()[3], 1163.2358, -1323.2552, 15.3945, 5)) {
+		setChatLine(readChatLine(0), prefix . getFullName(playerToFind) . " befindet sich im " . cred . "Krankenhaus" . cwhite . ".")
 	}
 }
 return
@@ -13373,6 +13317,164 @@ sendPosition(chat, cMode := true) {
 		SendChat("/" . chat . " HQ: Ich befinde mich derzeit in der Paintball-Arena!")
 	} else {
 		SendChat("/" . chat . " HQ: Ich befinde mich derzeit in " . getLocation() . ", HP: " . getPlayerHealth() . "/" . getPlayerArmor())
+	}
+}
+
+useMegaphone(type) {
+	global
+	
+	if (admission && IsPlayerInRangeOfPoint(1535.7749, -1677.9380, 5.8906, 500.0)) {
+		SendClientMessage(prefix . "Du kannst während einer Einweisung das Megafon nicht verwenden.")
+		return
+	}
+	
+	if (type == 0) {
+		SendChat("/m << " . department . ", Radarkontrolle! " . driver_1 . ", halten Sie SOFORT an und fahren Sie rechts ran! >>")
+	} else if (type == 1) {
+		if (watermode) {
+			SendChat("/m << Küstenwache, bitte folgen Sie dem Boot >>")
+		} else if (getPlayerSkinID() == 285) {
+			SendChat("/m << S.W.A.T., bitte folgen Sie dem Einsatzfahrzeug >>")
+		} else if (airmode) {
+			SendChat("/m << C.A.S., bitte folgen Sie dem Helikopter! >>")
+		} else {
+			IniRead, department, settings.ini, settings, department, %A_Space%
+			SendChat("/m << " . department . ", bitte folgen Sie dem Einsatzfahrzeug >>")
+		}		
+	} else if (type == 2) {
+		if (watermode) {
+			SendChat("/m << Küstenwache, Wasserverkehrskontrolle. Halten Sie bitte an >>")
+		} else if (getPlayerSkinID() == 285) {
+			SendChat("/m << S.W.A.T., Allgemeine Kontrolle, bitte halten Sie SOFORT an! >>")
+		} else if (airmode) {
+			SendChat("/m << C.A.S., Luftverkehrskontrolle. Landen Sie umgehend! >>")
+		} else {
+			IniRead, department, settings.ini, settings, department, %A_Space%
+			SendChat("/m << " . department . ", Allgemeine Kontrolle, bitte halten Sie an! >>")
+		}
+	} else if (type == 3) {
+		if (watermode) {
+			SendChat("/m << Küstenwache, stoppen Sie SOFORT Ihr Boot! >>")
+		} else if (getPlayerSkinID() == 285) {
+			SendChat("/m << S.W.A.T., halten Sie SOFORT an! >>")
+		} else if (airmode) {
+			SendChat("/m << C.A.S., landen Sie SOFORT! >>")
+		} else {
+			IniRead, department, settings.ini, settings, department, %A_Space%
+			SendChat("/m << " . department . ", bleiben Sie SOFORT stehen >>")
+		}
+		
+		SendChat("/m << Letzte Mahnung, sollten Sie verweigern, wenden wir härte Maßnahmen an! >>")
+
+		SetTimer, ShotAllowedCar, 30000
+		SetTimer, ShotAllowedBike, 5000
+		SetTimer, TazerAllowed, 5000
+	} else if (type == 4) {
+		playerToFindName := getFullName(playerToFind)
+	
+		if (playerToFindName == "" || playerToFind == "") {
+			SendClientMessage(prefix . "Fehler: Du suchst aktuell niemanden.")
+		} else {
+			IniRead, department, settings.ini, settings, department, %A_Space%
+			SendChat("/m << " . playerToFindName . ", bleiben Sie SOFORT stehen! >>")
+			SendChat("/m << Letzte Mahnung, sollten Sie verweigern, wenden wir härte Maßnahmen an! >>")
+		
+			SetTimer, ShotAllowedCar, 30000
+			SetTimer, ShotAllowedBike, 5000
+			SetTimer, TazerAllowed, 5000
+		}		
+	} else if (type == 5) {
+		if (watermode) {
+			dept := "Küstenwache"
+		} else if (getPlayerSkinID() == 285) {
+			dept := "S.W.A.T."
+		} else if (airmode) {
+			dept := "C.A.S."
+		} else {
+			IniRead, department, settings.ini, settings, department, %A_Space%
+			dept := department
+		}
+		
+		SendChat("/m << " . dept . ", steigen Sie mit erhobenen Händen aus Ihrem Fahrzeug! >>")
+	} else if (type == 6) {
+		if (watermode) {
+			SendChat("/m << Küstenwache, fahren Sie umgehend zur Seite! >>")
+		} else if (getPlayerSkinID() == 285) {
+			SendChat("/m >> S.W.A.T., räumen Sie SOFORT die Straße! >>")
+		} else if (airmode) {
+			SendChat("/m << C.A.S., räumen Sie umgehend den Luftraum! >>")
+		} else {
+			IniRead, department, settings.ini, settings, department, %A_Space%
+			SendChat("/m << " . department . ", räumen Sie umgehend die Straße! >>")
+		}
+	} else if (type == 7) {
+		if (getPlayerSkinID() == 285) {
+			SendChat("/m << S.W.A.T., SOFORT die Waffen niederlegen, ansonsten gebrauchen wir Gewalt! >>")
+		} else {
+			IniRead, department, settings.ini, settings, department, %A_Space%
+			SendChat("/m << Hier spricht das " . department . ", SOFORT die Waffen niederlegen, ansonsten gebrauchen wir Gewalt! >>")
+		}
+	} else if (type == 8) {
+		if (watermode) {
+			dept := "Küstenwache"
+		} else if (getPlayerSkinID() == 285) {
+			dept := "S.W.A.T."
+		} else if (airmode) {
+			dept := "C.A.S."
+		} else {
+			IniRead, department, settings.ini, settings, department, %A_Space%
+			dept := department
+		}
+		
+		if (!getPlayerInteriorId()) {
+			SendChat("/m << " . dept . ", verlassen Sie SOFORT dieses Gelände! >>")
+		} else {
+			SendChat("/m << " . dept . ", verlassen Sie SOFORT dieses Gebäude! >>")
+		}
+	} else if (type == 9) {
+		if (watermode) {
+			dept := "Küstenwache"
+		} else if (getPlayerSkinID() == 285) {
+			dept := "S.W.A.T."
+		} else if (airmode) {
+			dept := "C.A.S."
+		} else {
+			IniRead, department, settings.ini, settings, department, %A_Space%
+			dept := department
+		}
+		
+		SendChat("/m << " . dept . ", unterlassen Sie SOFORT diese Verfolgung! >>")		
+	} else if (type == 10) {
+		if (watermode) {
+			dept := "Küstenwache"
+		} else if (getPlayerSkinID() == 285) {
+			dept := "S.W.A.T."
+		} else if (airmode) {
+			dept := "C.A.S."
+		} else {
+			IniRead, department, settings.ini, settings, department, %A_Space%
+			dept := department
+		}
+			
+		SendChat("/m << " . dept . ", bitte halten Sie sich an die Straßenverkehrsordnung >>")
+	} else if (type == 11) {
+		IniRead, department, settings.ini, settings, department, %A_Space%
+		
+		if (getPlayerSkinID() == 285) {
+			SendChat("/m << S.W.A.T., dies ist eine Razzia! >>")
+		} else {
+			SendChat("/m << " . department . ", dies ist eine Razzia! >>")
+		}
+		
+		SendChat("/m << Nehmen Sie SOFORT die Hände hoch oder wir schießen! >>")
+	} else if (type == 12) {
+		IniRead, department, settings.ini, settings, department, %A_Space%
+
+		if (getPlayerSkinID() == 285) {
+			SendChat("/m << S.W.A.T., alle Personen bitte SOFORT weiterfahren! >>")
+		} else {
+			SendChat("/m << " . department . ", alle Personen bitte SOFORT weiterfahren! >>")
+		}		
 	}
 }
 
