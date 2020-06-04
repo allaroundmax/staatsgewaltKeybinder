@@ -570,7 +570,6 @@ Start:
 	global requestName			:= ""
 	global oldFrisk				:= ""
 	global oldLocal				:= ""
-	global tvName 				:= ""
 	
 	global fillTimeout_ 		:= true
 	global canisterTimeout_ 	:= true
@@ -2277,11 +2276,13 @@ handleChatMessage(message, index, arr) {
 				SetTimer, RequestTimer, 1
 			}
 			
-			if (InStr(message_2, "sucht") && InStr(message_2, "member") || InStr(message_2, "invite")) {
-				if (oldInviteAsk != message_1) {
-					oldInviteAsk := message_1
-					
-					SendChat("/l Nein.")
+			if (InStr(message_2, "sucht") && InStr(message_2, "member") || InStr(message_2, "invite") && !InStr(message_2, "uninvite")) {
+				if (!tv) {
+					if (oldInviteAsk != message_1) {
+						oldInviteAsk := message_1
+						
+						SendChat("/l Nein.")
+					}
 				}
 			}
 		}
@@ -2372,17 +2373,22 @@ handleChatMessage(message, index, arr) {
 			IniWrite, %pbkills%, stats.ini, stats, pbkills
 			
 			IniRead, pbkills, stats.ini, stats, pbkills, 0
-			IniRead, pbdeaths, stats.ini, stats, pbdeaths, 0			
+			IniRead, pbdeaths, stats.ini, stats, pbdeaths, 0		
+			IniRead, pbHighestKillStreak, stats.ini, stats.ini, pbHighestKillStreak, 0
 			
 			SendClientMessage(prefix . "Kills: " . csecond . formatNumber(pbkills) . cwhite . " | Tode: " . csecond . formatNumber(pbDeaths) . cwhite . " | K/D: " . csecond . round(pbkills/pbdeaths, 3))
 			
-			pbKillStreak := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=pbKillstreak&value=1")
+			pbKillStreak ++ := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=pbKillstreak&value=1")
+			
 			
 			if (pbKillStreak > pbHighestKillStreak) {
-				IniWrite, %pbKillStreak%, stats.ini, stats, Killstreak
+				pbHighestKillStreak := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=pbKillstreak&value=1")
+				IniWrite, %pbHighestKillStreak%, stats.ini, stats.ini, pbHighestKillStreak
 				
 				if (paintInfo) {
 					SendChat("/l Meine neue beste Killstreak: " . pbKillStreak)
+				} else {
+					SendClientMessage(prefix . "Neuer Killstreak-Rekord: " . csecond . pbHighestKillStreak)
 				}
 			} else {
 				if (paintInfo) {
@@ -2428,14 +2434,13 @@ handleChatMessage(message, index, arr) {
 			SendClientMessage(prefix . "Dein Gehaltscheck beläuft sich auf $" . csecond . formatNumber(money) . cwhite . ".")
 			IniWrite, 0, stats.ini, stats, paydayMoney
 		}
-	} else if (RegExMatch(message, "^ > " . getUsername() . " beobachtet (\S+)\.$", message_)) {
+	} else if (RegExMatch(message, "^> (\S+) beobachtet (\S+)\.$", message_)) {
 		if (!tv) {
 			tv := true
-			tvName := message_1
 		
 			SendClientMessage(prefix . "Beobachtungsmodus " . cgreen . "aktiviert" . cwhite . ".")
 		}
-	} else if (RegExMatch(message, "^ > " . getUsername() . " hat die Beobachtung beendet\.$")) {
+	} else if (RegExMatch(message, "^> (\S+) hat die Beobachtung beendet\.$")) {
 		if (tv) {
 			tv := false
 			
@@ -3232,7 +3237,6 @@ if (isInChat()) {
 	global requestName			:= ""
 	global oldFrisk				:= ""
 	global oldLocal				:= ""
-	global tvName 				:= ""
 	
 	global fillTimeout_ 		:= true
 	global canisterTimeout_ 	:= true
@@ -5725,6 +5729,25 @@ if (isInChat()) {
 }
 return
 
+:?:/pbenter::
+{
+	if (!isPlayerInAnyVehicle()) {
+		if (isPlayerInRangeOfPoint(901.2969, -1203.0950, 16.9832, 3)) {
+			if (getPlayerMoney() >= 2500) {
+				if (getPlayerArmor()) {
+					SendChat("/zivil")
+					Sleep, 200
+				}
+				
+				SendChat("/pbenter")
+			} else {
+				SendClientMessage(prefix . "Du benötigst mindestens 2.500$.")
+			}
+		}
+	}
+}
+return
+
 CountdownLabel:
 {
 	if (isBlocked() || tv) {
@@ -6474,7 +6497,7 @@ if (isInChat()) {
 }
 return
 
-:?:/test::
+:?:/label::
 if (isInChat()) {
 	SendInput, {Enter}
 }
@@ -6659,7 +6682,6 @@ return
 	global requestName			:= ""
 	global oldFrisk				:= ""
 	global oldLocal				:= ""
-	global tvName 				:= ""
 	
 	global fillTimeout_ 		:= true
 	global canisterTimeout_ 	:= true
@@ -12286,11 +12308,39 @@ MainTimer:
 			KeyWait, X, D, T10
 			
 			if (!ErrorLevel && !isBlocked()) {
-				timeout := false
+				fishTimeout_ := false
 				startFish()
 				fishTimeout := 0
 			} else {
 				fishTimeout_ := true
+			}
+		}
+	}
+	
+	if (!updateTextLabelData()) {
+		return
+	}
+	
+	found := false
+	
+	for i, o in oTextLabelData {
+		if (o.PLAYERID == 65535 && o.VEHICLEID == 65535) {
+			if (getDistanceBetween(o.XPOS, o.YPOS, o.ZPOS, getCoordinates()[1], getCoordinates()[2], getCoordinates()[3], 2.5)) {
+				if (RegExMatch(o.TEXT, "^Mülltonne\nVerwende \/search zum durchsuchen\.$", mull_)) {
+					if (garbageTimeout_) {
+						SendClientMessage(prefix . "Möchtest du die Mülltonne durchsuchen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
+						
+						KeyWait, X, D, T10
+						
+						if (!ErrorLevel && !isBlocked()) {
+							garbageTimeout_ := false
+							SendChat("/search")
+							garbageTimeout := 0
+						} else {
+							garbageTimeout_ := true
+						}
+					}
+				}
 			}
 		}
 	}
