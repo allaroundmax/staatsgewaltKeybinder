@@ -76,8 +76,17 @@ LoginGUI:
 	Gui, Add, Text, x12 y49 w100 h20 +BackgroundTrans, Benutzername
 	Gui, Add, Text, x12 y79 w100 h20 +BackgroundTrans, Passwort
 
-	Gui, Add, Edit, x112 y49 w180 h20 vusername,
-	Gui, Add, Edit, x112 y79 w180 h20 +Password vpassword,
+	if (username) {
+		Gui, Add, Edit, x112 y49 w180 h20 vusername, %username%
+	} else {
+		Gui, Add, Edit, x112 y49 w180 h20 vusername,
+	}
+	
+	if (password) {
+		Gui, Add, Edit, x112 y79 w180 h20 +Password vpassword, %password%
+	} else {
+		Gui, Add, Edit, x112 y79 w180 h20 +Password vpassword,
+	}
 	Gui, Add, Button, x442 y189 w100 h30 gdoLogin, Login
 	Gui, Show, w564 h236, Login
 }
@@ -505,6 +514,7 @@ Start:
 	global partners 			:= []
 	global grabList 			:= []
 	global arrestList 			:= []
+	global tickets	 			:= []
 	global wantedTickets 		:= []
 	global wantedPlayers 		:= []
 	global ticketPlayers 		:= []
@@ -644,6 +654,7 @@ Start:
 	Gui, Add, Button, x12 y169 w170 h30 gNewsGUI, News
 	Gui, Add, Button, x12 y209 w170 h30 gHelpGUI, Hilfen
 	Gui, Add, Button, x12 y249 w170 h30 gSupport, Fehler melden
+	Gui, Add, Button, x12 y379 w170 h30 gKeyControl, Keybinder CP
 	Gui, Add, Button, x12 y419 w170 h30 gRPGConnect, RPG - Connect
 	Gui, Add, Button, x12 y459 w170 h30 gTeamSpeak, FBI/LSPD - TS Connect
 
@@ -2078,6 +2089,12 @@ NewsGuiClose:
 }
 return
 
+KeyControl:
+{
+	run, https://staatsgewalt.jameschans.de/
+}
+return
+
 RPGConnect:
 {
 	RegRead GTA_SA_EXE, HKEY_CURRENT_USER, Software\SAMP, gta_sa_exe
@@ -2162,7 +2179,7 @@ handleChatMessage(message, index, arr) {
 			money := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashMoney&value=" . numberFormat(msg_1))
 			iniWrite, %money%, Stats.ini, Mülltonnen, money
 			
-			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(money) . cwhite . "$ in Mülltonnen gefunden.")
+			SendClientMessage(prefix . "Du hast bereits $" . cSecond . formatNumber(money) . cwhite . " in Mülltonnen gefunden.")
 		} else if (RegExMatch(message_1, "^hast (\d+) Stunden (\S+)$", msg_)) {
 			if (RegExMatch(msg_2, "VIP")) {
 				vip := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashVIP&value=" . numberFormat(msg_1))
@@ -2343,7 +2360,7 @@ handleChatMessage(message, index, arr) {
 			
 			pbKillStreak := 0
 			
-			SendClientMessage(prefix . "Tode: " . csecond . FormatNumber(pbdeaths) . cwhite . " | Kills: " . csecond . FormatNumber(pbkills) . cwhite . " | K/D: " . csecond . round(pbkills/pbdeaths, 3))
+			SendClientMessage(prefix . "Tode: " . csecond . formatNumber(pbdeaths) . cwhite . " | Kills: " . csecond . formatNumber(pbkills) . cwhite . " | K/D: " . csecond . round(pbkills/pbdeaths, 3))
 			
 			if (pbKillStreak > 0 && paintInfo)  {
 				SendChat("/l Meine Killstreak war: " . pbKillStreak)
@@ -2357,7 +2374,7 @@ handleChatMessage(message, index, arr) {
 			IniRead, pbkills, stats.ini, stats, pbkills, 0
 			IniRead, pbdeaths, stats.ini, stats, pbdeaths, 0			
 			
-			SendClientMessage(prefix . "Kills: " . csecond . FormatNumber(pbkills) . cwhite . " | Tode: " . csecond . FormatNumber(pbDeaths) . cwhite . " | K/D: " . csecond . round(pbkills/pbdeaths, 3))
+			SendClientMessage(prefix . "Kills: " . csecond . formatNumber(pbkills) . cwhite . " | Tode: " . csecond . formatNumber(pbDeaths) . cwhite . " | K/D: " . csecond . round(pbkills/pbdeaths, 3))
 			
 			pbKillStreak := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=pbKillstreak&value=1")
 			
@@ -2408,7 +2425,7 @@ handleChatMessage(message, index, arr) {
 		if (IsPayday > 0) {		
 			Sleep, 100
 			
-			SendClientMessage(prefix . "Gehaltsscheck: " . csecond . FormatNumber(money) . "$")
+			SendClientMessage(prefix . "Dein Gehaltscheck beläuft sich auf $" . csecond . formatNumber(money) . cwhite . ".")
 		
 			paydayMoney := 0
 		}
@@ -2433,13 +2450,13 @@ handleChatMessage(message, index, arr) {
 		IniWrite, %DailyMats%, stats.ini, stats, %A_DD%_%A_MM%_%A_YYYY%_Mats
 		
 		if (DailyMats < 3000) {
-			SendClientMessage(prefix . cgrey . "Materialverbrauch heute: " . FormatNumber(DailyMats))
+			SendClientMessage(prefix . cgrey . "Materialverbrauch heute: " . formatNumber(DailyMats))
 		} else if (DailyMats > 3000 && DailyMats < 5000) {
-			SendClientMessage(prefix . cyellow . "Materialverbrauch heute: " . FormatNumber(DailyMats))
+			SendClientMessage(prefix . cyellow . "Materialverbrauch heute: " . formatNumber(DailyMats))
 		} else if (DailyMats > 5000 && DailyMats < 10000) {
-			SendClientMessage(prefix . corange . "Materialverbrauch heute: " . FormatNumber(DailyMats))
+			SendClientMessage(prefix . corange . "Materialverbrauch heute: " . formatNumber(DailyMats))
 		} else if (DailyMats > 10000) {
-			SendClientMessage(prefix . cred . "Materialverbrauch heute: " . FormatNumber(DailyMats))
+			SendClientMessage(prefix . cred . "Materialverbrauch heute: " . formatNumber(DailyMats))
 		}
 		
 		hasEquip := 1
@@ -2448,7 +2465,7 @@ handleChatMessage(message, index, arr) {
 			roadblocks := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=roadblock&value=1")
 			IniWrite, %roadblocks%, stats.ini, Allgemein, Roadblocks
 			
-			SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(roadblocks) . cwhite . " Straßensperren aufgebaut.")
+			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(roadblocks) . cwhite . " Straßensperren aufgebaut.")
 		}
 	} else if (RegExMatch(message, "^HQ: (.+) (\S+) hat (\S+) (\d+) (\S+) aus der Akte entfernt\.$", line0_)) {
 		if (line0_2 == getUserName()) {
@@ -2456,12 +2473,12 @@ handleChatMessage(message, index, arr) {
 				Pointsclear := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=pclear&value=" . numberFormat(line0_4))
 				IniWrite, %Pointsclear%, stats.ini, Vergaben, Pointsclear
 				
-				SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(Pointsclear) . cwhite . " Strafpunkte gelöscht.")
+				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Pointsclear) . cwhite . " Strafpunkte gelöscht.")
 			} else if (line0_5 == "Wanteds") {
 				Wantedsclear := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=wclear&value=" . numberFormat(line0_4))
 				IniWrite, %Wantedsclear%, stats.ini, Vergaben, Wantedsclear
 				
-				SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(Wantedsclear) . cwhite . " Wanteds gelöscht.")
+				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Wantedsclear) . cwhite . " Wanteds gelöscht.")
 			}
 		}
 	} else if (RegExMatch(message, "^\* Du hast (\S+) ein Ticket für (.*)\$ gegeben, Grund: (.+)$", line0_)) {
@@ -2469,35 +2486,65 @@ handleChatMessage(message, index, arr) {
 			wantedTicket := []
 			wantedTicket["name"] := line0_1
 			wantedTicket["wanteds"] := wanteds_1
-			
 			wantedTickets.Push(wantedTicket)
 		}
-		 
+		
 		Ticketrequests := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=tickets&value=1")
 		IniWrite, %Ticketrequests%, stats.ini, Tickets, Ticketrequests
 		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(Ticketrequests) . cwhite . " Tickets ausgestellt.")
+		Sleep, 100
+		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Ticketrequests) . cwhite . " Tickets ausgestellt.")
+		
+		ticket := []
+		ticket["name"] := line0_1
+		ticket["price"] := numberFormat(line0_2)
+		ticket["reason"] := line0_3
+		
+		for index, ticket in tickets {
+			if (line0_1 == ticket["name"] && ticket["reason"] == line0_3) {
+				return
+			}
+		}
+		
+		tickets.Push(ticket)		
 	} else if (RegExMatch(message, "^\* (\S+) hat dein Ticket in Höhe von (.*)\$ bezahlt\.$", line0_)) {
-		ticketMoney := line0_2
-		paydayMoney += numberFormat(ticketMoney)
-		
-		payPartnerMoney(numberFormat(ticketMoney), "ticket_money")
-
-		Tickets := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=tickets_accepted&value=1")
-		IniWrite, %Tickets%, stats.ini, Tickets, Tickets
-		
-		SendClientMessage(prefix . "Es wurden bereits " . csecond . FormatNumber(Tickets) . cwhite . " Tickets von dir angenommen.")
-		
-		for index, wantedTicket in wantedTickets {
-			if (line0_1 == wantedTicket["name"]) {
-				wantedTicketId := index
+		ticketID := -1
+		wantedTicketId := -1
+	
+		for index, ticket in tickets {
+			if (ticket["name"] == line0_1 && ticket["price"] == numberFormat(line0_2)) {
+				ticketID := index
 				
-				SendChat("/clear " . wantedTicket["name"] . " " . wantedTicket["wanteds"])
+				ticketResult := UrlDownloadToVar(baseURL . "api/ticketLog?username=" . username . "&password=" . password . "&ticketName=" . line0_1 . "&reason=" . ticket["reason"] . "&money=" . line0_2)
 				break
 			}
 		}
 		
-		wantedTicketId := -1
+		for index, wantedTicket in wantedTickets {
+			if (line0_1 == wantedTicket["name"]) {
+				wantedTicketId := index
+				SendChat("/clear " . wantedTicket["name"] . " " . wantedTicket["wanteds"])
+				break
+			}
+		}		
+		
+		Tickets := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=tickets_accepted&value=1")
+		IniWrite, %Tickets%, stats.ini, Tickets, Tickets
+		
+		ticketMoney := line0_2
+		paydayMoney += numberFormat(ticketMoney)		
+		
+		Sleep, 100
+		SendClientMessage(prefix . "Es wurden bereits " . csecond . formatNumber(Tickets) . cwhite . " Tickets von dir angenommen.")
+
+		Sleep, 100
+		payPartnerMoney(numberFormat(ticketMoney), "ticket_money")		
+		
+		ticketID := -1
+		
+		if (ticketID != -1) {
+			tickets.RemoveAt(ticketID)
+		}
 		
 		if (wantedTicketId != -1) {
 			wantedTickets.RemoveAt(wantedTicketId)
@@ -2507,20 +2554,26 @@ handleChatMessage(message, index, arr) {
 			fstakes := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=fstakes&value=1")
 			IniWrite, %fstakes%, stats.ini, Scheine, Flugschein
 			
+			Sleep, 100
 			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(fstakes) . cwhite . " Flugscheine entzogen.")
-			SendClientMessage(prefix . "Der Schaden durch Flugscheine beläuft sich auf " . csecond . formatNumber(fstakes * 12000) . "$")
+			Sleep, 100
+			SendClientMessage(prefix . "Der Schaden durch Flugscheine beläuft sich auf $" . csecond . formatNumber(fstakes * 12000) . cwhite . ".")
 		} else if (message_2 == "Bootschein") {
 			Bootschein := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=bstakes&value=1")
 			IniWrite, %Bootschein%, stats.ini, Scheine, Bootschein
 			
+			Sleep, 100
 			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Bootschein) . cwhite . " Bootscheine entzogen.")
-			SendClientMessage(prefix . "Der Schaden durch Bootscheine beläuft sich auf " . csecond . formatNumber(Bootschein * 6000) . "$")
+			Sleep, 100
+			SendClientMessage(prefix . "Der Schaden durch Bootscheine beläuft sich auf $" . csecond . formatNumber(Bootschein * 6000) . cwhite . ".")
 		} else if (message_2 == "Waffenschein") {
 			Waffenschein := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=wstakes&value=1")
 			IniWrite, %Waffenschein%, stats.ini, Scheine,  Waffenschein
 			
+			Sleep, 100
 			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Waffenschein) . cwhite . " Waffenscheine entzogen.")
-			SendClientMessage(prefix . "Der Schaden durch Waffenscheine beläuft sich auf " . csecond . formatNumber(Waffenschein * 36000) . "$")
+			Sleep, 100
+			SendClientMessage(prefix . "Der Schaden durch Waffenscheine beläuft sich auf $" . csecond . formatNumber(Waffenschein * 36000) . cwhite . ".")
 		}
 	} else if (RegExMatch(message, "^\* (\S+) nimmt Geld aus seiner Tasche und gibt es " . getUsername() . "\.$", line0_)) {
 		if (RegExMatch(arr[index - 1], "^Du hast (.*)\$ von (\S+)\((\d+)\) erhalten\.$", line1_)) {
@@ -2529,7 +2582,7 @@ handleChatMessage(message, index, arr) {
 			if (getDistanceToPoint(playerCoords[1], playerCoords[2], playerCoords[3], 1564.5, -1694.5, 6.5) < 20) {
 			} else if (getDistanceToPoint(playerCoords[1], playerCoords[2], playerCoords[3], -1589.5, 716, -4.5) < 20) {
 			} else if (getDistanceToPoint(playerCoords[1], playerCoords[2], playerCoords[3], 2281.5, 2431, 4) < 20) {
-			} else if (getDistanceToPoint(playerCoords[1], playerCoords[2], playerCoords[3], 2341.6, -2028.5, 13) < 20) {
+			} else if (getDistanceToPoint(playerCoords[1], playerCoords[2], playerCoords[3], 2341.6, -2028.5, 13) < 25) {
 			} else {
 				return
 			}
@@ -2551,8 +2604,10 @@ handleChatMessage(message, index, arr) {
 				Arrests := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=arrests&value=1")
 				IniWrite, %arrests%, stats.ini, Verhaftungen, Arrests				
 				
-				SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(Arrests) . cwhite . " Verbrecher eingesperrt.")
-				SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(Money) . "$" . cwhite . " durch Verhaftungen verdient.")
+				Sleep, 100
+				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Arrests) . cwhite . " Verbrecher eingesperrt.")
+				Sleep, 100
+				SendClientMessage(prefix . "Du hast bereits $" . csecond . formatNumber(Money) . cwhite . " durch Verhaftungen verdient.")
 			}
 		}
 	} else if (RegExMatch(message, "^\* Du hast (\S+) seine (\d+)g Drogen weggenommen\.$", line0_)) {
@@ -2565,7 +2620,7 @@ handleChatMessage(message, index, arr) {
 		drugs:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=drugs&value=" . numberFormat(line0_2))
 		IniWrite, %drugs%, stats.ini, Kontrollen, Drugs
 		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(drugs) . "g" . cwhite . " Drogen weggenommen.")
+		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(drugs) . "g" . cwhite . " Drogen weggenommen.")
 	} else if (RegExMatch(message, "^\* Du hast (\S+) seine (\d+) Samen weggenommen\.$", line0_)) {
 		for index, value in checkingPlayers {
 			if (line0_1 == value) {
@@ -2577,7 +2632,7 @@ handleChatMessage(message, index, arr) {
 		Seeds += numberFormat(line0_2)
 		IniWrite, %seeds%, stats.ini, Kontrollen, Seeds
 		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(seeds) . cwhite . " Samen weggenommen.")
+		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(seeds) . cwhite . " Samen weggenommen.")
 	} else if (RegExMatch(message, "^\* Du hast (\S+) seine (.*) Materialien weggenommen\.$", line0_)) {
 		for index, value in checkingPlayers {
 			if (line0_1 == value) {
@@ -2588,7 +2643,7 @@ handleChatMessage(message, index, arr) {
 		Mats:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=mats&value=" . numberFormat(line0_2))
 		IniWrite, %Mats%, stats.ini, Kontrollen, Mats
 		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(Mats) . cwhite . " Materialien weggenommen.")
+		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Mats) . cwhite . " Materialien weggenommen.")
 	} else if (RegExMatch(message, "^\* Du hast (\S+) seine (\d+) Materialpakete weggenommen\.$", line0_)) {
 		for index, value in checkingPlayers {
 			if (line0_1 == value) {
@@ -2599,7 +2654,7 @@ handleChatMessage(message, index, arr) {
 		Matpackets := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=matpackets&value=" . numberFormat(line0_2))
 		IniWrite, %Matpackets%, stats.ini, Kontrollen, Matpackets
 		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(Matpackets) . cwhite . " Materialpakete weggenommen.")
+		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Matpackets) . cwhite . " Materialpakete weggenommen.")
 	} else if (RegExMatch(message, "^\* Du hast (\S+) seine (\d+) Haftbomben weggenommen\.$", line0_)) {
 		for index, value in checkingPlayers {
 			if (line0_1 == value) {
@@ -2610,18 +2665,18 @@ handleChatMessage(message, index, arr) {
 		Matbombds := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=matBombds&value=" . numberFormat(line0_2))
 		IniWrite, %Matbombs%, stats.ini, Kontrollen, Matbombs
 		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(Matbombs) . cwhite . " Haftbomben weggenommen.")
+		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Matbombs) . cwhite . " Haftbomben weggenommen.")
 	} else if (RegExMatch(message, "^Du hast (.*) (.+) aus dem Kofferraum konfisziert\.$", message_)) {
 		if (message_2 == "Materialien") {
 			Mats := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=mats&value=" . numberFormat(line0_1))
 			IniWrite, %Mats%, stats.ini, Kontrollen, Mats
 			
-			SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(Mats) . cwhite . " Materialien weggenommen.")
+			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Mats) . cwhite . " Materialien weggenommen.")
 		} else if (message_2 == "Gramm Drogen") {
 			drugs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=drugs&value=" . numberFormat(line0_1))
 			IniWrite, %drugs%, stats.ini, Kontrollen, Drugs
 		
-			SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(drugs) . "g " . cwhite . "Drogen weggenommen.")
+			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(drugs) . "g " . cwhite . "Drogen weggenommen.")
 		}
 	} else if (RegExMatch(message, "^\* (.*) schießt mit seinen Elektroschocker auf (\S+) und setzt ihn unter Strom\.$", message_)) {
 		if (RegExMatch(message, "^Agent (\d+)$", agent_)) {
@@ -2632,7 +2687,7 @@ handleChatMessage(message, index, arr) {
 			tazer:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=tazer&value=1")
 			IniWrite, %tazer%, stats.ini, Allgemein, Tazer
 		
-			SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(tazer) . cwhite . " Spieler getazert.")
+			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(tazer) . cwhite . " Spieler getazert.")
 			
 			for index, grabName in grabList {
 				if (grabName == message_2) {
@@ -2691,8 +2746,10 @@ handleChatMessage(message, index, arr) {
 			govfillprice += numberFormat(line0_2)
 			IniWrite, %govfillprice%, stats.ini, Allgemein, govfillprice
 			
-			SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(govfills) . cwhite . " Liter getankt.")
-			SendClientMessage(prefix . "Die Tankkosten belaufen sich auf " . csecond . formatNumber(govfillprice) . "$")		
+			Sleep, 100
+			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(govfills) . cwhite . " Liter getankt.")
+			Sleep, 100
+			SendClientMessage(prefix . "Die Tankkosten belaufen sich auf $" . csecond . formatNumber(govfillprice) . cwhite . ".")		
 		}
 	} else if (RegExMatch(message, "^HQ: (\S+) wurde getötet, Haftzeit: (\S+) Minuten, Geldstrafe: (.*)\$$", line0_)) {
 		if (RegExMatch(message, "^HQ: Alle Einheiten, (.*) (\S+) hat den Auftrag ausgeführt\.$", line1_)) {
@@ -2704,7 +2761,7 @@ handleChatMessage(message, index, arr) {
 				Crimekills := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=suspect_kills&value=1")
 				IniWrite, %Crimekills%, stats.ini, Verhaftungen, Crimekills
 				
-				SendClientMessage(prefix . "Dies war dein " . csecond . FormatNumber(Crimekills) . cwhite . " getöteter Verbrecher.")
+				SendClientMessage(prefix . "Dies war dein " . csecond . formatNumber(Crimekills) . cwhite . " getöteter Verbrecher.")
 			}
 			
 			for index, grabName in grabList {
@@ -2748,7 +2805,7 @@ handleChatMessage(message, index, arr) {
 							arrests := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=arrests&value=1")
 							IniWrite, %arrests%, stats.ini, Verhaftungen, Arrests
 							
-							SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(arrests) . cwhite . " Verbrecher eingesperrt.")
+							SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(arrests) . cwhite . " Verbrecher eingesperrt.")
 							
 							SetTimer, PartnerMoneyTimer, 1
 						}
@@ -2758,7 +2815,7 @@ handleChatMessage(message, index, arr) {
 						deathArrests := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=darrests&value=1")
 						IniWrite, %deathArrests%, stats.ini, Verhaftungen, Deatharrests
 						
-						SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(deathArrests) . cwhite . " Verbrecher nach dem Tod eingesperrt.")
+						SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(deathArrests) . cwhite . " Verbrecher nach dem Tod eingesperrt.")
 						
 						SetTimer, PartnerMoneyTimer, 1
 					}
@@ -2769,7 +2826,7 @@ handleChatMessage(message, index, arr) {
 						deathPrison := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=dprison&value=1")
 						IniWrite, %deathPrison%, stats.ini, Verhaftungen, deathprison
 						
-						SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(deathPrison) . cwhite . " Verbrecher nach dem Tod ins Prison gesteckt.")
+						SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(deathPrison) . cwhite . " Verbrecher nach dem Tod ins Prison gesteckt.")
 					}
 				}
 			}
@@ -2795,7 +2852,7 @@ handleChatMessage(message, index, arr) {
 					offlinePrison := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=oprison&value=1")
 					IniWrite, %offlinePrison%, stats.ini, Verhaftungen, Offlineprison
 					
-					SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(offlinePrison) . cwhite . " Verbrecher offline ins Prison gesteckt.")
+					SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(offlinePrison) . cwhite . " Verbrecher offline ins Prison gesteckt.")
 				} else {
 					wanteds := line0_1 / 3
 					amoney := wanteds * 750
@@ -2819,7 +2876,7 @@ handleChatMessage(message, index, arr) {
 					offlineArrests := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=oarrests&value=1")
 					IniWrite, %offlineArrests%, stats.ini, Verhaftungen, offlinearrests
 					
-					SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(offlineArrests) . cwhite . " Verbrecher offline eingesperrt.")
+					SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(offlineArrests) . cwhite . " Verbrecher offline eingesperrt.")
 					
 					SetTimer, PartnerMoneyTimer, 1
 				}
@@ -2840,7 +2897,7 @@ handleChatMessage(message, index, arr) {
 		plants ++
 		IniWrite, %plants%, stats.ini, Marihuana, Plants
 		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(plants) . cwhite . " Marihuana-Pflanzen zerstört.")
+		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(plants) . cwhite . " Marihuana-Pflanzen zerstört.")
 		
 		adrGTA2 := getModuleBaseAddress("gta_sa.exe", hGTA)
 		cText := readString(hGTA, adrGTA2 + 0x7AAD43, 512)
@@ -2940,7 +2997,7 @@ handleChatMessage(message, index, arr) {
 			Radarcontrols := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=radarcontrols&value=1")
 			IniWrite, %Radarcontrols%, stats.ini, Kontrollen, Radarcontrols
 			
-			SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(Radarcontrols) . cwhite . " Fahrzeuge geblitzt.")
+			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Radarcontrols) . cwhite . " Fahrzeuge geblitzt.")
 			
 			if (kmh == 0) {
 				kmh := 80
@@ -4060,7 +4117,7 @@ return
 		Wanteds += givedRewanted
 		IniWrite, %wanteds%, stats.ini, Vergaben, Wanteds
 		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(wanteds) . " {FFFFFF}Wanteds vergeben.")	
+		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(wanteds) . " {FFFFFF}Wanteds vergeben.")	
 	}
 }
 return
@@ -4846,7 +4903,7 @@ if (isInChat()) {
 			trunkControls := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trunkControls&value=1")
 			IniWrite, %trunkcontrols%, stats.ini, Kontrollen, Trunkcontrols
 			
-			SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(trunkcontrols) . " {FFFFFF}Kofferäume durchsucht.")
+			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(trunkcontrols) . " {FFFFFF}Kofferäume durchsucht.")
 			
 			Sleep, 200
 			
@@ -5460,7 +5517,7 @@ autoAcceptEmergencyLabel:
 					IniWrite, %services%, stats.ini, Übernahmen, Services
 					
 					Sleep, 100
-					SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(services) . cwhite . " Notrufe übernommen.")
+					SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(services) . cwhite . " Notrufe übernommen.")
 					break
 				}
 			} else if (acceptedByPlayer == 1) {
@@ -5488,7 +5545,7 @@ autoAcceptEmergencyLabel:
 				SendChat("/d HQ: Übernehme Ladenüberfall von " . emergency3 . "(" . getPlayerIdByName(emergency3) . ") - GK: " . emergency1 . " (" . emergency2 . ")")
 				
 				Sleep, 100
-				SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(storerobs) . cwhite . " Raubüberfälle übernommen.")
+				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(storerobs) . cwhite . " Raubüberfälle übernommen.")
 				
 				gk(emergency1, emergency2, true)				
 			}
@@ -6304,8 +6361,8 @@ if (isInChat()) {
 	IniRead, DKills, Stats.ini, Stats, Dkills[%A_DD%:%A_MM%:%A_YYYY%], 0
 	IniRead, DDeaths, Stats.ini, Stats, DDeaths[%A_DD%:%A_MM%:%A_YYYY%], 0
 
-	SendClientMessage(Prefix . "Kills: " . cSecond . FormatNumber(Kills) . cwhite . " Tode: " . cSecond . FormatNumber(Deaths) . cwhite . " K/D-Rate: " . cSecond . Round(Kills / Deaths, 3))
-	SendClientMessage(Prefix . "{FF8200}Tagesstatistik:" . cwhite . " Kills: " . cSecond . FormatNumber(DKills) . cwhite . " Tode: " . cSecond . FormatNumber(DDeaths) . cwhite . " K/D-Rate: " . cSecond . Round(DKills / DDeaths, 3))
+	SendClientMessage(Prefix . "Kills: " . cSecond . formatNumber(Kills) . cwhite . " Tode: " . cSecond . formatNumber(Deaths) . cwhite . " K/D-Rate: " . cSecond . Round(Kills / Deaths, 3))
+	SendClientMessage(Prefix . "{FF8200}Tagesstatistik:" . cwhite . " Kills: " . cSecond . formatNumber(DKills) . cwhite . " Tode: " . cSecond . formatNumber(DDeaths) . cwhite . " K/D-Rate: " . cSecond . Round(DKills / DDeaths, 3))
 }
 return
 
@@ -6319,8 +6376,8 @@ if (isInChat()) {
 	IniRead, DKills, Stats.ini, Stats, Dkills[%A_DD%:%A_MM%:%A_YYYY%], 0
 	IniRead, DDeaths, Stats.ini, Stats, DDeaths[%A_DD%:%A_MM%:%A_YYYY%], 0
 
-	SendChat("/f Kills: " . FormatNumber(Kills) . " Tode: " . FormatNumber(Deaths) . " K/D-Rate: " . Round(Kills / Deaths, 3))
-	SendChat("/f Tagesstatistik: Kills: " . cSecond . FormatNumber(DKills)  . " Tode: " . FormatNumber(DDeaths) . " K/D-Rate: " . Round(DKills / DDeaths, 3))
+	SendChat("/f Kills: " . formatNumber(Kills) . " Tode: " . formatNumber(Deaths) . " K/D-Rate: " . Round(Kills / Deaths, 3))
+	SendChat("/f Tagesstatistik: Kills: " . cSecond . formatNumber(DKills)  . " Tode: " . formatNumber(DDeaths) . " K/D-Rate: " . Round(DKills / DDeaths, 3))
 }
 return
 
@@ -6334,8 +6391,8 @@ if (isInChat()) {
 	IniRead, DKills, Stats.ini, Stats, Dkills[%A_DD%:%A_MM%:%A_YYYY%], 0
 	IniRead, DDeaths, Stats.ini, Stats, DDeaths[%A_DD%:%A_MM%:%A_YYYY%], 0
 
-	SendChat("/d HQ: Kills: " . FormatNumber(Kills) . " Tode: " . FormatNumber(Deaths) . " K/D-Rate: " . Round(Kills / Deaths, 3))
-	SendChat("/d HQ: Tagesstatistik: Kills: " . cSecond . FormatNumber(DKills)  . " Tode: " . FormatNumber(DDeaths) . " K/D-Rate: " . Round(DKills / DDeaths, 3))
+	SendChat("/d HQ: Kills: " . formatNumber(Kills) . " Tode: " . formatNumber(Deaths) . " K/D-Rate: " . Round(Kills / Deaths, 3))
+	SendChat("/d HQ: Tagesstatistik: Kills: " . cSecond . formatNumber(DKills)  . " Tode: " . formatNumber(DDeaths) . " K/D-Rate: " . Round(DKills / DDeaths, 3))
 }
 return
 
@@ -6436,7 +6493,7 @@ if (isInChat()) {
 	}	
 
 	for i, o in oTextLabelData {
-		if (o.PLAYERID != 65535 && o.VEHICLEID == 65535) {	
+		if (o.PLAYERID == 65535 && o.VEHICLEID == 65535) {	
 			SendClientMessage(o.TEXT)
 		}
 	}
@@ -7254,7 +7311,7 @@ if (isInChat()) {
 		Sleep, 500
 	}	
 	
-	SendClientMessage(prefix . "Geld am nächsten Payday: " . csecond . FormatNumber(paydayMoney) . cwhite . "$ (Brutto) " . csecond . FormatNumber(Round(paydayMoney * taxes)) . cwhite . "$ (Netto)")
+	SendClientMessage(prefix . "Geld am nächsten Payday: $" . csecond . formatNumber(paydayMoney) . cwhite . " (Brutto) $" . csecond . formatNumber(Round(paydayMoney * taxes)) . cwhite . " (Netto)")
 	
 	paydayMoney := 0
 	
@@ -7674,7 +7731,7 @@ return
 				Sleep, 750
 			}
 			
-			SendChat("/l Sollten Sie dieses Ticket ($" . FormatNumber(wantedCount * 750) . ") nicht zahlen können, werden wir Sie leider verhaften müssen.")
+			SendChat("/l Sollten Sie dieses Ticket ($" . formatNumber(wantedCount * 750) . ") nicht zahlen können, werden wir Sie leider verhaften müssen.")
 			
 			if (!admin) {
 				Sleep, 750
@@ -8277,12 +8334,12 @@ if (isInChat()) {
 		Fishmoney:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=fish_money&value=" . numberFormat(sellFishMoney))
 		IniWrite, %Fishmoney%, stats.ini, Allgemein, Fishmoney
 		
-		SendClientMessage(prefix . "Du hast für deine Fische $" . csecond . FormatNumber(sellFishMoney) . cwhite . " erhalten.")
-		SendClientMessage(prefix . "Gesamt hast du bereits $" . csecond . FormatNumber(Fishmoney) . cwhite . " durch Fische verdient.")
+		SendClientMessage(prefix . "Du hast für deine Fische $" . csecond . formatNumber(sellFishMoney) . cwhite . " erhalten.")
+		SendClientMessage(prefix . "Gesamt hast du bereits $" . csecond . formatNumber(Fishmoney) . cwhite . " durch Fische verdient.")
 	} else {
 		IniRead, Fishmoney, stats.ini, Allgemein, Fishmoney, 0
 		
-		SendClientMessage(prefix . "Du kannst deine Fische hier nicht verkaufen! (Gesamter Verdienst: " . csecond . FormatNumber(Fishmoney) . cwhite . "$)")
+		SendClientMessage(prefix . "Du kannst deine Fische hier nicht verkaufen! (Gesamter Verdienst: $" . csecond . formatNumber(Fishmoney) . cwhite . ")")
 	}
 }
 return
@@ -8744,7 +8801,7 @@ if (isInChat()) {
 			SendClientMessage(prefix . "Du bist noch " . csecond . time . cwhite . " im Prison.")
 		} else {
 			writeString(hGTA, adrGTA2 + 0x7AAD43, cText_1 . "Noch " . time . " im Knast")
-			SendClientMessage(prefix . "Du bist noch " . csecond . time . cwhite . " im Knast, die Kaution beträgt " . csecond . formatNumber(Floor(cText_2 / 60) * 500) . cwhite . "$.")
+			SendClientMessage(prefix . "Du bist noch " . csecond . time . cwhite . " im Knast.")
 		}
 	}
 }
@@ -9311,7 +9368,7 @@ return
 	
 	if (seconds != "") {
 		minutes := Floor(seconds / 60)
-		SendClientMessage(prefix . csecond . formatNumber(seconds) . cwhite . " Sekunden sind " . csecond . FormatNumber(minutes) . cwhite . " Minuten.")
+		SendClientMessage(prefix . csecond . formatNumber(seconds) . cwhite . " Sekunden sind " . csecond . formatNumber(minutes) . cwhite . " Minuten.")
 	}
 }
 return
@@ -10839,36 +10896,36 @@ return
 	}
 	
 	if (tmp_chat == "acm") {
-		SendClientMessage(prefix . "Informationen zum Level: " . csecond . FormatNumber(tmp_lvl) . cwhite . ".")
+		SendClientMessage(prefix . "Informationen zum Level: " . csecond . formatNumber(tmp_lvl) . cwhite . ".")
 	} else {
-		SendChat("/" . tmp_chat . " Informationen zum Level " . FormatNumber(tmp_lvl) . ".")
+		SendChat("/" . tmp_chat . " Informationen zum Level " . formatNumber(tmp_lvl) . ".")
 	}
 	
 	if (!admin && tmp_chat != "acm")
 		sleep, 400
 	
 	if (tmp_chat == "acm") {	
-		SendClientMessage(prefix . "Spielstunden mit Premium: " . csecond . FormatNumber(round(tmp / 2, 0)) . cwhite . ".")
+		SendClientMessage(prefix . "Spielstunden mit Premium: " . csecond . formatNumber(round(tmp / 2, 0)) . cwhite . ".")
 	} else {
-		SendChat("/" . tmp_chat . " Spielstunden mit Premium: " . FormatNumber(Round(tmp / 2, 0)) . ".")
+		SendChat("/" . tmp_chat . " Spielstunden mit Premium: " . formatNumber(Round(tmp / 2, 0)) . ".")
 	}
 	
 	if (!admin && tmp_chat != "acm")
 		sleep, 400
 	
 	if (tmp_chat == "acm") {	
-		SendClientMessage(prefix . "Spielstunden ohne Premium: " . csecond . FormatNumber(tmp) . cwhite . ".")
+		SendClientMessage(prefix . "Spielstunden ohne Premium: " . csecond . formatNumber(tmp) . cwhite . ".")
 	} else {
-		SendChat("/" . tmp_chat . " Spielstunden ohne Premium: " . FormatNumber(tmp) . ".")
+		SendChat("/" . tmp_chat . " Spielstunden ohne Premium: " . formatNumber(tmp) . ".")
 	}
 	
 	if (!admin && tmp_chat != "acm")
 		sleep, 400
 	
 	if (tmp_chat == "acm") {	
-		SendClientMessage(prefix . "Benötigte Respektpunkte zum nächsten Level: " . csecond . FormatNumber(8 + (tmp_level - 1) * 4) . cwhite . ".")
+		SendClientMessage(prefix . "Benötigte Respektpunkte zum nächsten Level: " . csecond . formatNumber(8 + (tmp_level - 1) * 4) . cwhite . ".")
 	} else {
-		SendChat("/" . tmp_chat . " Benötigte Respektpunkte zum nächsten Level: " . FormatNumber(8 + (tmp_lvl - 1) * 4) . ".")
+		SendChat("/" . tmp_chat . " Benötigte Respektpunkte zum nächsten Level: " . formatNumber(8 + (tmp_lvl - 1) * 4) . ".")
 	}
 	
 	if (admin && tmp_chat != "acm") {
@@ -11944,7 +12001,7 @@ MainTimer:
 				IniWrite, %Deaths%, Stats.ini, Stats, Deaths
 				IniWrite, %DDeaths%, Stats.ini, Stats, DDeaths[%A_DD%:%A_MM%:%A_YYYY%]
 				
-				SendClientMessage(Prefix . "Das war dein Tot Nr. " . cSecond . FormatNumber(Deaths) . cwhite . ".")
+				SendClientMessage(Prefix . "Das war dein Tot Nr. " . cSecond . formatNumber(Deaths) . cwhite . ".")
 				SendClientMessage(Prefix . "{FF8200}Tagesstatistik" . cwhite . " Tode: " . cSecond . DDeaths . cwhite . " Kills: " . cSecond . DKills . cwhite . " Tages-KD: " . cSecond . Round(DKills / DDeaths, 3))
 				
 				if (Streak > 0) {
@@ -12023,7 +12080,7 @@ MainTimer:
 				
 				SLeep, 200
 
-				SendClientMessage(Prefix . "Das war dein Kill Nr. " . cSecond . FormatNumber(Kills) . cwhite . ".")
+				SendClientMessage(Prefix . "Das war dein Kill Nr. " . cSecond . formatNumber(Kills) . cwhite . ".")
 				SendClientMessage(Prefix . "{FF8200}Tagesstatistik" . cwhite . " Kills: " . cSecond . DKills . cwhite . " Tode: " . cSecond . DDeaths . cwhite . " Tages-KD: " . cSecond . Round(DKills / DDeaths, 3))
 				
 				IniRead, Killstreak, Stats.ini, Stats, Killstreak, 0
@@ -12794,7 +12851,7 @@ sendLine(line, local := false) {
 	line := StrReplace(line, "[location]", getLocation())
 	line := StrReplace(line, "[hp]", getPlayerHealth())
 	line := StrReplace(line, "[armour]", getPlayerArmor())
-	line := StrReplace(line, "[money]", FormatNumber(getPlayerMoney()))
+	line := StrReplace(line, "[money]", formatNumber(getPlayerMoney()))
 	line := StrReplace(line, "[skin]", getPlayerSkinId())
 	line := StrReplace(line, "[weaponid]", getPlayerWeaponId())
 	line := StrReplace(line, "[weapon]", getPlayerWeaponName())
@@ -12923,7 +12980,7 @@ giveWanteds(suspect, reason, amount) {
 		wanteds := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=wanteds&value=" . numberFormat(amount))
 		IniWrite, %wanteds%, stats.ini, Vergaben, Wanteds
 		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(wanteds) . cwhite . " Wanteds vergeben.")
+		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(wanteds) . cwhite . " Wanteds vergeben.")
 		return true
 	}
 	
@@ -13026,13 +13083,13 @@ payPartnerMoney(money, stat) {
 	
 	if (stat == "arrest_money") {
 		IniWrite, %statMoney%, stats.ini, Verhaftungen, Money
-		SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(statMoney) . "$" . cwhite . " durch Verhaftungen verdient.")
+		SendClientMessage(prefix . "Du hast bereits $" . csecond . formatNumber(statMoney) . cwhite . " durch Verhaftungen verdient.")
 	} else if (stat == "ticket_money") {
 		IniWrite, %statMoney%, stats.ini, Tickets, Money
-		SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(statMoney) . "$" . cwhite . " durch Tickets verdient.")
+		SendClientMessage(prefix . "Du hast bereits $" . csecond . formatNumber(statMoney) . cwhite . " durch Tickets verdient.")
 	} else if (stat == "plants_money") {
 		IniWrite, %statMoney%, stats.ini, Marihuana, Money
-		SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(statMoney) . "$" . cwhite . " durch Marihuana-Pflanzen verdient.")
+		SendClientMessage(prefix . "Du hast bereits $" . csecond . formatNumber(statMoney) . cwhite . " durch Marihuana-Pflanzen verdient.")
 	}	
 	
 	for index, value in partners {
@@ -13078,7 +13135,7 @@ startFish() {
 					fishValue := fishing_2
 				}
 				
-				SendClientMessage(prefix . csecond . fishNumber . ": {FFFFFF}" . fishing_1 . " LBS: " . csecond . fishing_2 . cwhite . " | Preis: " . csecond . FormatNumber(currentFishMoney) . cwhite . "$ | HP: " . csecond . currentFishHealth)
+				SendClientMessage(prefix . csecond . fishNumber . cwhite . ": " . fishing_1 . " LBS: " . csecond . fishing_2 . cwhite . " | Preis: $" . csecond . formatNumber(currentFishMoney) . cwhite . " | HP: " . csecond . currentFishHealth)
 				
 				aFishMoney += numberFormat(currentFishMoney)
 				aFishHP += fishing_2
@@ -13106,9 +13163,9 @@ startFish() {
 				Sleep, 200
 				
 				if (fishMode)  {
-					SendClientMessage(prefix . cscond . cheapestFishName . ": {FFFFFF}" . cheapestFish . cwhite . " im Wert von " . csecond . FormatNumber(cheapestFishValue) . cwhite . "$ weggeworfen")
+					SendClientMessage(prefix . cscond . cheapestFishName . ": {FFFFFF}" . cheapestFish . cwhite . " im Wert von $" . csecond . formatNumber(cheapestFishValue) . cwhite . " weggeworfen")
 				} else {
-					SendClientMessage(prefix . cscond . cheapestFishName . ": {FFFFFF}" . cheapestFish . cwhite . " mit " . csecond . FormatNumber(cheapestFishValue) . cwhite . " LBS weggeworfen")
+					SendClientMessage(prefix . cscond . cheapestFishName . ": {FFFFFF}" . cheapestFish . cwhite . " mit " . csecond . formatNumber(cheapestFishValue) . cwhite . " LBS weggeworfen")
 				}
 				
 				thrownAway := true
@@ -13219,7 +13276,7 @@ check(name) {
 				if (drugsFound) {
 					drugs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=drugs&value=" . numberFormat(drugsFound))
 					IniWrite, %drugs%, stats.ini, Kontrollen, Drugs
-					SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(drugs) . "g " . cwhite . "Drogen weggenommen.")
+					SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(drugs) . "g " . cwhite . "Drogen weggenommen.")
 				}
 			} else {
 				SendClientMessage(prefix . "Der Spieler hat unter 10g, biete ihn mit " . csecond . "/tdd" . cwhite . " ein Ticket an.")
@@ -13229,7 +13286,7 @@ check(name) {
 				IniRead, seeds, stats.ini, Kontrollen, seeds, 0
 				seeds += seedsFound		
 				IniWrite, %seeds%, stats.ini, Kontrollen, Seeds
-				SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(seeds) . cwhite . " Samen weggenommen.")
+				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(seeds) . cwhite . " Samen weggenommen.")
 			}
 		}
 		
@@ -13243,19 +13300,19 @@ check(name) {
 			if (matsFound) {
 				mats:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=mats&value=" . numberFormat(matsFound))
 				IniWrite, %mats%, stats.ini, Kontrollen, Mats
-				SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(mats) . cwhite . " Materialien weggenommen.")
+				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(mats) . cwhite . " Materialien weggenommen.")
 			}	
 			
 			if (packetsFound) {
 				matpackets := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=matpackets&value=" . numberFormat(packetsFound))
 				IniWrite, %matpackets%, stats.ini, Kontrollen, Matpackets
-				SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(matpackets) . cwhite . " Materialpakete weggenommen.")
+				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(matpackets) . cwhite . " Materialpakete weggenommen.")
 			} 
 			
 			if (bombsFound) {
 				matbombs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=matBombs&value=1")
 				IniWrite, %matbombs%, stats.ini, Kontrollen, Matbombs
-				SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(matbombs) . cwhite . " Haftbomben weggenommen.")
+				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(matbombs) . cwhite . " Haftbomben weggenommen.")
 			}
 		}
 	}
@@ -13655,7 +13712,7 @@ checkFishes() {
 		hp := Floor(fish_3 / 3)
 		totalHP += hp
 		
-		message%A_Index% := prefix . "(" . fish_1 . ") " . fish_2 . " (" . fish_3 . " LBS) - " . csecond . fishValue . "$ {FFFFFF}- " . csecond . hp . " HP"
+		message%A_Index% := prefix . "(" . fish_1 . ") " . fish_2 . " (" . fish_3 . " LBS) - $" . csecond . fishValue . cwhite . " - " . csecond . hp . " HP"
 		
 		fishNumber -= 1
 	}
@@ -13668,8 +13725,8 @@ checkFishes() {
 		fishNumber -= 1
 	}
 	
-	SendClientMessage(prefix . "Du bekommst für die Fische " . csecond . FormatNumber(fishMoney) . "$")
-	SendClientMessage(prefix . "Du kannst mit den Fischen " . csecond . FormatNumber(totalHP) . cwhite . " HP generieren.")
+	SendClientMessage(prefix . "Du bekommst für die Fische $" . csecond . formatNumber(fishMoney) . cwhite . ".")
+	SendClientMessage(prefix . "Du kannst mit den Fischen " . csecond . formatNumber(totalHP) . cwhite . " HP generieren.")
 }
 
 checkCooked() {	
@@ -13713,7 +13770,7 @@ checkCooked() {
 		fishNumber -= 1
 	}
 	
-	SendClientMessage(prefix . "Du kannst mit den Fischen " . csecond . FormatNumber(totalHP) . cwhite . " HP generieren.")
+	SendClientMessage(prefix . "Du kannst mit den Fischen " . csecond . formatNumber(totalHP) . cwhite . " HP generieren.")
 	
 	return totalHP
 }
@@ -13735,7 +13792,7 @@ addLocalToStats() {
 				Restaurants := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=restaurants&value=1")
 				IniWrite, %Restaurants%, stats.ini, Übernahmen, Restaurants
 			
-				SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(Restaurants) . cwhite . " Restaurants übernommen.")
+				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Restaurants) . cwhite . " Restaurants übernommen.")
 				
 				oldLocalTime := 180
 				oldLocal := output1_1
@@ -13758,7 +13815,7 @@ addControlsToStats(frisk_name) {
 				controls := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=controls&value=1")
 				IniWrite, %controls%, stats.ini, Kontrollen, controls
 		
-				SendClientMessage(prefix . "Du hast bereits " . csecond . FormatNumber(controls) . cwhite . " Kontrollen durchgeführt.")
+				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(controls) . cwhite . " Kontrollen durchgeführt.")
 
 				oldFriskTime := 180 
 				oldFrisk := frisk_name
