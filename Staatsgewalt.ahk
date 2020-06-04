@@ -2426,8 +2426,7 @@ handleChatMessage(message, index, arr) {
 			Sleep, 100
 			
 			SendClientMessage(prefix . "Dein Gehaltscheck beläuft sich auf $" . csecond . formatNumber(money) . cwhite . ".")
-		
-			paydayMoney := 0
+			IniWrite, 0, stats.ini, stats, paydayMoney
 		}
 	} else if (RegExMatch(message, "^ > " . getUsername() . " beobachtet (\S+)\.$", message_)) {
 		if (!tv) {
@@ -7261,6 +7260,7 @@ if (isInChat()) {
 	SendInput, {Enter}
 }
 {
+	IniRead, paydayMoney, stats.ini, stats, paydayMoney, 0
 	IniRead, taxes, settings.ini, settings, taxes, 1
 	
 	if (taxes == 1) {
@@ -7269,7 +7269,7 @@ if (isInChat()) {
 		Sleep, 500
 	}
 	
-	SendClientMessage(prefix . "Geld am nächsten Payday: $" . csecond . formatNumber(paydayMoney) . cwhite . " (Brutto) $" . csecond . formatNumber(Round(paydayMoney * taxes)) . cwhite . " (Netto)")
+	SendClientMessage(prefix . "Geld am nächsten Payday: $" . csecond . formatNumber(paydayMoney))
 }
 return
 
@@ -7300,6 +7300,7 @@ if (isInChat()) {
 	SendInput, {Enter}
 }
 {
+	IniRead, paydayMoney, stats.ini, stats, paydayMoney, 0
 	IniRead, taxes, settings.ini, settings, taxes, 1
 	
 	if (taxes == 1) {
@@ -7308,11 +7309,10 @@ if (isInChat()) {
 		Sleep, 500
 	}	
 	
-	SendClientMessage(prefix . "Geld am nächsten Payday: $" . csecond . formatNumber(paydayMoney) . cwhite . " (Brutto) $" . csecond . formatNumber(Round(paydayMoney * taxes)) . cwhite . " (Netto)")
+	SendClientMessage(prefix . "Geld am nächsten Payday: $" . csecond . formatNumber(paydayMoney))
+	SendClientMessage(prefix . "Du hast das Geld für den nächsten Payday auf 0$ zurückgesetzt.")
 	
-	paydayMoney := 0
-	
-	SendClientMessage(prefix . "Du hast das Geld für den nächsten Payday auf 0$ zurückgesetzt!")
+	iniWrite, 0, stats.ini, stats, paydayMoney
 }
 return
 
@@ -13075,6 +13075,7 @@ payPartnerMoney(money, stat) {
 	paydayMoney += money
 	partnerStake := round(money / (partners.Length() + 1), 0)
 	
+	IniWrite, %paydayMoney%, stats.ini, stats, paydayMoney
 	IniRead, statMoney, stats.ini, Verhaftungen, Money, 0
 
 	statMoney := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=" . stat . "&value=" . numberFormat(partnerStake))
