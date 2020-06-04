@@ -2531,11 +2531,11 @@ handleChatMessage(message, index, arr) {
 		Tickets := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=tickets_accepted&value=1")
 		IniWrite, %Tickets%, stats.ini, Tickets, Tickets
 		
-		ticketMoney := line0_2
-		paydayMoney += numberFormat(ticketMoney)		
-		
 		Sleep, 100
 		SendClientMessage(prefix . "Es wurden bereits " . csecond . formatNumber(Tickets) . cwhite . " Tickets von dir angenommen.")
+		
+		ticketMoney := numberFormat(line0_2)
+		ticketMoney := floor(ticketMoney * taxes)
 
 		Sleep, 100
 		payPartnerMoney(numberFormat(ticketMoney), "ticket_money")		
@@ -2783,11 +2783,11 @@ handleChatMessage(message, index, arr) {
 			if (line1_2 == getUsername()) {
 				if (line0_3 == 0) {
 					if (!deathArrested) {
-						wanteds := line0_2 / 3
-						amoney := wanteds * 750
+						arrestWanteds := line0_2 / 3
+						arrestMoney := arrestWanteds * 750
 						
-						if (amoney > 16000) {
-							amoney := 16000
+						if (arrestMoney > 16000) {
+							arrestMoney := 16000
 						}
 						
 						IniRead, taxes, settings.ini, settings, taxes, 1
@@ -2797,9 +2797,8 @@ handleChatMessage(message, index, arr) {
 							Sleep, 500
 						}
 						
-						amoney := Floor(amoney * taxes)
-						paydayMoney += numberFormat(amoney)
-						totalArrestMoney += numberFormat(amoney)
+						totalArrestMoney += arrestMoney
+						totalArrestMoney := floor(totalArrestMoney * taxes)
 						
 						if (!deathArrested) {
 							arrests := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=arrests&value=1")
@@ -2854,24 +2853,22 @@ handleChatMessage(message, index, arr) {
 					
 					SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(offlinePrison) . cwhite . " Verbrecher offline ins Prison gesteckt.")
 				} else {
-					wanteds := line0_1 / 3
-					amoney := wanteds * 750
+					arrestWanteds := line0_1 / 3
+					arrestMoney := arrestWanteds * 750
 					
-					if (amoney > 16000) {
-						amoney := 16000
+					if (arrestMoney > 16000) {
+						arrestMoney := 16000
 					}
 					
 					IniRead, taxes, settings.ini, settings, taxes, 1
 					
 					if (taxes == 1) {
 						getTaxes()
-						
 						Sleep, 500
 					}
-						
-					amoney := Floor(amoney * taxes)
-					paydayMoney += numberFormat(amoney)
-					totalArrestMoney += numberFormat(amoney)
+					
+					totalArrestMoney += arrestMoney
+					totalArrestMoney := floor(totalArrestMoney * taxes)	
 				
 					offlineArrests := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=oarrests&value=1")
 					IniWrite, %offlineArrests%, stats.ini, Verhaftungen, offlinearrests
@@ -11816,7 +11813,7 @@ return
 
 PartnerMoneyTimer:
 {	
-	payPartnerMoney(numberFormat(totalArrestMoney), "arrest_money")
+	payPartnerMoney(totalArrestMoney, "arrest_money")
 	
 	totalArrestMoney := 0
 	
@@ -13074,7 +13071,8 @@ giveTicket(player, money, reason) {
 payPartnerMoney(money, stat) {
 	global username
 	global password
-	
+		
+	paydayMoney += money
 	partnerStake := round(money / (partners.Length() + 1), 0)
 	
 	IniRead, statMoney, stats.ini, Verhaftungen, Money, 0
@@ -13087,10 +13085,12 @@ payPartnerMoney(money, stat) {
 	} else if (stat == "ticket_money") {
 		IniWrite, %statMoney%, stats.ini, Tickets, Money
 		SendClientMessage(prefix . "Du hast bereits $" . csecond . formatNumber(statMoney) . cwhite . " durch Tickets verdient.")
-	} else if (stat == "plants_money") {
+	} 
+	/*else if (stat == "plants_money") {
 		IniWrite, %statMoney%, stats.ini, Marihuana, Money
 		SendClientMessage(prefix . "Du hast bereits $" . csecond . formatNumber(statMoney) . cwhite . " durch Marihuana-Pflanzen verdient.")
 	}	
+	*/
 	
 	for index, value in partners {
 		SendChat("/pay " . value . " " . partnerStake)
