@@ -37,12 +37,12 @@ global baseURL 				:= "https://staatsgewalt.jameschans.de/keybinder/"
 
 global cwhite				:= "{FFFFFF}"
 global cblue				:= "{2090B3}"
-global COLOR_GREY			:= "{BDBDBD}"
+global cgrey				:= "{BDBDBD}"
 global cred					:= "{CC0000}"
-global COLOR_WANTED			:= "{FF4000}"
+global cwanted				:= "{FF4000}"
 global cgreen				:= "{00962B}"
-global COLOR_YELLOW			:= "{FFEE00}"
-global COLOR_ORANGE			:= "{FF8100}"
+global cyellow				:= "{FFEE00}"
+global corange				:= "{FF8100}"
 
 /*
 	LOGIN SYSTEM
@@ -518,6 +518,9 @@ Start:
 	global pedStates 			:= {}
 	
 	global tempo 				:= 80
+	
+	global giveMaxTicket		:= 3
+	
 	global currentTicket 		:= 1
 	global maxTickets 			:= 1
 	global currentFish 			:= 1
@@ -2089,7 +2092,7 @@ handleChatMessage(message, index, arr) {
 	} else if (RegExMatch(message, "^Paintball: (\S+) hat die Arena betreten\.$", message_)) {
 		if (message_1 == getUserName()) {
 			isPaintball := true 
-			SendClientMessage(prefix . "Der Paintball-Modus wurde " . COLOR_GREEN . "angeschaltet" . cwhite . ".")
+			SendClientMessage(prefix . "Der Paintball-Modus wurde " . cgreen . "angeschaltet" . cwhite . ".")
 		}
 	} else if (RegExMatch(message, "^Du hast dir ein Lagerfeuer gekauft\.$", message_)) {
 		getCampfire(1)
@@ -2411,13 +2414,13 @@ handleChatMessage(message, index, arr) {
 			tv := true
 			tvName := message_1
 		
-			SendClientMessage(prefix . "Beobachtungsmodus " . COLOR_GREEN . "aktiviert" . cwhite . ".")
+			SendClientMessage(prefix . "Beobachtungsmodus " . cgreen . "aktiviert" . cwhite . ".")
 		}
 	} else if (RegExMatch(message, "^ > " . getUsername() . " hat die Beobachtung beendet\.$")) {
 		if (tv) {
 			tv := false
 			
-			SendClientMessage(prefix . "Beobachtungsmodus " . COLOR_RED . "deaktiviert" . cwhite . ".")
+			SendClientMessage(prefix . "Beobachtungsmodus " . cred . "deaktiviert" . cwhite . ".")
 		}
 	} else if (RegExMatch(message, "^Du hast dich ausgerüstet, es wurden (.*) Materialien benötigt\. \(Verbleibend: (.*) Materialien\)$", line0_)) {
 		equipMats:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=equipMats&value=" . numberFormat(line0_1))
@@ -2427,13 +2430,13 @@ handleChatMessage(message, index, arr) {
 		IniWrite, %DailyMats%, stats.ini, stats, %A_DD%_%A_MM%_%A_YYYY%_Mats
 		
 		if (DailyMats < 3000) {
-			SendClientMessage(prefix . COLOR_GREY . "Materialverbrauch heute: " . FormatNumber(DailyMats))
+			SendClientMessage(prefix . cgrey . "Materialverbrauch heute: " . FormatNumber(DailyMats))
 		} else if (DailyMats > 3000 && DailyMats < 5000) {
-			SendClientMessage(prefix . COLOR_YELLOW . "Materialverbrauch heute: " . FormatNumber(DailyMats))
+			SendClientMessage(prefix . cyellow . "Materialverbrauch heute: " . FormatNumber(DailyMats))
 		} else if (DailyMats > 5000 && DailyMats < 10000) {
-			SendClientMessage(prefix . COLOR_ORANGE . "Materialverbrauch heute: " . FormatNumber(DailyMats))
+			SendClientMessage(prefix . corange . "Materialverbrauch heute: " . FormatNumber(DailyMats))
 		} else if (DailyMats > 10000) {
-			SendClientMessage(prefix . COLOR_RED . "Materialverbrauch heute: " . FormatNumber(DailyMats))
+			SendClientMessage(prefix . cred . "Materialverbrauch heute: " . FormatNumber(DailyMats))
 		}
 		
 		hasEquip := 1
@@ -2524,6 +2527,7 @@ handleChatMessage(message, index, arr) {
 			} else if (getDistanceToPoint(playerCoords[1], playerCoords[2], playerCoords[3], -1589.5, 716, -4.5) < 20) {
 			} else if (getDistanceToPoint(playerCoords[1], playerCoords[2], playerCoords[3], 2281.5, 2431, 4) < 20) {
 			} else if (getDistanceToPoint(playerCoords[1], playerCoords[2], playerCoords[3], 2341.6, -2028.5, 13) < 20) {
+			} else {
 				return
 			}
 			
@@ -3210,14 +3214,14 @@ tempomatLabel:
 				
 				tempomat := false
 				
-				SendClientMessage(prefix . "Du hast den Tempomat " . COLOR_RED . "deaktiviert" . cwhite . ".")
+				SendClientMessage(prefix . "Du hast den Tempomat " . cred . "deaktiviert" . cwhite . ".")
 			} else {
 				if (!tempomat) {
 					tempomat := true
 					
 					SetTimer, TempoTimer, 100
 					
-					SendClientMessage(prefix . "Du hast den Tempomat " . COLOR_GREEN . "aktiviert" . cwhite . " (Tempo: " . csecond . tempo . " km/h" . cwhite . ").")
+					SendClientMessage(prefix . "Du hast den Tempomat " . cgreen . "aktiviert" . cwhite . " (Tempo: " . csecond . tempo . " km/h" . cwhite . ").")
 				}
 			}
 		} else {
@@ -5397,13 +5401,32 @@ giveQUickTicketAutoLabel:
 	if (isBlocked() || tv) {
 		return 
 	}
-
-	if (RegExMatch(getLabelText(), "\[(\S+)\] (\S+)\nWantedlevel: (\S+)\nGrund: (.+)", label_)) {
-		if (label_3 > 0) {
-			if (label_3 > 4) {
-				SendClientMessage(prefix . cSecond . label_2 . cwhite . " hat mehr als 4 Wanteds.")
-			} else {
-				SendChat("/ticket " . label_1 . " " . (label_3 * 750) " Wanted-Ticket (" . label_3 . " Wanted" . (label_3 == 1 ? "" : "s") . ")")
+	
+	if (!updateTextLabelData()) {
+		return
+	}	
+	
+	currentTicket := 0
+	
+	for i, o in oTextLabelData {
+		if (o.PLAYERID != 65535 && o.VEHICLEID == 65535) {	
+			pedID := getPedById(o.PLAYERID)
+			playerPed := getPedCoordinates(pedID)
+			
+			if (getDistanceToPoint(getCoordinates()[1], getCoordinates()[2], getCoordinates()[3], playerPed[1], playerPed[2], playerPed[3]) <= 8) {
+				if (RegExMatch(o.TEXT, "\[(\d+)\] (\S+)\nWantedlevel: (\d+)\nGrund: (.+)", label_)) {
+					if (label_3 > 0) {
+						if (label_3 > 4) {
+							SendClientMessage(prefix . cSecond . label_2 . cwhite . " hat mehr als 4 Wanteds.")
+						} else {
+							if (currentTicket < giveMaxTicket) {
+								currentTicket ++
+								
+								SendChat("/ticket " . label_1 . " " . (label_3 * 750) " Wanted-Ticket (" . label_3 . " Wanted" . (label_3 == 1 ? "" : "s") . ")")
+							}
+						}
+					}
+				}
 			}
 		}
 	}
@@ -6233,9 +6256,9 @@ if (isInChat()) {
 }
 {
     if (fpsUnlock()) {
-        SendClientMessage(prefix . COLOR_GREEN . "Die Beschränkung deiner FPS wurde aufgehoben.")
+        SendClientMessage(prefix . cgreen . "Die Beschränkung deiner FPS wurde aufgehoben.")
     } else {
-        SendClientMessage(prefix . COLOR_RED . "Beim Aufheben der Beschränkung deiner FPS ist ein Fehler aufgetreten.")
+        SendClientMessage(prefix . cred . "Beim Aufheben der Beschränkung deiner FPS ist ein Fehler aufgetreten.")
     }
 }
 return
@@ -6250,11 +6273,11 @@ if (isInChat()) {
 	if (autoUse == 0) {
 		autoUse := 1
 
-		SendClientMessage(prefix . "Heal-Modus wurde " . COLOR_GREEN . "aktiviert" . cwhite . ".")
+		SendClientMessage(prefix . "Heal-Modus wurde " . cgreen . "aktiviert" . cwhite . ".")
 	} else {
 		autoUse := 0
 
-		SendClientMessage(prefix . "Heal-Modus wurde " . COLOR_RED . "deaktiviert" . cwhite . ".")
+		SendClientMessage(prefix . "Heal-Modus wurde " . cred . "deaktiviert" . cwhite . ".")
 	}
 	
 	IniWrite, %autoUse%, settings.ini, settings, autoUse
@@ -6417,21 +6440,21 @@ if (isInChat()) {
 	IniRead, campfire, settings.ini, Items, campfire, 0
 
 	if (drugs) {
-		dColor := COLOR_GREEN
+		dColor := cgreen
 	} else {
-		dColor := COLOR_RED 
+		dColor := cred 
 	}
 
 	if (firstaid) {
-		fAvailable := COLOR_GREEN . "vorhanden"
+		fAvailable := cgreen . "vorhanden"
 	} else {
-		fAvailable := COLOR_RED . "nicht vorhanden"
+		fAvailable := cred . "nicht vorhanden"
 	}
 
 	if (campfire) {
-		cAvailable := COLOR_GREEN . campfire . " vorhanden"
+		cAvailable := cgreen . campfire . " vorhanden"
 	} else {
-		cAvailable := COLOR_RED . "nicht vorhanden"
+		cAvailable := cred . "nicht vorhanden"
 	}
 	
 	SendClientMessage(prefix . "|============| Inventar |============|")
@@ -6478,7 +6501,15 @@ if (isInChat()) {
 		return
 	}	
 	
-	SendClientMessage(getLabelText())
+	if (!updateTextLabelData()) {
+		return
+	}	
+
+	for i, o in oTextLabelData {
+		if (o.PLAYERID != 65535 && o.VEHICLEID == 65535) {	
+			SendClientMessage(o.TEXT)
+		}
+	}
 }
 return
 
@@ -8170,11 +8201,11 @@ if (isInChat()) {
 	if (maumode) {
 		maumode := 0
 		
-		SendClientMessage(prefix . "Du hast den Maumau Modus " . COLOR_RED . "deaktiviert" . cwhite . ".")
+		SendClientMessage(prefix . "Du hast den Maumau Modus " . cred . "deaktiviert" . cwhite . ".")
 	} else {
 		maumode := 1
 	
-		SendClientMessage(prefix . "Du hast den Maumau Modus " . COLOR_GREEN . "aktiviert" . cwhite . ".")
+		SendClientMessage(prefix . "Du hast den Maumau Modus " . cgreen . "aktiviert" . cwhite . ".")
 		SendClientMessage(prefix . "/mhelp kannst du alles genau einsehen.")
 	}
 }
@@ -8189,12 +8220,12 @@ if (isInChat()) {
 	if (watermode) {
 		watermode := 0
 		
-		SendClientMessage(prefix . "Du hast den Wassermodus " . COLOR_RED . "deaktiviert" . cwhite . ".")
+		SendClientMessage(prefix . "Du hast den Wassermodus " . cred . "deaktiviert" . cwhite . ".")
 	} else {
 		watermode := 1
 		airmode := 0
 		
-		SendClientMessage(prefix . "Du hast den Wassermodus " . COLOR_GREEN . "aktiviert" . cwhite . ".")
+		SendClientMessage(prefix . "Du hast den Wassermodus " . cgreen . "aktiviert" . cwhite . ".")
 	}
 }
 return
@@ -8208,12 +8239,12 @@ if (isInChat()) {
 	if (airmode) {
 		airmode := 0
 		
-		SendClientMessage(prefix . "Luftmodus " . COLOR_RED . "deaktiviert" . cwhite . ".")
+		SendClientMessage(prefix . "Luftmodus " . cred . "deaktiviert" . cwhite . ".")
 	} else {
 		airmode := 1
 		watermode := 0
 		
-		SendClientMessage(prefix . "Luftmodus " . COLOR_GREEN . "aktiviert" . cwhite . ".")
+		SendClientMessage(prefix . "Luftmodus " . cgreen . "aktiviert" . cwhite . ".")
 	}
 }
 return
@@ -10760,7 +10791,7 @@ return
 		
 		SetTimer, HackerFinder, Off
 		
-		SendClientMessage(prefix . "Du hast den Hackerfinder " . COLOR_RED . "deaktiviert" . cwhite . ".")
+		SendClientMessage(prefix . "Du hast den Hackerfinder " . cred . "deaktiviert" . cwhite . ".")
 	} else {
 		level := PlayerInput("Level: ")
 		
@@ -10995,7 +11026,7 @@ HackerFinder:
 			
 			SetTimer, HackerFinder, Off
 			
-			SendClientMessage(prefix . "Der Hackerfinder wurde " . COLOR_RED . "deaktiviert" . cwhite . ".")
+			SendClientMessage(prefix . "Der Hackerfinder wurde " . cred . "deaktiviert" . cwhite . ".")
 			return
 		}
 	}
@@ -11041,7 +11072,7 @@ SyncTimer:
 		getDrugs(0)
 		getCampfire(0)
 		
-		SendClientMessage(prefix . "Das Synchronisieren ist " . COLOR_GREEN . "abgeschlossen" . cwhite . ".")
+		SendClientMessage(prefix . "Das Synchronisieren ist " . cgreen . "abgeschlossen" . cwhite . ".")
 	} else {
 		SetTimer, SyncTimer, off
 	}
@@ -11283,6 +11314,90 @@ TaskCheckTimer:
 }
 return
 
+/* # BAUM
+UpdateComplexTimer:
+{
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !updateTextLabelData()) {
+		return
+	}
+	
+	if (!updateTextLabelData()) {
+		return
+	}	
+
+	coords := getCoordinates()
+	
+	data := []
+	data["name"] := getUsername()
+	data["complexes"] := []
+	
+	for i, o in oTextLabelData {
+		if (o.PLAYERID == 65535 && o.VEHICLEID == 65535) {	
+			if (RegExMatch(o.TEXT, "^Dieses Haus vermietet Zimmer\.\n\nBesitzer: (\S+)\nMiet-Preis: (\d+)\$\nBeschreibung: (.+)\nTippe \/renthouse\.$", label_)) { ; Mietbares Haus
+				complexe := []
+				complexe["type"] := "house"
+				complexe["name"] := label_1
+				complexe["description"] := label_3
+				complexe["pos_x"] := o.XPOS
+				complexe["pos_y"] := o.YPOS
+				complexe["pos_z"] := o.ZPOS
+				data["complexes"].Push(complexe)
+			} else if (RegExMatch(o.TEXT, "^(.+)\nDrücke Enter\.$", label_)) { ; Fraktionsbase
+				complexe["type"] := "faction"
+				complexe["name"] := "nobody"
+				complexe["description"] := "none"
+				complexe["pos_x"] := o.XPOS
+				complexe["pos_y"] := o.YPOS
+				complexe["pos_z"] := o.ZPOS		
+				data["complexes"].Push(complexe)
+			} else if (RegExMatch(o.TEXT, "^Dieses Haus gehört (\S+)\.\n\nPreis: (.*)\nBeschreibung: (.+)\n\n(.+)$", label_)) { ; Crewhaus (unmietbar)
+				complexe["type"] := "house"
+				complexe["name"] := label_1
+				complexe["description"] := label_3
+				complexe["pos_x"] := o.XPOS
+				complexe["pos_y"] := o.YPOS
+				complexe["pos_z"] := o.ZPOS
+				data["complexes"].Push(complexe)
+			} else if (RegExMatch(o.TEXT, "^Dieses Haus vermietet Zimmer\.\n\nBesitzer: (\S+)\nMiet-Preis: (.*)\nBeschreibung: (.+)\nTippe \/renthouse\.\n\n(.+)$", label_)) {
+				complexe["type"] := "house"
+				complexe["name"] := label_1
+				complexe["description"] := label_3
+				complexe["pos_x"] := o.XPOS
+				complexe["pos_y"] := o.YPOS
+				complexe["pos_z"] := o.ZPOS	
+				data["complexes"].Push(complexe)
+			} else if (RegExMatch(o.TEXT, "^Dieses Haus gehört (\S+)\.\n\nPreis: (.*)\nBeschreibung: (.+)$", label_)) { ; Unmietbares Haus
+				complexe["type"] := "house"
+				complexe["name"] := label_1
+				complexe["description"] := label_3
+				complexe["pos_x"] := o.XPOS
+				complexe["pos_y"] := o.YPOS
+				complexe["pos_z"] := o.ZPOS	
+				complexe["positive"] := true
+				data["complexes"].Push(complexes)
+			} else if (RegExMatch(o.TEXT, "^Dieses Haus steht zum Verkauf\.\n\nPreis: (.*)\nBeschreibung: (.+)\nTippe \/buyhouse\.$", label_)) { ; Haus Verkauft
+				complexe["type"] := "house"
+				complexe["name"] := "nobody"
+				complexe["description"] := label_2
+				complexe["pos_x"] := o.XPOS
+				complexe["pos_y"] := o.YPOS
+				complexe["pos_z"] := o.ZPOS			
+				data["complexes"].Push(complexe)
+			}	
+
+		}
+	}
+	
+	if (data["complexes"].Length() > 0) {
+		jsonData := JSON.Dump(data)
+		
+		result := URLDownloadToVar(baseURL . "updateComplexes.php?data=" . jsonData)
+		Sleep, 10000
+	}
+}
+return
+*/
+
 CloseZollTimer:
 {
 	if (closeZoll != "") {
@@ -11335,8 +11450,8 @@ return
 
 RequestTimer:
 {
-	if (requestName != "") {
-		if (RegExMatch(GetLabelText(), "\[(\S+)\] (\S+)\nWantedlevel: (\S+)\nGrund: (.+)", label_)) {
+	if (requestName != "") {		
+		if (RegExMatch(getLabelText(), "\[(\d+)\] (\S+)\nWantedlevel: (\d+)\nGrund: (.+)", label_)) {
 			if (requestName == label_2) {
 				if (label_3 > 4) {
 					if (oldRequest != requestName) {
@@ -11531,8 +11646,11 @@ WantedTimer:
 			}
 		}	
 
-		if (RegExMatch(getLabelText(), "\[(\S+)\] (\S+)\nWantedlevel: (\S+)\nGrund: (.+)", label_)) {
-		
+		if (!updateTextLabelData()) {
+			return
+		}
+
+		if (RegExMatch(getLabelText(), "\[(\d+)\] (\S+)\nWantedlevel: (\d+)\nGrund: (.+)", label_)) {
 			for index, entry in wantedPlayers {
 				if (entry["name"] == label_2) {
 					if (entry["countdown"] > 0) {
@@ -11542,18 +11660,21 @@ WantedTimer:
 			}
 				
 			if (label_3 < 5) {
-				colorW := COLOR_YELLOW
+				colorW := cyellow
+				colorW2 := 0xFFEE00FF
 			} else if (label_3 < 10 && label_3 > 4) {
-				colorW := COLOR_ORANGE
+				colorW := corange
+				colorW2 := 0xFF8100FF
 			} else if (label_3 >= 10) {
-				colorW := COLOR_WANTED
+				colorW := cwanted
+				colorW2 := 0xFF4000FF
 			}
 			
 			SendClientMessage(prefix . colorW . "Verdächtiger " . label_2 . " (ID: " . getPlayerIdByName(label_2) . ") mit " . label_3 . " Wanteds gesichtet!")
 
 			wantedAlarm := []
 			wantedAlarm["name"] := label_2
-			wantedAlarm["countdown"] := 300
+			wantedAlarm["countdown"] := 120
 
 			wantedPlayers.Push(wantedAlarm)
 		}
@@ -11746,11 +11867,11 @@ MainTimer:
 		oldSpotifyTrack := title
 
 		if (spotifyPrivacy) {
-			SendClientMessage(prefix . "Neuer Spotify-Track: " . cgreen . spotifytrack)
+			SendClientMessage(prefix . "Neuer Spotify-Track: " . cgreen . title)
 		}
 
 		if (spotifyPublic) {
-			SendChat("/l Spotify-Track wurde gewechselt: " . spotifytrack)
+			SendChat("/l Spotify-Track wurde gewechselt: " . title)
 		}
 	}
 	
@@ -11781,11 +11902,11 @@ MainTimer:
 					IsAFKEnd := getUnixTimeStamp(A_Now)
 
 					if ((IsAFKEnd - IsAFKStart) < 300) {
-						afkColor := COLOR_YELLOW
+						afkColor := cyellow
 					} else if ((IsAFKEnd - IsAFKStart) >= 300 && (IsAFKEnd - IsAFKStart) < 1800) {
-						afkColor := COLOR_ORANGE
+						afkColor := corange
 					} else if ((IsAFKEnd - IsAFKStart) >= 1800) {
-						afkColor := COLOR_RED
+						afkColor := cred
 					}
 
 					SendClientMessage(prefix . afkColor . "AFK-Zeit: " . formatTime(IsAFKEnd - IsAFKStart))
@@ -12238,6 +12359,8 @@ LottoTimer:
 }
 return
 
+; Ema. ist seit 7794 Sekunden im Menü.
+
 AutoFindTimer:
 {
 	if (!WinActive("GTA:SA:MP")) {
@@ -12284,7 +12407,7 @@ AutoFindTimer:
 	}
 	
 	if (getDistanceBetween(CoordsFromRedmarker()[1], CoordsFromRedmarker()[2], CoordsFromRedmarker()[3], 1163.2358, -1323.2552, 15.3945, 5)) {
-		SendClientMessage(prefix . getFullName(playerToFind) . " befindet sich im " . COLOR_RED . "Krankenhaus" . cwhite . ".")
+		SendClientMessage(prefix . getFullName(playerToFind) . " befindet sich im " . cred . "Krankenhaus" . cwhite . ".")
 	}
 }
 return
