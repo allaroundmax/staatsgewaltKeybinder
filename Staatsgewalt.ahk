@@ -1956,6 +1956,7 @@ HelpGUI:
 /uc -> Undercover gehen
 /auc -> Random Undercover Skin
 /sbd -> Dienstmarke zeigen
+/einweisung -> Einweisungsmodus aktivieren (weniger Spam)
 
 /gk -> Gebäudekomplex aufrufen
 /sgk -> Letzten Robstore anzeigen
