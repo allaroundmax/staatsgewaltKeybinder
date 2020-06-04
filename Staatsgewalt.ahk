@@ -581,6 +581,7 @@ Start:
 	global GateTimeout_ 		:= true
 	global fishTimeout_ 		:= true
 	global localTimeout_ 		:= true
+	global garbageTimeout_		:= true 
 
 	global isArrested			:= false
 	global isCuffed				:= false
@@ -3249,6 +3250,7 @@ if (isInChat()) {
 	global GateTimeout_ 		:= true
 	global fishTimeout_ 		:= true
 	global localTimeout_ 		:= true
+	global garbageTimeout_		:= true
 
 	global isPaintball			:= false
 	global hackerFinder 		:= false
@@ -6694,6 +6696,7 @@ return
 	global GateTimeout_ 		:= true
 	global fishTimeout_ 		:= true
 	global localTimeout_ 		:= true
+	global garbageTimeout_		:= true
 
 	global isPaintball			:= false
 	global hackerFinder 		:= false
@@ -11568,6 +11571,14 @@ TimeoutTimer:
 		
 		if (localTimeout >= 15) {
 			localTimeout_ := true
+		}
+	}
+	
+	if (!garbageTimeout_) {
+		garbageTimeout ++
+		
+		if (garbageTimeout >= 6) {
+			garbageTimeout_ := true
 		}
 	}
 }
