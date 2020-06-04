@@ -29,7 +29,7 @@ IfExist update.bat
 global projectName 			:= "Staatsgewalt"
 global fullProjectName 		:= "Staatsgewalt"
 
-global version 				:= "4.1.1"
+global version 				:= "4.1.2"
 global keybinderStart 		:= 0
 global rank					:= 0
 global userFraction			:= 1
@@ -6071,7 +6071,7 @@ if (isInChat()) {
 	SendInput, {Enter}
 }
 {
-	afk := UrlDownloadToVar(baseURL . "api/isafk?username=" . username . "&password=" . password) ; #BAUM
+	afk := UrlDownloadToVar(baseURL . "api/isafk?username=" . username . "&password=" . password)
 	StringSplit, afk_, afk, ~
 	
 	if (afk_1 == "error") {
@@ -6092,7 +6092,7 @@ if (isInChat()) {
 	}
 	
 	Sleep, 250
-	afk := UrlDownloadToVar(baseURL . "api/afk?username=" . username . "&password=" . password . "&time=" . afkTime) ; #BAUM
+	afk := UrlDownloadToVar(baseURL . "api/afk?username=" . username . "&password=" . password . "&time=" . afkTime) 
 	
 	StringSplit, afk_, afk, ~
 	
@@ -6109,7 +6109,7 @@ if (isInChat()) {
 	SendInput, {Enter}
 }
 {
-	result := UrlDownloadToVar(baseURL . "api/afklist?username=" . username . "&password=" . password) ; #BAUM
+	result := UrlDownloadToVar(baseURL . "api/afklist?username=" . username . "&password=" . password) 
 	
 	if (result == "ERROR_BAD_LINK") {
 		SendClientMessage(prefix . "Fehlerhafte Parameterübergabe.")
