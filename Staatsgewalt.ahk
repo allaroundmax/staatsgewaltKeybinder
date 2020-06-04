@@ -29,7 +29,7 @@ IfExist update.bat
 global projectName 			:= "Staatsgewalt"
 global fullProjectName 		:= "Staatsgewalt"
 
-global version 				:= "4.1.2"
+global version 				:= "4.1.3"
 global keybinderStart 		:= 0
 global rank					:= 0
 global userFraction			:= 1
