@@ -33,7 +33,7 @@ IfExist update.bat
 global projectName 			:= "Staatsgewalt"
 global fullProjectName 		:= "Staatsgewalt"
 
-global version 				:= "4.1.3"
+global version 				:= "4.1.4"
 global keybinderStart 		:= 0
 global rank					:= 0
 global userFraction			:= 1
@@ -200,6 +200,7 @@ Start:
 	IfNotExist, images
 		FileCreateDir, images
 
+	; Settings
 	IniRead, autoLock, settings.ini, settings, autoLock, 0
 	IniRead, autoEngine, settings.ini, settings, autoEngine, 0
 	IniRead, autoFill, settings.ini, settings, autoFill, 0
@@ -221,7 +222,23 @@ Start:
 	IniRead, autoGate, settings.ini, settings, autoGate, 0
 	IniRead, autoExecute, settings.ini, settings, autoExecute, 0
 	IniRead, autoFish, settings.ini, settings, autoFish, 0
-
+	IniRead, taxes, settings.ini, settings, taxes, 1
+	IniRead, max_kmh, settings.ini, settings, max_kmh, 0
+	IniRead, lottoNumber, settings.ini, settings, lottoNumber, %A_Space%
+	IniRead, department, settings.ini, settings, department, %A_Space%
+	IniRead, primaryColor, settings.ini, settings, primaryColor, %A_Space%
+	IniRead, secondaryColor, settings.ini, settings, secondaryColor, %A_Space%
+	IniRead, ownprefix, settings.ini, settings, ownprefix, %A_Space%
+	IniRead, killMessage, settings.ini, settings, killMessage, %A_Space%
+	IniRead, deathMessage, settings.ini, settings, deathMessage, %A_Space%
+	IniRead, killText, settings.ini, settings, killText, 0
+	IniRead, deathText, settings.ini, settings, deathText, 0
+	
+	if ((fraction != "" || fraction != " " || fraction != "ERROR") && (department == "" || department == " " || department == "ERROR")) {
+		department := fraction
+	}
+	
+	; Sounds
 	IniRead, smsSound, settings.ini, sounds, smsSound, 0
 	IniRead, callSound, settings.ini, sounds, callSound, 0
 	IniRead, killSound, settings.ini, sounds, killSound, 0
@@ -230,6 +247,7 @@ Start:
 	IniRead, emergencySound, settings.ini, sounds, emergencySound, 0
 	IniRead, leagueSound, settings.ini, sounds, leagueSound, 0
 
+	; Infos
 	IniRead, damageInfo, settings.ini, infos, damageInfo, 0
 	IniRead, paintInfo, settings.ini, infos, paintInfo, 0
 	IniRead, wantedInfo, settings.ini, infos, wantedInfo, 0
@@ -239,26 +257,11 @@ Start:
 	IniRead, spotifyPrivacy, settings.ini, infos, spotifyPrivacy, 0
 	IniRead, spotifyPublic, settings.ini, infos, spotifyPublic, 0
 	IniRead, refillInfo, settings.ini, infos, refillInfo, 0
+	IniRead, taskInfo, settings.ini, infos, taskInfo, 0
 	IniRead, escInfo, settings.ini, infos, escInfo, 0
 	IniRead, afkInfo, settings.ini, infos, afkInfo, 0
 
-	IniRead, taxes, settings.ini, settings, taxes, 1
-	IniRead, max_kmh, settings.ini, settings, max_kmh, 0
-	IniRead, lottoNumber, settings.ini, settings, lottoNumber, %A_Space%
-	IniRead, department, settings.ini, settings, department, %A_Space%
-
-	if ((fraction != "" || fraction != " " || fraction != "ERROR") && (department == "" || department == " " || department == "ERROR")) {
-		department := fraction
-	}
-	
-	IniRead, primaryColor, settings.ini, settings, primaryColor, %A_Space%
-	IniRead, secondaryColor, settings.ini, settings, secondaryColor, %A_Space%
-	IniRead, ownprefix, settings.ini, settings, ownprefix, %A_Space%
-	IniRead, killMessage, settings.ini, settings, killMessage, %A_Space%
-	IniRead, deathMessage, settings.ini, settings, deathMessage, %A_Space%
-	IniRead, killText, settings.ini, settings, killText, 0
-	IniRead, deathText, settings.ini, settings, deathText, 0
-
+	IniRead, arrestLimitUnix, settings.ini, UnixTime, arrestLimitUnix, 0
 	IniRead, commitmentUnix, settings.ini, UnixTime, commitmentUnix, 0
 	IniRead, commitmentTime, settings.ini, UnixTime, commitmentTime, 0
 	IniRead, drugs, settings.ini, Items, drugs, 0
@@ -354,7 +357,7 @@ Start:
 	defaultHotkeysArray["arrestedByName"] 				:= "~7"
 	defaultHotkeysArray["putWeaponsAway"] 				:= "~I"
 	defaultHotkeysArray["grab"] 						:= "~9"
-	defaultHotkeysArray["ungrab"] 						:= "~^9"
+	defaultHotkeysArray["manuellGrab"] 					:= "~!9"
 	defaultHotkeysArray["togCellphone"] 				:= "!F1"
 	defaultHotkeysArray["useDrugs"] 					:= "F1"
 	defaultHotkeysArray["eatFish"] 						:= "F2"
@@ -586,6 +589,7 @@ Start:
 	global fishTimeout_ 		:= true
 	global localTimeout_ 		:= true
 	global garbageTimeout_		:= true 
+	global fishSellTimeout_		:= true
 
 	global isArrested			:= false
 	global isCuffed				:= false
@@ -612,8 +616,11 @@ Start:
 	SetTimer, MainTimer, 200
 	SetTimer, TimeoutTimer, 1000
 	SetTimer, SecondTimer, 1000
-	SetTimer, TaskCheckTimer, 5000
-
+	
+	if (taskInfo) {
+		SetTimer, TaskCheckTimer, 5000
+	}
+	
 	if (autoUncuff) {
 		SetTimer, UncuffTimer, 500
 	}
@@ -785,6 +792,7 @@ SettingsGUI:
 	Gui, Settings: Add, CheckBox, x420 y360 w190 h20 vspotifyPublic checked%spotifyPublic%, Spotify-Tracks (public)
 	Gui, Settings: Add, CheckBox, x420 y390 w190 h20 vspotifyPrivacy checked%spotifyPrivacy%, Spotify-Tracks (privat)
 	Gui, Settings: Add, CheckBox, x420 y420 w190 h20 vrefillInfo checked%refillInfo%, Tank-Warnungen
+	Gui, Settings: Add, CheckBox, x210 y450 w190 h20 vtaskInfo checked%taskInfo%, Task-Meldungen
 	
 	Gui, Settings: Add, GroupBox, x10 y490 w640 h230, Sonstiges
 	Gui, Settings: Add, Text, x20 y510 w280 h20, Lottozahl:
@@ -861,6 +869,7 @@ SettingsGuiClose:
 	IniWrite, % spotifyPublic, settings.ini, infos, spotifyPublic
 	IniWrite, % spotifyPrivacy, settings.ini, infos, spotifyPrivacy
 	IniWrite, % refillInfo, settings.ini, infos, refillInfo
+	IniWrite, % taskInfo, settings.ini, infos, taskInfo
 	IniWrite, % escInfo, settings.ini, infos, escInfo
 	IniWrite, % afkInfo, settings.ini, infos, afkInfo
 
@@ -1238,8 +1247,8 @@ HotkeysGUI:
 	Gui, Hotkeys: Add, Text, x320 y390 w170 h20 , Festgenommen: Fahrzeug
 	Gui, Hotkeys: Add, Text, x320 y420 w170 h20 , Festgenommen: Zellen
 	Gui, Hotkeys: Add, Text, x320 y450 w170 h20 , Waffen einstecken
-	Gui, Hotkeys: Add, Text, x320 y480 w170 h20 , /grab
-	Gui, Hotkeys: Add, Text, x320 y510 w170 h20 , /ungrab
+	Gui, Hotkeys: Add, Text, x320 y480 w170 h20 , Automatisches Grab
+	Gui, Hotkeys: Add, Text, x320 y510 w170 h20 , /grab
 	Gui, Hotkeys: Add, Hotkey, x490 y30 w120 h20 vautoImprisonHotkey gSaveHotkeyLabel, %autoImprisonNoMods%
 	Gui, Hotkeys: Add, Hotkey, x490 y60 w120 h20 vimprisonHotkey gSaveHotkeyLabel, %imprisonNoMods%
 	Gui, Hotkeys: Add, Hotkey, x490 y90 w120 h20 varrestSlotsHotkey gSaveHotkeyLabel, %arrestSlotsNoMods%
@@ -1256,7 +1265,7 @@ HotkeysGUI:
 	Gui, Hotkeys: Add, Hotkey, x490 y420 w120 h20 varrestedByName gSaveHotkeyLabel, %arrestedByNameNoMods%
 	Gui, Hotkeys: Add, Hotkey, x490 y450 w120 h20 vputWeaponsAwayHotkey gSaveHotkeyLabel, %putWeaponsAwayNoMods%
 	Gui, Hotkeys: Add, Hotkey, x490 y480 w120 h20 vgrabHotkey gSaveHotkeyLabel, %grabNoMods%
-	Gui, Hotkeys: Add, Hotkey, x490 y510 w120 h20 vungrabHotkey gSaveHotkeyLabel, %ungrabNoMods%
+	Gui, Hotkeys: Add, Hotkey, x490 y510 w120 h20 vmanuellGrabHotkey gSaveHotkeyLabel, %manuellGrabNoMods%
 	
 	Gui, Hotkeys: Tab, Seite 4
 
@@ -2301,6 +2310,7 @@ if (isInChat()) {
 	global fishTimeout_ 		:= true
 	global localTimeout_ 		:= true
 	global garbageTimeout_		:= true
+	global fishSellTimeout_		:= true
 
 	global isPaintball			:= false
 	global hackerFinder 		:= false
@@ -2425,6 +2435,17 @@ return
 openDoorLabel:
 {
 	if (isBlocked() || tv) {
+		return
+	}
+}
+:?:/auf::
+if (isInChat()) {
+	SendInput, {Enter}
+}
+{	
+	if (IsPlayerInRangeOfPoint(2326.0300, -2010.8646, 13.5528, 10.0) || IsPlayerInRangeOfPoint(2292.8247, -2028.8180, 13.5469, 10.0)) {
+		SendClientMessage(prefix . cRed . "WARNUNG: Es ist verboten die Tore des Staatsgefängnises zu öffnen.")
+		SendClientMessage(prefix . cRed . "WARNUNG: Dies fällt unter Ausnutzen der Fraktionsrechte.")
 		return
 	}
 	
@@ -4164,7 +4185,7 @@ grabLabel:
 }
 return
 
-ungrabLabel:
+manuellGrabLabel:
 {
 	if (isBlocked() || tv) {
 		return
@@ -4172,7 +4193,7 @@ ungrabLabel:
 	
 	if (IsPlayerInAnyVehicle()) {
 		if (IsPlayerDriver()) {
-			SendInput, t/ungrab{space}
+			SendInput, t/grab{space}
 		} else {
 			SendClientMessage(prefix . "Fehler: Du bist nicht der Fahrer des Fahrzeuges.")
 		}
@@ -4909,7 +4930,10 @@ pauseLabel:
 		SetTimer, MainTimer, off
 		SetTimer, TimeoutTimer, off
 		SetTimer, SecondTimer, off
-		SetTimer, TaskCheckTimer, off
+		
+		if (taskInfo) {
+			SetTimer, TaskCheckTimer, off
+		}
 
 		if (autoLotto) {
 			SetTimer, LottoTimer, off
@@ -4942,7 +4966,10 @@ pauseLabel:
 		SetTimer, MainTimer, 200
 		SetTimer, TimeoutTimer, 1000
 		SetTimer, SecondTimer, 1000
-		SetTimer, TaskCheckTimer, 5000
+		
+		if (taskInfo) {
+			SetTimer, TaskCheckTimer, 5000
+		}
 
 		IniRead, bossmode, settings.ini, settings, bossmode, 1
 		
@@ -5550,6 +5577,15 @@ if (isInChat()) {
 }
 return
 
+:?:/test::
+if (isInChat()) {
+	SendInput, {Enter}
+}
+{
+	SendClientMessage("{FFEE00}Der Leader hat das Upgrade {FF4000}Arrest-Limit{FFEE00} aktiviert (noch 3 Tage, 2 Stunden und 38 Minuten).")
+}
+return
+
 :?:/label::
 if (isInChat()) {
 	SendInput, {Enter}
@@ -5747,6 +5783,7 @@ return
 	global fishTimeout_ 		:= true
 	global localTimeout_ 		:= true
 	global garbageTimeout_		:= true
+	global fishSellTimeout_		:= true
 
 	global isPaintball			:= false
 	global hackerFinder 		:= false
@@ -7370,10 +7407,6 @@ if (isInChat()) {
 	SendInput, {Enter}
 }
 {
-	if (tv) { 
-		return
-	}		
-	
 	startFish()
 }
 return
@@ -7384,34 +7417,9 @@ if (isInChat()) {
 }
 {
 	if (IsPlayerInRangeOfPoint(2.3247, -28.8923, 1003.5494, 10)) {
-		SendClientMessage(prefix . "Deine Fische werden nun verkauft!")
-		
-		sellFishMoney := 0
-		
-		Loop, 5 {
-			SendChat("/sell fish " . A_Index)
-			
-			Sleep, 200
-		
-			chat := readChatLine(0)
-			
-			if (RegExMatch(chat, "Du hast deinen (.+) \((\d+) LBS\) für (\d+)\$ verkauft.", chat_)) {
-				sellFishMoney += numberFormat(chat_3)
-			}
-			
-			if (!admin) {
-				Sleep, 500 
-			}
-		}
-		
-		Fishmoney:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=fish_money&value=" . numberFormat(sellFishMoney))
-		IniWrite, %Fishmoney%, stats.ini, Allgemein, Fishmoney
-		
-		SendClientMessage(prefix . "Du hast für deine Fische $" . csecond . formatNumber(sellFishMoney) . cwhite . " erhalten.")
-		SendClientMessage(prefix . "Gesamt hast du bereits $" . csecond . formatNumber(Fishmoney) . cwhite . " durch Fische verdient.")
+		sellFish()
 	} else {
 		IniRead, Fishmoney, stats.ini, Allgemein, Fishmoney, 0
-		
 		SendClientMessage(prefix . "Du kannst deine Fische hier nicht verkaufen! (Gesamter Verdienst: $" . csecond . formatNumber(Fishmoney) . cwhite . ")")
 	}
 }
@@ -7422,37 +7430,7 @@ if (isInChat()) {
 	SendInput, {Enter}
 }
 {
-	if (!getPlayerInteriorId()) {
-		IniRead, campfire, settings.ini, Items, campfire, 0
-		
-		if (campfire) {
-			SendChat("/campfire")
-			
-			Sleep, 200
-			
-			Loop, 5 {
-				SendChat("/cook fish " . A_Index)
-			
-				Sleep, 700
-			}		
-		} else {
-			SendClientMessage(prefix . "Du hast kein Lagerfeuer, geh in ein Restaurant.")
-		}
-	} else {
-		if (isPlayerAtCookPoint()) {
-			Loop, 5 {
-				SendChat("/cook fish " . A_Index)
-			
-				Sleep, 700
-			}	
-		} else {
-			SendClientMessage(prefix . "Du kannst hier nicht kochen.")
-		}
-	}
-	
-	Sleep, 200
-	
-	checkCooked()
+	cookFIsh()
 }
 return
 
@@ -7462,10 +7440,6 @@ if (isInChat()) {
 	SendInput, {Enter}
 }
 {
-	SendClientMessage(prefix . "Überprüfung der ungekochten Fische:")
-	
-	Sleep, 100
-
 	checkFishes()
 }
 return
@@ -7476,10 +7450,6 @@ if (isInChat()) {
 	SendInput, {Enter}
 }
 {
-	SendClientMessage(prefix . "Überprüfung der gekochten Fische:")
-	
-	Sleep, 100
-
 	checkCooked()
 }
 return
@@ -10305,75 +10275,79 @@ return
 
 TaskCheckTimer:
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP")) {
-		return
-	}
-	
-	tasksResult := UrlDownloadToVar(baseURL . "api/tasks?username=" . username . "&password=" . password . "&action=get")
-	
-	if (tasksResult == "ERROR_BAD_LINK") {
-	} else if (tasksResult == "ERROR_USER_NOT_FOUND") {
-	} else if (tasksResult == "ERROR_WRONG_PASSWORD") {
-	} else if (tasksResult == "ERROR_ACCESS_DENIED") {
-	} else if (tasksResult == "ERROR_NO_SUCH_ACTION") {
-	} else if (tasksResult == "ERROR_MYSQL_QUERY") {
-	} else if (tasksResult == "ERROR_NO_TASKS") {
-	} else if (tasksResult == "ERROR_CONNECTION") {
-	} else {
-		tasksLoaded := JSON.Load(tasksResult)
-		tasksToRemove := []
-		
-		for newIndex, newEntry in tasksLoaded {
-			contains := false
-		
-			for index, entry in tasks {
-				if (entry["id"] == newEntry["id"]) {
-					contains := true
-				}
-			}
-			
-			if (!contains) {
-				tasks.Push(newEntry)
-			}
+	if (taskInfo) {
+		if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP")) {
+			return
 		}
 		
-		for index, entry in tasks {
-			contains := false
+		tasksResult := UrlDownloadToVar(baseURL . "api/tasks?username=" . username . "&password=" . password . "&action=get")
 		
-			for newIndex, newEntry in tasksLoaded {
-				if (entry["id"] == newEntry["id"]) {
-					contains := true
-				}
-			}
-			
-			if (!contains) {
-				tasksToRemove.Push(entry["id"])
-			}
-		}
-		
-		tasksRemoved := 0
-		
-		for i, id in tasksToRemove {
-			tasksRemoved += removeTask(id)
-		}
-	}
-	
-	for index, task in tasks {
-		if (task["online"]) {
-			taskSubjectID := getPlayerIdByName(task["subject"])
-			if (taskSubjectID == -1) {
-				task["online"] := false
-			}
+		if (tasksResult == "ERROR_BAD_LINK") {
+		} else if (tasksResult == "ERROR_USER_NOT_FOUND") {
+		} else if (tasksResult == "ERROR_WRONG_PASSWORD") {
+		} else if (tasksResult == "ERROR_ACCESS_DENIED") {
+		} else if (tasksResult == "ERROR_NO_SUCH_ACTION") {
+		} else if (tasksResult == "ERROR_MYSQL_QUERY") {
+		} else if (tasksResult == "ERROR_NO_TASKS") {
+		} else if (tasksResult == "ERROR_CONNECTION") {
 		} else {
-			taskSubjectID := getPlayerIdByName(task["subject"])
+			tasksLoaded := JSON.Load(tasksResult)
+			tasksToRemove := []
 			
-			if (taskSubjectID != -1) {
-				SendClientMessage(prefix . "Spieler mit Task ist online: " . csecond . task["subject"] . cwhite . " (ID: " . csecond . taskSubjectID . cwhite . ")")
-				SendClientMessage(prefix . "Task (ID " . csecond . "" . task["id"] . cwhite . "): " . csecond . task["task"])
+			for newIndex, newEntry in tasksLoaded {
+				contains := false
+			
+				for index, entry in tasks {
+					if (entry["id"] == newEntry["id"]) {
+						contains := true
+					}
+				}
+				
+				if (!contains) {
+					tasks.Push(newEntry)
+				}
 			}
-		
-			task["online"] := true
+			
+			for index, entry in tasks {
+				contains := false
+			
+				for newIndex, newEntry in tasksLoaded {
+					if (entry["id"] == newEntry["id"]) {
+						contains := true
+					}
+				}
+				
+				if (!contains) {
+					tasksToRemove.Push(entry["id"])
+				}
+			}
+			
+			tasksRemoved := 0
+			
+			for i, id in tasksToRemove {
+				tasksRemoved += removeTask(id)
+			}
 		}
+		
+		for index, task in tasks {
+			if (task["online"]) {
+				taskSubjectID := getPlayerIdByName(task["subject"])
+				if (taskSubjectID == -1) {
+					task["online"] := false
+				}
+			} else {
+				taskSubjectID := getPlayerIdByName(task["subject"])
+				
+				if (taskSubjectID != -1) {
+					SendClientMessage(prefix . "Spieler mit Task ist online: " . csecond . task["subject"] . cwhite . " (ID: " . csecond . taskSubjectID . cwhite . ")")
+					SendClientMessage(prefix . "Task (ID " . csecond . "" . task["id"] . cwhite . "): " . csecond . task["task"])
+				}
+			
+				task["online"] := true
+			}
+		}
+	} else {
+		SetTimer, TaskCheckTimer, off
 	}
 }
 return
@@ -10632,6 +10606,14 @@ TimeoutTimer:
 			garbageTimeout_ := true
 		}
 	}
+	
+	if (!fishSellTimeout_) {
+		fishSellTimeout ++
+		
+		if (fishSellTimeout >= 15) {
+			fishSellTimeout_ := true
+		}
+	}
 }
 return
 
@@ -10703,7 +10685,54 @@ return
 handleChatMessage(message, index, arr) {
 	global
 	
-	if (RegExMatch(message, "^Es befindet sich zu wenig Kraftstoff im Fahrzeug, um den Motor zu starten\.$", message_)) {
+	if (RegExMatch(message, "^Der Leader hat das Upgrade Arrest-Limit aktiviert \((.*)\)\.", message_)) {
+		if (RegExMatch(message_1, "^noch (\d+) Tage, (\d+) Stunden und (\d+) Minuten$", arrest_)) {
+			daySeconds := (arrest_1 * 86400)
+			hourSeconds := (arrest_2 * 3600)
+			minuteSeconds := (arrest_3 * 60)
+			allSeconds := (daySeconds + hourSeconds + minuteSeconds)
+			
+			arrestLimitUnix := getUnixTimestamp(A_Now) + allSeconds
+			IniWrite, %arrestLimitUnix%, settings.ini, UnixTime, arrestLimitUnix
+		
+			Sleep, 100
+			SendChat("/f HQ: Arrest-Limit ist noch " . allSeconds . " Sekunden aktiv!")
+			Sleep, 100
+			SendClientMessage(prefix . "Arrest-Limit-Daten wurden angepasst.")
+		} else if (RegExMatch(message_1, "^noch (\d+) Stunden und (\d+) Minuten$", msg_)) {
+			hourSeconds := (arrest_1 * 3600)
+			minuteSeconds := (arrest_2 * 60)
+			allSeconds := (hourSeconds + minuteSeconds)
+			
+			
+			arrestLimitUnix := getUnixTimestamp(A_Now) + allSeconds
+			IniWrite, %arrestLimitUnix%, settings.ini, UnixTime, arrestLimitUnix
+			
+			Sleep, 100
+			SendChat("/f HQ: Arrest-Limit ist noch " . allSeconds . " Sekunden aktiv!")
+			Sleep, 100
+			SendClientMessage(prefix . "Arrest-Limit-Daten wurden angepasst.")
+		} else if (RegExMatch(message_1, "^noch (\d+) Minuten$", msg_)) {
+			minuteSeconds := (arrest_1 * 60)
+			allSeconds := (minuteSeconds)
+			
+			arrestLimitUnix := getUnixTimestamp(A_Now) + allSeconds
+			IniWrite, %arrestLimitUnix%, settings.ini, UnixTime, arrestLimitUnix
+			
+			Sleep, 100
+			SendChat("/f HQ: Arrest-Limit ist noch " . allSeconds . " Sekunden aktiv!")
+			Sleep, 100
+			SendClientMessage(prefix . "Arrest-Limit-Daten wurden angepasst.")
+		}
+	} else if (RegExMatch(message, "^\*\*\(\( (.+) (\S+): HQ: Arrest-Limit ist noch (\d+) Sekunden aktiv! \)\)\*\*$", message_)) {
+		if (message_2 != getUserName()) {
+			arrestLimitUnix := getUnixTimestamp(A_Now) + message_3
+			IniWrite, %arrestLimitUnix%, settings.ini, UnixTime, arrestLimitUnix
+			
+			Sleep, 100
+			SendClientMessage(prefix . "Arrest-Limit-Daten wurden angepasst.")
+		}
+	} else if (RegExMatch(message, "^Es befindet sich zu wenig Kraftstoff im Fahrzeug, um den Motor zu starten\.$", message_)) {
 		SetTimer, RefillTimer, 1
 	} else if (RegExMatch(message, "^** Das funktioniert hier nicht.$", message_)) {
 		if (!garbageTimeout_) {
@@ -10750,8 +10779,6 @@ handleChatMessage(message, index, arr) {
 	} else if (RegExMatch(message, "^Du hast (.*)g Drogen eingelagert\.$", message_)) {
 		getDrugs(1)
 	} else if (RegExMatch(message, "^Du hast (.*)g Drogen für (.*)\$ erworben\.$", message_)) {
-		getDrugs(1)
-	} else if (RegExMatch(message, "^Du hast (\d+)g Marihuana in der Mülltonne gefunden\.$", message_)) {
 		getDrugs(1)
 	} else if (RegExMatch(message, "^Du bist nun im SWAT-Dienst als Agent (\d+)\.$", message_)) {
 		agentID := message_1
@@ -10801,6 +10828,8 @@ handleChatMessage(message, index, arr) {
 			iniWrite, %drugs%, Stats.ini, Mülltonnen, drugs
 			
 			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(drugs) . cwhite . "g Drogen in Mülltonnen gefunden.")
+			
+			getDrugs(0)
 		} else if (RegExMatch(message_1, "hast (\d+) Materialien$", msg_)) {
 			mats := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashMats&value=" . numberFormat(msg_1))
 			iniWrite, %mats%, Stats.ini, Mülltonnen, mats
@@ -10877,19 +10906,21 @@ handleChatMessage(message, index, arr) {
 		isZivil := 0
 	} else if (RegExMatch(message, "^(\S+) sagt: (.+)", message_)) {
 		if (!tv) {
-			if (message_1 != getUserName()) {			
-				if (InStr(message_2, "ticket") || InStr(message_2, "tkt") || InStr(message_2, "tigget")) {
-					requestName := message_1
+			if (message_1 != getUserName()) {	
+				if (!tv) {
+					if (InStr(message_2, "ticket") || InStr(message_2, "tkt") || InStr(message_2, "tigget")) {
+						requestName := message_1
+						
+						SetTimer, RequestTimer, 1
+					}
 					
-					SetTimer, RequestTimer, 1
-				}
-				
-				if (InStr(message_2, "sucht") && InStr(message_2, "member") || InStr(message_2, "invite") && !InStr(message_2, "uninvite")) {
-					if (!tv) {
-						if (oldInviteAsk != message_1) {
-							oldInviteAsk := message_1
-							
-							SendChat("/l Nein.")
+					if (InStr(message_2, "sucht") && InStr(message_2, "member") || InStr(message_2, "invite") && !InStr(message_2, "uninvite")) {
+						if (!tv) {
+							if (oldInviteAsk != message_1) {
+								oldInviteAsk := message_1
+								
+								SendChat("/l Nein.")
+							}
 						}
 					}
 				}
@@ -11232,7 +11263,7 @@ handleChatMessage(message, index, arr) {
 		drugs:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=drugs&value=" . numberFormat(line0_2))
 		IniWrite, %drugs%, stats.ini, Kontrollen, Drugs
 		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(drugs) . "g" . cwhite . " Drogen weggenommen.")
+		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(drugs) . cwhite . "g Drogen weggenommen.")
 	} else if (RegExMatch(message, "^\* Du hast (\S+) seine (\d+) Samen weggenommen\.$", line0_)) {
 		for index, value in checkingPlayers {
 			if (line0_1 == value) {
@@ -11398,8 +11429,17 @@ handleChatMessage(message, index, arr) {
 						arrestWanteds := line0_2 / 3
 						arrestMoney := arrestWanteds * 750
 						
-						if (arrestMoney > 16000) {
-							arrestMoney := 16000
+						IniRead, taxes, settings.ini, settings, taxes, 1
+						IniRead, arrestLimitUnix, settings.ini, UnixTime, arrestLimitUnix, 0
+						
+						if (getUnixTimestamp(A_Now) > arrestLimitUnix) {
+							if (arrestMoney > 16000) {
+								arrestMoney := 16000
+							}
+						} else {
+							if (arrestMoney > 32000) {
+								arrestMoney := 32000
+							}
 						}
 						
 						IniRead, taxes, settings.ini, settings, taxes, 1
@@ -11468,11 +11508,18 @@ handleChatMessage(message, index, arr) {
 					arrestWanteds := line0_1 / 3
 					arrestMoney := arrestWanteds * 750
 					
-					if (arrestMoney > 16000) {
-						arrestMoney := 16000
-					}
-					
 					IniRead, taxes, settings.ini, settings, taxes, 1
+					IniRead, arrestLimitUnix, settings.ini, UnixTime, arrestLimitUnix, 0
+						
+					if (getUnixTimestamp(A_Now) > arrestLimitUnix) {
+						if (arrestMoney > 16000) {
+							arrestMoney := 16000
+						}
+					} else {
+						if (arrestMoney > 32000) {
+							arrestMoney := 32000
+						}
+					}
 					
 					if (taxes == 1) {
 						getTaxes()
@@ -12002,17 +12049,7 @@ MainTimer:
 
 			if (!ErrorLevel && !isBlocked()) {
 				cookTimeout_ := false
-
-				Loop, 5 {
-					SendChat("/cook fish " . A_Index)
-
-					if (!admin) {
-						Sleep, 500
-					}
-				}
-
-				checkCooked()
-
+				cookFish()
 				cookTimeout := 0
 			} else {
 				cookTimeout_ := true
@@ -12119,6 +12156,20 @@ MainTimer:
 				fishTimeout := 0
 			} else {
 				fishTimeout_ := true
+			}
+		}
+	} else if (isPlayerInRangeOfPoint(6.0265, -30.8849, 1003.5494, 5.0) && autoFish) {
+		if (fishSellTimeout_) {
+			SendClientMessage(prefix . "Möchtest du deine Fische verkaufen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
+			
+			KeyWait, X, D, T10
+			
+			if (!ErrorLevel && !isBlocked()) {
+				fishSellTimeout_ := false 
+				sellFish()
+				fishSellTimeout := 0
+			} else {
+				fishSellTimeout_ := true
 			}
 		}
 	}
@@ -13159,6 +13210,8 @@ payPartnerMoney(money, stat) {
 	global username
 	global password
 		
+	IniRead, paydayMoney, stats.ini, stats, paydayMoney, 0
+		
 	paydayMoney += money
 	partnerStake := round(money / (partners.Length() + 1), 0)
 	
@@ -13183,6 +13236,65 @@ payPartnerMoney(money, stat) {
 	for index, value in partners {
 		SendChat("/pay " . value . " " . partnerStake)
 	}
+}
+
+cookFish() {
+	global
+	
+	if (!getPlayerInteriorId()) {
+		IniRead, campfire, settings.ini, Items, campfire, 0
+		
+		if (campfire) {
+			SendChat("/campfire")
+			Sleep, 200
+		} 
+					
+		Loop, 5 {
+			SendChat("/cook fish " . A_Index)
+			Sleep, 700
+		}			
+	} else {
+		if (isPlayerAtCookPoint()) {
+			Loop, 5 {
+				SendChat("/cook fish " . A_Index)
+				Sleep, 700
+			}	
+		} else {
+			SendClientMessage(prefix . "Du kannst hier nicht kochen.")
+		}
+	}
+	
+	Sleep, 200
+
+	checkCooked()
+}
+
+sellFish() {
+	global 
+		
+	sellFishMoney := 0
+	
+	Loop, 5 {
+		SendChat("/sell fish " . A_Index)
+		
+		Sleep, 200
+	
+		chat := readChatLine(0)
+		
+		if (RegExMatch(chat, "Du hast deinen (.+) \((\d+) LBS\) für (\d+)\$ verkauft.", chat_)) {
+			sellFishMoney += numberFormat(chat_3)
+		}
+		
+		if (!admin) {
+			Sleep, 500 
+		}
+	}
+	
+	Fishmoney:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=fish_money&value=" . numberFormat(sellFishMoney))
+	IniWrite, %Fishmoney%, stats.ini, Allgemein, Fishmoney
+	
+	SendClientMessage(prefix . "Du hast für deine Fische $" . csecond . formatNumber(sellFishMoney) . cwhite . " erhalten.")
+	SendClientMessage(prefix . "Gesamt hast du bereits $" . csecond . formatNumber(fishmoney) . cwhite . " durch Fische verdient.")
 }
 
 startFish() {
@@ -13251,9 +13363,9 @@ startFish() {
 				Sleep, 200
 				
 				if (fishMode)  {
-					SendClientMessage(prefix . cscond . cheapestFishName . ": {FFFFFF}" . cheapestFish . cwhite . " im Wert von $" . csecond . formatNumber(cheapestFishValue) . cwhite . " weggeworfen")
+					SendClientMessage(prefix . cscond . cheapestFishName . cWhite . ": " . cheapestFish . cwhite . " im Wert von $" . csecond . formatNumber(cheapestFishValue) . cwhite . " weggeworfen")
 				} else {
-					SendClientMessage(prefix . cscond . cheapestFishName . ": {FFFFFF}" . cheapestFish . cwhite . " mit " . csecond . formatNumber(cheapestFishValue) . cwhite . " LBS weggeworfen")
+					SendClientMessage(prefix . cscond . cheapestFishName . cWhite . ": " . cheapestFish . cwhite . " mit " . csecond . formatNumber(cheapestFishValue) . cwhite . " LBS weggeworfen")
 				}
 				
 				thrownAway := true
@@ -13263,7 +13375,7 @@ startFish() {
 					break
 				}
 				
-				attempt++
+				attempt ++
 			} else if (RegExMatch(fishing, "Du kannst erst in (\d+) (\S+) wieder angeln\.", ftime_)) {
 				if (aFishMoney + aFishHP > 0) {
 					Sleep, 500
@@ -14188,9 +14300,9 @@ getDamageWeapon(damage) {
 	
 	if (weap) {
 		return weap
+	} else {
+		return "Unbekannt"
 	}
-	
-	return "Unbekannt"
 }
 
 weaponShort(id) {
