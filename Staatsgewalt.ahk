@@ -5155,9 +5155,6 @@ return
 return
 
 :?:/afk::
-if (isInChat()) {
-	SendInput, {Enter}
-}
 {
 	afk := UrlDownloadToVar(baseURL . "api/isafk?username=" . username . "&password=" . password)
 	StringSplit, afk_, afk, ~
@@ -5590,7 +5587,7 @@ if (isInChat()) {
 	SendInput, {Enter}
 }
 {
-	SendClientMessage("{FFEE00}Der Leader hat das Upgrade {FF4000}Arrest-Limit{FFEE00} aktiviert (noch 3 Tage, 2 Stunden und 38 Minuten).")
+	SoundBeep, 500, 250
 }
 return
 
@@ -11978,17 +11975,19 @@ MainTimer:
 	
 	if ((getPlayerHealth() + getPlayerArmor()) != healthOld) {
 		damage := healthOld - (getPlayerHealth() + getPlayerArmor())
-
+		
 		healthOld := (getPlayerHealth() + getPlayerArmor())
 
 		if (damageInfo) {
 			if (damage > 5 && !isPaintball ) {
 				if (!gotPoisened) {
-					SendClientMessage(prefix . "Du hast " . csecond . damage . cwhite . " HP verloren (Waffe: " . cRed getDamageWeapon(damage) . cwhite . "), HP über: " . cGreen . getPlayerHealth())
+					SendClientMessage(prefix . "Du hast soeben (" . csecond . "-" . damage . cwhite . " HP/AM) verloren (" . cRed getDamageWeapon(damage) . cwhite . "), Aktuelle HP/AM: " . cGreen . getPlayerHealth() . cWhite . "/" . cGreen . getPlayerArmor())
 				} else {
-					SendClientMessage(prefix . "Du hast " . csecond . damage . cwhite . " HP verloren (Giftspritze), HP über: " . cGreen . getPlayerHealth())
+					SendClientMessage(prefix . "Du hast soeben (" . csecond . "-" . damage . cwhite . " HP) verloren (" . cRed "Giftspritze" . cwhite . "), Aktuelle HP/AM: " . cGreen . getPlayerHealth() . cWhite . "/" . cGreen . getPlayerArmor())
 					gotPoisened := false 
 				}
+				
+				SoundBeep, 500, 250
 			}
 		}
 	}
