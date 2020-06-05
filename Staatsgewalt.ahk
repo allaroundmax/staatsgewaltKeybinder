@@ -2255,6 +2255,9 @@ if (isInChat()) {
 	stopFinding()
 	
 	global tempo 				:= 80
+	
+	global giveMaxTicket		:= 3
+	
 	global currentTicket 		:= 1
 	global maxTickets 			:= 1
 	global currentFish 			:= 1
@@ -2264,6 +2267,7 @@ if (isInChat()) {
 	global maumode				:= 0
 	global watermode 			:= 0
 	global airmode 				:= 0
+	global admission			:= 0
 	global deathArrested 		:= 0
 	global lastSpeed 			:= 0	
 	global hasEquip				:= 0
@@ -2309,14 +2313,18 @@ if (isInChat()) {
 	global GateTimeout_ 		:= true
 	global fishTimeout_ 		:= true
 	global localTimeout_ 		:= true
-	global garbageTimeout_		:= true
+	global garbageTimeout_		:= true 
 	global fishSellTimeout_		:= true
 
+	global isArrested			:= false
+	global isCuffed				:= false
+	global firstStart			:= false
 	global isPaintball			:= false
 	global hackerFinder 		:= false
 	global rewantedting			:= false
 	global tempomat 			:= false
 	global tv 					:= false
+	global gotPoisened			:= false
 		
 	SendChat("/me verbindet sich neu zum Server.")
 
@@ -5727,7 +5735,10 @@ return
 {
 	stopFinding()
 	
-	global tempo 				:= 80
+global tempo 				:= 80
+	
+	global giveMaxTicket		:= 3
+	
 	global currentTicket 		:= 1
 	global maxTickets 			:= 1
 	global currentFish 			:= 1
@@ -5737,6 +5748,7 @@ return
 	global maumode				:= 0
 	global watermode 			:= 0
 	global airmode 				:= 0
+	global admission			:= 0
 	global deathArrested 		:= 0
 	global lastSpeed 			:= 0	
 	global hasEquip				:= 0
@@ -5782,14 +5794,18 @@ return
 	global GateTimeout_ 		:= true
 	global fishTimeout_ 		:= true
 	global localTimeout_ 		:= true
-	global garbageTimeout_		:= true
+	global garbageTimeout_		:= true 
 	global fishSellTimeout_		:= true
 
+	global isArrested			:= false
+	global isCuffed				:= false
+	global firstStart			:= false
 	global isPaintball			:= false
 	global hackerFinder 		:= false
 	global rewantedting			:= false
 	global tempomat 			:= false
-	global tv 					:= false	
+	global tv 					:= false
+	global gotPoisened			:= false
 	
 	SendInput, /q{enter} 
 }
@@ -12786,9 +12802,7 @@ saveTicket(name) {
 		IniRead, monthtickets, Tickets.ini, Monat, monthtickets[%A_MM%:%A_YYYY%]
 		monthtickets ++
 		IniWrite, %monthtickets%, Tickets.ini, Monat, monthtickets[%A_MM%:%A_YYYY%]
-		
-		str_speichern := RegExReplace(sup_text_%ticketID%, "{(\S{6})}")
-		
+				
 		if (gestickets < 10) {
 			str_ticketID := "0000" . gestickets
 		} else if (gestickets < 100) {
@@ -12802,8 +12816,6 @@ saveTicket(name) {
 		}
 		
 		str_path := "Ticket Nr. " . str_ticketID . " - " . sup_name_%ticketID% . " - " . A_DD . "." . A_MM . "." . A_YYYY . " " . A_Hour . "." . A_Min . "." . A_Sec . " Uhr.txt"
-		
-		FileAppend, %str_speichern%, Tickets\%str_path%
 		
 		SendClientMessage(prefix . "Tickets bearbeitet: " . cSecond . formatNumber(gestickets) . cwhite . " | Heute: " . cSecond . daytickets . cwhite . " | Monat: " . cSecond . formatNumber(monthtickets))
 
