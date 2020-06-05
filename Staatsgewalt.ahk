@@ -19,7 +19,11 @@ if (!A_IsAdmin) {
 		ExitApp
 	}
 }
+
+TODO 
+
 */
+
 
 IfExist update.bat
 {
@@ -591,6 +595,7 @@ Start:
 	global rewantedting			:= false
 	global tempomat 			:= false
 	global tv 					:= false
+	global gotPoisened			:= false
 		
 	global oldVehicleName		:= "none"
 	global oldSpotifyTrack		:= ""
@@ -630,7 +635,7 @@ Start:
 	}	
 	
 	if (bossmode) {
-		SetTimer, SyncTimer, 600000
+		SetTimer, SyncTimer, 60000
 	}
 
 	Gui, Color, white
@@ -2105,961 +2110,6 @@ RPGConnect:
 }
 return
 
-handleChatMessage(message, index, arr) {
-	global
-	
-	if (RegExMatch(message, "^Es befindet sich zu wenig Kraftstoff im Fahrzeug, um den Motor zu starten\.$", message_)) {
-		SetTimer, RefillTimer, 1
-	} else if (RegExMatch(message, "^Paintball: (\S+) hat die Arena betreten\.$", message_)) {
-		if (message_1 == getUserName()) {
-			isPaintball := true 
-			SendClientMessage(prefix . "Der Paintball-Modus wurde " . cgreen . "angeschaltet" . cwhite . ".")
-		}
-	} else if (RegExMatch(message, "^Du hast dir ein Lagerfeuer gekauft\.$", message_)) {
-		getCampfire(1)
-	} else if (RegExMatch(message, "^Du hast ein Lagerfeuer in der Mülltonne gefunden\.$", message_)) {
-		getCampfire(1)
-	} else if (RegExMatch(message, "^Du besitzt kein Erste-Hilfe-Paket\.$", message_)) {
-		getFirstAid(1)
- 	} else if (RegExMatch(message, "^Du hast ein Erstehilfe-Paket erworben \(-(.*)$\).$", message_)) {
-		getFirstAid(1)
-	} else if (RegExMatch(message, "^Du hast ein Erste-Hilfe-Paket im Müll gefunden\.$", message_)) {
-		getFirstAid(1)
- 	} else if (RegExMatch(message, "\* Du hast für \$(.*) ein Erste-Hilfe-Paket von (\S+) gekauft\.$", message_)) {
-		getFirstAid(1)
-	} else if (RegExMatch(message, "^\* " . getUserName() . " benutzt ein Erste-Hilfe-Paket und versorgt die Wunden\.$", message_)) {
-		IniWrite, 600, settings.ini, Cooldown, pakcooldown
-	
-		getFirstAid(1)
-	} else if (RegExMatch(message, "^\* " . getUserName() . " hat Drogen konsumiert.$", message_)) {
-		getDrugs(1)
-		drugcooldown := 30
-	} else if (RegExMatch(message, "^(.*)g Drogen aus den Safe geholt\.$", message_)) {
-		getDrugs(1)
-	} else if (RegExMatch(message, "^(.*)g wurden in den Safe gelegt\.$", message_)) {
-		getDrugs(1)
-	} else if (RegExMatch(message, "^\* (\S+) hat deine (.*)g für (.*)\$ gekauft\.$", message_)) {
-		getDrugs(1)
-	} else if (RegExMatch(message, "^\* Du hast (.*)g für (.*)$ von (\S+) gekauft\.$", message_)) {
-		getDrugs(1)
-	} else if (RegExMatch(message, "^\[ AIRDROP \] (\S+) hat den Airdrop abgegeben und (\d+)g Drogen erhalten\.$", message_)) {
-		if (message_1 == getUserName()) {
-			getDrugs(1)	
-		}
-	} else if (RegExMatch(message, "^Du hast (.*)g Drogen ausgelagert\.$", message_)) {
-		getDrugs(1)
-	} else if (RegExMatch(message, "^Du hast (.*)g Drogen eingelagert\.$", message_)) {
-		getDrugs(1)
-	} else if (RegExMatch(message, "^Du hast (.*)g Drogen für (.*)\$ erworben\.$", message_)) {
-		getDrugs(1)
-	} else if (RegExMatch(message, "^Du hast (\d+)g Marihuana in der Mülltonne gefunden\.$", message_)) {
-		getDrugs(1)
-	} else if (RegExMatch(message, "^Du bist nun im SWAT-Dienst als Agent (\d+)\.$", message_)) {
-		agentID := message_1
-		SendChat("/f Agent " . agentID . " meldet sich zum Dienst!")
-	} else if (RegExMatch(message, "^Du bist nicht mehr im SWAT-Dienst$", message_)) {
-		SendChat("/f Agent " . agentID . " meldet sich vom Dienst ab!")
-		agentID := -1
-	} else if (RegExMatch(message, "^Du beginnst in einer Mülltonne rumzuschnüffeln\.$", message_)) {
-		trashs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trash&value=1")
-		iniWrite, %trashs%, Stats.ini, Mülltonnen, trashs
-		
-		SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(trashs) . cwhite . " Mülltonnen durchwühlt.")
-	} else if (RegExMatch(message, "^Du (.*) in der Mülltonne gefunden.$", message_)) {
-		if (RegExMatch(message_1, "^hast nichts$", msg_)) {
-			nothing := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashNothing&value=1")
-			iniWrite, %nothing%, Stats.ini, Mülltonnen, nothing
-			
-			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(nothing) . cwhite . " nichts in Mülltonnen gefunden.")
-		} else if (RegExMatch(message_1, "^hast ein Lagerfeuer$", msg_)) {
-			campfire:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashCampfire&value=1")
-			iniWrite, %campfire%, Stats.ini, Mülltonnen, campfire
-			
-			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(campfire) . cwhite . " Lagerfeuer in Mülltonnen gefunden.")
-		} else if (RegExMatch(message_1, "^hast (.*)\$$", msg_)) {
-			money := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashMoney&value=" . numberFormat(msg_1))
-			iniWrite, %money%, Stats.ini, Mülltonnen, money
-			
-			SendClientMessage(prefix . "Du hast bereits $" . cSecond . formatNumber(money) . cwhite . " in Mülltonnen gefunden.")
-		} else if (RegExMatch(message_1, "^hast (\d+) Stunden (\S+)$", msg_)) {
-			if (RegExMatch(msg_2, "VIP")) {
-				vip := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashVIP&value=" . numberFormat(msg_1))
-				iniWrite, %vip%, Stats.ini, Mülltonnen, vip
-				SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(vip) . cwhite . " Stunden VIP in Mülltonnen gefunden.")
-			} else if (RegExMatch(msg_2, "Premium")) {
-				prem := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashPremium&value=" . numberFormat(msg_1))
-				iniWrite, %prem%, Stats.ini, Mülltonnen, prem
-				SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(prem) . cwhite . " Stunden Premium in Mülltonnen gefunden.")
-			}
-		} else if (RegExMatch(message_1, "^hast (\d+) Respektpunkte$", msg_)) {
-			respect:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashRespect&value=" . numberFormat(msg_1))
-			iniWrite, %respect%, Stats.ini, Mülltonnen, respect
-			
-			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(respect) . cwhite . " Respektpunkte in Mülltonnen gefunden.")
-		} else if (RegExMatch(message_1, "^hast (\d+)g Marihuana$", msg_)) {
-			drugs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashDrugs&value=" . numberFormat(msg_1))
-			iniWrite, %drugs%, Stats.ini, Mülltonnen, drugs
-			
-			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(drugs) . cwhite . "g Drogen in Mülltonnen gefunden.")
-		} else if (RegExMatch(message_1, "^hast eine Schlagwaffe \((.*)\)$", msg_)) {
-			weaps := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashWeapon&value=1")
-			iniWrite, %weaps%, Stats.ini, Mülltonnen, weaps
-			
-			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(weaps) . cwhite . " Waffen in Mülltonnen gefunden.")
-		}
-	} else if (RegExMatch(message, "^Der Spieler befindet sich in Gebäudekomplex (.*)$", message_)) {
-		if (getOldKomplex != message_1) {
-			getOldKomplex := message_1
-			
-			gk(message_1)
-		}
-	} else if (RegExMatch(message, "^\* (\S+) hat (\S+) Handschellen angelegt\.$", message_)) {
-		if (RegExMatch(message_1, "^Agent (\d+)$", agent_)) {
-			agent_ID := agent_1
-		}
-		
-		if (message_1 == getUserName() || agent_ID == agentID) {
-			for index, grabName in grabList {
-				if (grabName == message_2) {
-					isArrested := true
-				}
-			}
-			
-			for index, arrestName in arrestList {
-				if (arrestName == message_2) {
-					isCuffed := true
-				}
-			}		
-		
-			if (isArrested == false) {
-				arrestList.Push(message_2)			
-			}
-			
-			if (isCuffed == false) {
-				grabList.Push(message_2)
-			}
-			
-			isArrested := false 
-			isCuffed := false
-		}
-	} else if (RegExMatch(message, "^\* Du hast (\S+)'s Handschellen entfernt\.$", message_)) {
-		toRemove := []
-	
-		for index, grabName in grabList {
-			if (grabName == message_1) {
-				toRemove.Push(index)
-			}
-		}
-	
-		for i, id in toRemove {
-			grabList.RemoveAt(id)
-		}
-	} else if (RegExMatch(message, "^\* (\S+) hat seine Kevlarweste (.*)$", message_)) {
-		if (getUserName() == message_1) {			
-			if (InStr(message, "abgelegt")) {
-				isZivil := 1
-				
-				SendClientMessage(prefix . "Du bist nun Zivil.")
-			} else if (RegExMatch(message, "angelegt")) {
-				isZivil := 0
-			
-				SendClientMessage(prefix . "Du bist nun im Dienst.")
-			}
-		}
-	} else if (RegExMatch(message, "^Du bist nun wieder im Dienst!$", message_)) {
-		isZivil := 1
-	} else if (RegExMatch(message, "^Du bist nun nicht mehr im Dienst!$", message_)) {
-		isZivil := 0
-	} else if (RegExMatch(message, "^(\S+) sagt: (.+)", message_)) {
-		if (message_1 != getUserName()) {			
-			if (InStr(message_2, "ticket") || InStr(message_2, "tkt") || InStr(message_2, "tigget")) {
-				requestName := message_1
-				
-				SetTimer, RequestTimer, 1
-			}
-			
-			if (InStr(message_2, "sucht") && InStr(message_2, "member") || InStr(message_2, "invite") && !InStr(message_2, "uninvite")) {
-				if (!tv) {
-					if (oldInviteAsk != message_1) {
-						oldInviteAsk := message_1
-						
-						SendChat("/l Nein.")
-					}
-				}
-			}
-		}
-		
-	} else if (RegExMatch(message, "^\*\* (.+) (\S+): HQ: Bitte Zollstation (\S+) schließen! \*\*", message_)) {
-		if (message_2 != getUserName()) {
-			if (rank > 4) {
-				closeZoll := message_3
-				
-				SetTimer, CloseZollTimer, 1
-			}
-		}
-	} else if (RegExMatch(message, "^\*\* (.*) (\S+): Der Spieler (\S+) \(ID: (\d+)\) (.*)\. \*\*", line_)) {
-		if (line_2 != getUserName() && autoExecute) {
-			wantedIA := line_3
-			wantedContracter := line_2
-			wantedIAReason := line_5
-	
-			SetTimer, WantedIATimer, 1
-		}
-	} else if (RegExMatch(message, "^\*\* (.*) (\S+): Ich konnte bei dem Spieler (\S+) \(ID: (\d+)\) (\S+) festgellen. \*\*", line_)) {
-		if (line_2 != getUserName() && autoExecute) {
-			wantedIA := line_3
-			wantedContracter := line_2
-			wantedIAReason := line_5
-	
-			SetTimer, WantedIATimer, 1
-		}		
-	} else if (RegExMatch(message, "^\*\*\(\( (.+) (\S+): An alle Einheiten: Einsatzziel ist (\S+) \(ID: (\d+)\)\. Alle SOFORT ausrücken! \)\)\*\*$", line_)) {
-		if (line_2 != getUserName()) {
-			target := line_3
-			targetid := line_4
-			
-			SetTimer, TargetTimer, 1
-		}
-	} else if (RegExMatch(message, "^HQ: (.+) (\S+): An alle Einheiten: Einsatzziel ist (\S+) \(ID: (\d+)\)\. Alle SOFORT ausrücken!$", line_)) {
-		if (line_2 != getUserName()) {
-			target := line_3
-			targetid := line_4
-			
-			SetTimer, TargetTimer, 1
-		}		
-	} else if (RegExMatch(message, "^\*\* (.+) (\S+): HQ: Bitte Zollstation (\S+) öffnen! \*\*", message_)) {
-		if (message_2 != getUserName()) {		
-			if (rank > 4) {
-				openZoll := message_3
-				
-				SetTimer, OpenZollTimer, 1
-			}
-		}
-	} else if (RegExMatch(message, "^WARNUNG: Hör auf zu Spamen, sonst wirst du gekickt!$")) {
-		if (antiSpam) {
-			blockChatInput()
-			
-			SendClientMessage(prefix . "Das Antispam System wurde " . cgreen . "aktiviert" . cwhite . ".")
-			
-			SetTimer, SpamTimer, -1500
-		}
-	} else if (RegExMatch(message, "^\[Fraktion\]: (\S+) hat sich eingeloggt\.$", message_)) {
-		if (memberInfo) {
-			loginName := message_1
-			
-			SetTimer, HelloTimer, 1
-		}
-	} else if (RegExMatch(message, "^\* Sanitäter (\S+) bietet dir ein Erste-Hilfe-Paket für \$(\d+) an\. Benutze \/accept Paket$", message_)) {
-		medicName := message_1
-		
-		SetTimer, PaketTimer, 1
-	} else if (RegExMatch(message, "^Paintball: (\S+) wurde von (\S+) getötet\.$", message_)) {
-		if (message_1 == getUsername()) {
-			pbdeaths := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=pbdeaths&value=1")
-			IniWrite, %pbdeaths%, stats.ini, stats, pbdeaths
-			
-			IniRead, pbdeaths, stats.ini, stats, pbdeaths, 0
-			IniRead, pbkills, stats.ini, stats, pbkills, 0 
-			
-			pbKillStreak := 0
-			
-			SendClientMessage(prefix . "Tode: " . csecond . formatNumber(pbdeaths) . cwhite . " | Kills: " . csecond . formatNumber(pbkills) . cwhite . " | K/D: " . csecond . round(pbkills/pbdeaths, 3))
-			
-			if (pbKillStreak > 0 && paintInfo)  {
-				SendChat("/l Meine Killstreak war: " . pbKillStreak)
-			}
-			
-			pbKillStreak := 0
-		} else if (message_2 == getUsername()) {			
-			pbkills := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=pbkills&value=1")
-			IniWrite, %pbkills%, stats.ini, stats, pbkills
-			
-			IniRead, pbkills, stats.ini, stats, pbkills, 0
-			IniRead, pbdeaths, stats.ini, stats, pbdeaths, 0		
-			IniRead, pbHighestKillStreak, stats.ini, stats.ini, pbHighestKillStreak, 0
-			
-			SendClientMessage(prefix . "Kills: " . csecond . formatNumber(pbkills) . cwhite . " | Tode: " . csecond . formatNumber(pbDeaths) . cwhite . " | K/D: " . csecond . round(pbkills/pbdeaths, 3))
-			
-			pbKillStreak ++ := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=pbKillstreak&value=1")
-			
-			
-			if (pbKillStreak > pbHighestKillStreak) {
-				pbHighestKillStreak := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=pbKillstreak&value=1")
-				IniWrite, %pbHighestKillStreak%, stats.ini, stats.ini, pbHighestKillStreak
-				
-				if (paintInfo) {
-					SendChat("/l Meine neue beste Killstreak: " . pbKillStreak)
-				} else {
-					SendClientMessage(prefix . "Neuer Killstreak-Rekord: " . csecond . pbHighestKillStreak)
-				}
-			} else {
-				if (paintInfo) {
-					SendChat("/l Meine Killstreak: " . pbKillStreak)
-				}
-			}
-		}
-	} else if (RegExMatch(message, "^\|=================\|\|============\|\|=================\|$")) {
-		Loop {
-			chat := arr[index - A_Index]
-			
-			if (InStr(chat, "KFZ Steuer:")) {
-				RegExMatch(chat, "KFZ Steuer: -(\d*)\$", car)
-				IsPayday ++
-			}
-			
-			if (InStr(chat, "Lohn: ")) {
-				RegExMatch(chat, "Lohn: (.*)\$ \(davon (.*)\$ durch Upgrade und (.*)\$ durch Segnung\)     Miete: -(.*)\$     Lohnsteuer: -(.*)\$", general)
-				IsPayday ++
-			}
-			
-			if (InStr(chat, "Stromrechnung: ")) {
-				RegExMatch(chat, "Stromrechnung: -(.*)\$", electricity)
-				IsPayday ++
-			}
-			
-			if (InStr(chat, "|================| Gehalts-Check |================|")) {
-				IsPayday ++
-				
-				break
-			}
-		}
-		
-		money := numberFormat(general1)
-		money -= numberFormat(general4)
-		money -= numberFormat(general5)
-		money -= numberFormat(car1)
-		money -= numberFormat(electricity1)
-		
-		if (IsPayday > 0) {		
-			Sleep, 100
-			
-			SendClientMessage(prefix . "Dein Gehaltscheck beläuft sich auf $" . csecond . formatNumber(money) . cwhite . ".")
-			IniWrite, 0, stats.ini, stats, paydayMoney
-		}
-	} else if (RegExMatch(message, "^> (\S+) beobachtet (\S+)\.$", message_)) {
-		if (!tv) {
-			tv := true
-		
-			SendClientMessage(prefix . "Beobachtungsmodus " . cgreen . "aktiviert" . cwhite . ".")
-		}
-	} else if (RegExMatch(message, "^> (\S+) hat die Beobachtung beendet\.$")) {
-		if (tv) {
-			tv := false
-			
-			SendClientMessage(prefix . "Beobachtungsmodus " . cred . "deaktiviert" . cwhite . ".")
-		}
-	} else if (RegExMatch(message, "^Du hast dich ausgerüstet, es wurden (.*) Materialien benötigt\. \(Verbleibend: (.*) Materialien\)$", line0_)) {
-		equipMats:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=equipMats&value=" . numberFormat(line0_1))
-		IniWrite, %equipmats%, stats.ini, Allgemein, Equipmats
-		IniRead, DailyMats, stats.ini, stats, %A_DD%_%A_MM%_%A_YYYY%_Mats, 0 ; (( vielleicht son allgemeinen Log noch extra mit Tages, Wochen und Monats equip im CP ?? ))
-		DailyMats += numberFormat(line0_1)
-		IniWrite, %DailyMats%, stats.ini, stats, %A_DD%_%A_MM%_%A_YYYY%_Mats
-		
-		if (DailyMats < 3000) {
-			SendClientMessage(prefix . cgrey . "Materialverbrauch heute: " . formatNumber(DailyMats))
-		} else if (DailyMats > 3000 && DailyMats < 5000) {
-			SendClientMessage(prefix . cyellow . "Materialverbrauch heute: " . formatNumber(DailyMats))
-		} else if (DailyMats > 5000 && DailyMats < 10000) {
-			SendClientMessage(prefix . corange . "Materialverbrauch heute: " . formatNumber(DailyMats))
-		} else if (DailyMats > 10000) {
-			SendClientMessage(prefix . cred . "Materialverbrauch heute: " . formatNumber(DailyMats))
-		}
-		
-		hasEquip := 1
-	} else if (RegExMatch(message, "^\HQ: (.+) (\S+) hat eine Straßensperre in (.+) aufgebaut\.", line0_)) {
-		if (line0_2 == getUserName())  {
-			roadblocks := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=roadblock&value=1")
-			IniWrite, %roadblocks%, stats.ini, Allgemein, Roadblocks
-			
-			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(roadblocks) . cwhite . " Straßensperren aufgebaut.")
-		}
-	} else if (RegExMatch(message, "^HQ: (.+) (\S+) hat (\S+) (\d+) (\S+) aus der Akte entfernt\.$", line0_)) {
-		if (line0_2 == getUserName()) {
-			if (line0_5 == "Strafpunkte") {
-				Pointsclear := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=pclear&value=" . numberFormat(line0_4))
-				IniWrite, %Pointsclear%, stats.ini, Vergaben, Pointsclear
-				
-				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Pointsclear) . cwhite . " Strafpunkte gelöscht.")
-			} else if (line0_5 == "Wanteds") {
-				Wantedsclear := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=wclear&value=" . numberFormat(line0_4))
-				IniWrite, %Wantedsclear%, stats.ini, Vergaben, Wantedsclear
-				
-				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Wantedsclear) . cwhite . " Wanteds gelöscht.")
-			}
-		}
-	} else if (RegExMatch(message, "^\* Du hast (\S+) ein Ticket für (.*)\$ gegeben, Grund: (.+)$", line0_)) {
-		if (RegExMatch(line0_3, "Wanted-Ticket \((\d+) Wanteds?\)", wanteds_)) {
-			wantedTicket := []
-			wantedTicket["name"] := line0_1
-			wantedTicket["wanteds"] := wanteds_1
-			wantedTickets.Push(wantedTicket)
-		}
-		
-		Ticketrequests := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=tickets&value=1")
-		IniWrite, %Ticketrequests%, stats.ini, Tickets, Ticketrequests
-		
-		Sleep, 100
-		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Ticketrequests) . cwhite . " Tickets ausgestellt.")
-		
-		ticket := []
-		ticket["name"] := line0_1
-		ticket["price"] := numberFormat(line0_2)
-		ticket["reason"] := line0_3
-		
-		for index, ticket in tickets {
-			if (line0_1 == ticket["name"] && ticket["reason"] == line0_3) {
-				return
-			}
-		}
-		
-		tickets.Push(ticket)		
-	} else if (RegExMatch(message, "^\* (\S+) hat dein Ticket in Höhe von (.*)\$ bezahlt\.$", line0_)) {
-		ticketID := -1
-		wantedTicketId := -1
-	
-		for index, ticket in tickets {
-			if (ticket["name"] == line0_1 && ticket["price"] == numberFormat(line0_2)) {
-				ticketID := index
-				
-				ticketResult := UrlDownloadToVar(baseURL . "api/ticketLog?username=" . username . "&password=" . password . "&ticketName=" . line0_1 . "&reason=" . ticket["reason"] . "&money=" . line0_2)
-				break
-			}
-		}
-		
-		for index, wantedTicket in wantedTickets {
-			if (line0_1 == wantedTicket["name"]) {
-				wantedTicketId := index
-				SendChat("/clear " . wantedTicket["name"] . " " . wantedTicket["wanteds"])
-				break
-			}
-		}		
-		
-		Tickets := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=tickets_accepted&value=1")
-		IniWrite, %Tickets%, stats.ini, Tickets, Tickets
-		
-		Sleep, 100
-		SendClientMessage(prefix . "Es wurden bereits " . csecond . formatNumber(Tickets) . cwhite . " Tickets von dir angenommen.")
-		
-		ticketMoney := numberFormat(line0_2)
-		ticketMoney := floor(ticketMoney * taxes)
-
-		Sleep, 100
-		payPartnerMoney(numberFormat(ticketMoney), "ticket_money")		
-		
-		ticketID := -1
-		
-		if (ticketID != -1) {
-			tickets.RemoveAt(ticketID)
-		}
-		
-		if (wantedTicketId != -1) {
-			wantedTickets.RemoveAt(wantedTicketId)
-		}
-	} else if (RegExMatch(message, "^\* Du hast (\S+) seinen (\S+) weggenommen\.$", message_)) {
-		if (message_2 == "Flugschein") {
-			fstakes := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=fstakes&value=1")
-			IniWrite, %fstakes%, stats.ini, Scheine, Flugschein
-			
-			Sleep, 100
-			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(fstakes) . cwhite . " Flugscheine entzogen.")
-			Sleep, 100
-			SendClientMessage(prefix . "Der Schaden durch Flugscheine beläuft sich auf $" . csecond . formatNumber(fstakes * 12000) . cwhite . ".")
-		} else if (message_2 == "Bootschein") {
-			Bootschein := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=bstakes&value=1")
-			IniWrite, %Bootschein%, stats.ini, Scheine, Bootschein
-			
-			Sleep, 100
-			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Bootschein) . cwhite . " Bootscheine entzogen.")
-			Sleep, 100
-			SendClientMessage(prefix . "Der Schaden durch Bootscheine beläuft sich auf $" . csecond . formatNumber(Bootschein * 6000) . cwhite . ".")
-		} else if (message_2 == "Waffenschein") {
-			Waffenschein := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=wstakes&value=1")
-			IniWrite, %Waffenschein%, stats.ini, Scheine,  Waffenschein
-			
-			Sleep, 100
-			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Waffenschein) . cwhite . " Waffenscheine entzogen.")
-			Sleep, 100
-			SendClientMessage(prefix . "Der Schaden durch Waffenscheine beläuft sich auf $" . csecond . formatNumber(Waffenschein * 36000) . cwhite . ".")
-		}
-	} else if (RegExMatch(message, "^\* (\S+) nimmt Geld aus seiner Tasche und gibt es " . getUsername() . "\.$", line0_)) {
-		if (RegExMatch(arr[index - 1], "^Du hast (.*)\$ von (\S+)\((\d+)\) erhalten\.$", line1_)) {
-			playerCoords := getCoordinates()
-			
-			if (getDistanceToPoint(playerCoords[1], playerCoords[2], playerCoords[3], 1564.5, -1694.5, 6.5) < 20) {
-			} else if (getDistanceToPoint(playerCoords[1], playerCoords[2], playerCoords[3], -1589.5, 716, -4.5) < 20) {
-			} else if (getDistanceToPoint(playerCoords[1], playerCoords[2], playerCoords[3], 2281.5, 2431, 4) < 20) {
-			} else if (getDistanceToPoint(playerCoords[1], playerCoords[2], playerCoords[3], 2341.6, -2028.5, 13) < 25) {
-			} else {
-				return
-			}
-			
-			arrested := false
-			
-			Loop, 10 {
-				chat := arr[index - A_Index]
-				
-				if (RegExMatch(chat, "^HQ: Alle Einheiten, (.+) " . line0_1 . " hat den Auftrag ausgeführt\.$", chat_)) {
-					arrested := true
-				}
-			}
-			
-			if (arrested) {
-				Money := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=arrest_money&value=" . numberFormat(line1_1))
-				IniWrite, %Money%, stats.ini, Verhaftungen, Money
-				
-				Arrests := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=arrests&value=1")
-				IniWrite, %arrests%, stats.ini, Verhaftungen, Arrests				
-				
-				Sleep, 100
-				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Arrests) . cwhite . " Verbrecher eingesperrt.")
-				Sleep, 100
-				SendClientMessage(prefix . "Du hast bereits $" . csecond . formatNumber(Money) . cwhite . " durch Verhaftungen verdient.")
-			}
-		}
-	} else if (RegExMatch(message, "^\* Du hast (\S+) seine (\d+)g Drogen weggenommen\.$", line0_)) {
-		for index, value in checkingPlayers {
-			if (line0_1 == value) {
-				return
-			}
-		}
-		
-		drugs:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=drugs&value=" . numberFormat(line0_2))
-		IniWrite, %drugs%, stats.ini, Kontrollen, Drugs
-		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(drugs) . "g" . cwhite . " Drogen weggenommen.")
-	} else if (RegExMatch(message, "^\* Du hast (\S+) seine (\d+) Samen weggenommen\.$", line0_)) {
-		for index, value in checkingPlayers {
-			if (line0_1 == value) {
-				return
-			}
-		}
-		
-		IniRead, Seeds, stats.ini, Kontrollen, Seeds, 0 
-		Seeds += numberFormat(line0_2)
-		IniWrite, %seeds%, stats.ini, Kontrollen, Seeds
-		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(seeds) . cwhite . " Samen weggenommen.")
-	} else if (RegExMatch(message, "^\* Du hast (\S+) seine (.*) Materialien weggenommen\.$", line0_)) {
-		for index, value in checkingPlayers {
-			if (line0_1 == value) {
-				return
-			}
-		}
-		
-		Mats:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=mats&value=" . numberFormat(line0_2))
-		IniWrite, %Mats%, stats.ini, Kontrollen, Mats
-		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Mats) . cwhite . " Materialien weggenommen.")
-	} else if (RegExMatch(message, "^\* Du hast (\S+) seine (\d+) Materialpakete weggenommen\.$", line0_)) {
-		for index, value in checkingPlayers {
-			if (line0_1 == value) {
-				return
-			}
-		}
-		
-		Matpackets := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=matpackets&value=" . numberFormat(line0_2))
-		IniWrite, %Matpackets%, stats.ini, Kontrollen, Matpackets
-		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Matpackets) . cwhite . " Materialpakete weggenommen.")
-	} else if (RegExMatch(message, "^\* Du hast (\S+) seine (\d+) Haftbomben weggenommen\.$", line0_)) {
-		for index, value in checkingPlayers {
-			if (line0_1 == value) {
-				return
-			}
-		}
-		
-		Matbombds := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=matBombds&value=" . numberFormat(line0_2))
-		IniWrite, %Matbombs%, stats.ini, Kontrollen, Matbombs
-		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Matbombs) . cwhite . " Haftbomben weggenommen.")
-	} else if (RegExMatch(message, "^Du hast (.*) (.+) aus dem Kofferraum konfisziert\.$", message_)) {
-		if (message_2 == "Materialien") {
-			Mats := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=mats&value=" . numberFormat(line0_1))
-			IniWrite, %Mats%, stats.ini, Kontrollen, Mats
-			
-			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Mats) . cwhite . " Materialien weggenommen.")
-		} else if (message_2 == "Gramm Drogen") {
-			drugs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=drugs&value=" . numberFormat(line0_1))
-			IniWrite, %drugs%, stats.ini, Kontrollen, Drugs
-		
-			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(drugs) . "g " . cwhite . "Drogen weggenommen.")
-		}
-	} else if (RegExMatch(message, "^\* (.*) schießt mit seinen Elektroschocker auf (\S+) und setzt ihn unter Strom\.$", message_)) {
-		if (RegExMatch(message, "^Agent (\d+)$", agent_)) {
-			agent_ID := agent_1
-		}
-		
-		if (getUserName() == message_1 || agentID == agent_ID) {
-			tazer:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=tazer&value=1")
-			IniWrite, %tazer%, stats.ini, Allgemein, Tazer
-		
-			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(tazer) . cwhite . " Spieler getazert.")
-			
-			for index, grabName in grabList {
-				if (grabName == message_2) {
-					isArrested := true
-				}
-			}
-			
-			for index, arrestName in arrestList {
-				if (arrestName == message_2) {
-					isCuffed := true
-				}
-			}		
-		
-			if (isArrested == false) {
-				arrestList.Push(message_2)			
-			}
-			
-			if (isCuffed == false) {
-				grabList.Push(message_2)
-			}
-			
-			isArrested := false
-			isCuffed := false
-		} else {
-			for index, partner in partners {
-				if (getFullName(partner) == message_1) {
-					for index2, grabname in grabList {
-						if (message_2 == grabName) {
-							return
-						}
-					}
-					
-					grabList.Push(message_2)
-				}
-			}
-		}
-	} else if (RegExMatch(message, "^\* Du hast (\S+) ins Fahrzeug gezogen\.$", message_)) {
-		toRemove := []
-	
-		for index, grabName in grabList {
-			if (message_1 == grabName) {
-				toRemove.Push(index)
-			}
-		}
-	
-		for index, grabID in toRemove {
-			grabList.RemoveAt(grabID)
-		}
-	} else if (RegExMatch(message, "^\* Der Staat übernimmt die Kosten\.$", message_)) {
-		if (REgExMatch(arr[index - 1], "^\* Du hast (.*) Liter getankt für (.*)\$\.$", line0_)) {
-			IniRead, govfills, stats.ini, Allgemein, govfills, 0
-			govfills += numberFormat(line0_1)
-			IniWrite, %govfills%, stats.ini, Allgemein, govfills
-			
-			IniRead, govfillprice, stats.ini, Allgemein, govfillprice, 0
-			govfillprice += numberFormat(line0_2)
-			IniWrite, %govfillprice%, stats.ini, Allgemein, govfillprice
-			
-			Sleep, 100
-			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(govfills) . cwhite . " Liter getankt.")
-			Sleep, 100
-			SendClientMessage(prefix . "Die Tankkosten belaufen sich auf $" . csecond . formatNumber(govfillprice) . cwhite . ".")		
-		}
-	} else if (RegExMatch(message, "^HQ: (\S+) wurde getötet, Haftzeit: (\S+) Minuten, Geldstrafe: (.*)\$$", line0_)) {
-		if (RegExMatch(message, "^HQ: Alle Einheiten, (.*) (\S+) hat den Auftrag ausgeführt\.$", line1_)) {
-			if (line0_1 == getFullName(playerToFind)) {
-				stopFinding()
-			}			
-			
-			if (line1_2 == getUserName()) {
-				Crimekills := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=suspect_kills&value=1")
-				IniWrite, %Crimekills%, stats.ini, Verhaftungen, Crimekills
-				
-				SendClientMessage(prefix . "Dies war dein " . csecond . formatNumber(Crimekills) . cwhite . " getöteter Verbrecher.")
-			}
-			
-			for index, grabName in grabList {
-				if (line0_1 == grabName) {
-					toRemove.Push(index)
-				}
-			}
-		
-			for index, grabID in toRemove {
-				grabList.RemoveAt(grabID)
-			}			
-		}
-	} else if (RegExMatch(message, "^HQ: (.*) wurde eingesperrt, Haftzeit: (\d+) Minuten, Geldstrafe: (.*)\$$", line0_)) {		
-		if (RegExMatch(arr[index - 1], "^HQ: Alle Einheiten, (.*) (\S+) hat den Auftrag ausgeführt\.$", line1_)) {
-			if (line0_1 == getFullName(playerToFind)) {
-				stopFinding()
-			}
-			
-			if (line1_2 == getUsername()) {
-				if (line0_3 == 0) {
-					if (!deathArrested) {
-						arrestWanteds := line0_2 / 3
-						arrestMoney := arrestWanteds * 750
-						
-						if (arrestMoney > 16000) {
-							arrestMoney := 16000
-						}
-						
-						IniRead, taxes, settings.ini, settings, taxes, 1
-						if (taxes == 1) {
-							getTaxes()
-							
-							Sleep, 500
-						}
-						
-						totalArrestMoney += arrestMoney
-						totalArrestMoney := floor(totalArrestMoney * taxes)
-						
-						if (!deathArrested) {
-							arrests := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=arrests&value=1")
-							IniWrite, %arrests%, stats.ini, Verhaftungen, Arrests
-							
-							SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(arrests) . cwhite . " Verbrecher eingesperrt.")
-							
-							SetTimer, PartnerMoneyTimer, 1
-						}
-					} else {
-						deathArrested := false
-					
-						deathArrests := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=darrests&value=1")
-						IniWrite, %deathArrests%, stats.ini, Verhaftungen, Deatharrests
-						
-						SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(deathArrests) . cwhite . " Verbrecher nach dem Tod eingesperrt.")
-						
-						SetTimer, PartnerMoneyTimer, 1
-					}
-				} else {
-					if (deathArrested) {
-						deathArrested := false
-		
-						deathPrison := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=dprison&value=1")
-						IniWrite, %deathPrison%, stats.ini, Verhaftungen, deathprison
-						
-						SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(deathPrison) . cwhite . " Verbrecher nach dem Tod ins Prison gesteckt.")
-					}
-				}
-			}
-			
-			for index, grabName in grabList {
-				if (line0_1 == grabName) {
-					toRemove.Push(index)
-				}
-			}
-		
-			for index, grabID in toRemove {
-				grabList.RemoveAt(grabID)
-			}				
-		}
-	} else if (RegExMatch(message, "^HQ: Haftzeit: (\d+) Minuten, Geldstrafe: (.*)\$\.$", line0_)) {
-		if (RegExMatch(arr[index - 1], "^HQ: (.*) (\S+) hat den Verdächtigen (\S+) offline eingesperrt\.$", line1_)) {
-			if (line1_3 == getFullName(playerToFind)) {
-				stopFinding()
-			}
-				
-			if (line1_2 == getUserName()) {
-				if (line0_2 > 0) {
-					offlinePrison := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=oprison&value=1")
-					IniWrite, %offlinePrison%, stats.ini, Verhaftungen, Offlineprison
-					
-					SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(offlinePrison) . cwhite . " Verbrecher offline ins Prison gesteckt.")
-				} else {
-					arrestWanteds := line0_1 / 3
-					arrestMoney := arrestWanteds * 750
-					
-					if (arrestMoney > 16000) {
-						arrestMoney := 16000
-					}
-					
-					IniRead, taxes, settings.ini, settings, taxes, 1
-					
-					if (taxes == 1) {
-						getTaxes()
-						Sleep, 500
-					}
-					
-					totalArrestMoney += arrestMoney
-					totalArrestMoney := floor(totalArrestMoney * taxes)	
-				
-					offlineArrests := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=oarrests&value=1")
-					IniWrite, %offlineArrests%, stats.ini, Verhaftungen, offlinearrests
-					
-					SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(offlineArrests) . cwhite . " Verbrecher offline eingesperrt.")
-					
-					SetTimer, PartnerMoneyTimer, 1
-				}
-			}
-			
-			for index, grabName in grabList {
-				if (line1_3 == grabName) {
-					toRemove.Push(index)
-				}
-			}
-		
-			for index, grabID in toRemove {
-				grabList.RemoveAt(grabID)
-			}				
-		}
-	/* else if (RegExMatch(message, "^HQ: (.+) " . getUsername() . " hat das Marihuana in (.+) gefunden und zerstört\.$", chat_)) {
-		IniRead, plants, stats.ini, Marihuana, plants, 0
-		plants ++
-		IniWrite, %plants%, stats.ini, Marihuana, Plants
-		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(plants) . cwhite . " Marihuana-Pflanzen zerstört.")
-		
-		adrGTA2 := getModuleBaseAddress("gta_sa.exe", hGTA)
-		cText := readString(hGTA, adrGTA2 + 0x7AAD43, 512)
-		
-		if (RegExMatch(cText, "Marihuana zerstoert~n~~g~(.*)\$", cText_)) {
-			paydayMoney += numberFormat(cText_1)
-			payPartnerMoney(numberFormat(cText_1), "plants_money")
-		}		
-	*/
-	} else if (RegExMatch(message, "^HQ: \+\+\+ Alle Einheiten \+\+\+$")) {
-		if (RegExMatch(arr[index - 2], "^HQ: \+\+\+ Alle Einheiten \+\+\+$")) {
-			mdcChat1 := arr[index - 1]
-	
-			if (RegExMatch(mdcChat1, "^HQ: Jemand versucht das Zellentor aufzubrechen\.$")) {
-				ShowGameText("~r~Ausbruch~n~~w~Zellentor", 8000, 1)
-				
-				iniRead, outbreak, Stats.ini, Stats, outbreak, 0
-				outbreak ++
-				iniWrite, % outbreak, Stats.ini, Stats, outbreak
-				
-				SendClientMessage(prefix . "Es wurde ein Ausbruch (" . cSecond . "#Fall " . outbreak . cwhite . ") gemeldet!")
-
-				if (emergencySound) {
-					SoundSetWaveVolume, 50
-					SoundPlay, %A_ScriptDir%/sounds/bk.mp3
-				}
-			} else if (RegExMatch(mdcChat1, "^HQ: Jemand versucht das Verwaltungstor aufzubrechen\.$")) {
-				ShowGameText("~r~Ausbruch~n~~w~Verwaltungstor", 9000, 1)
-			
-				iniRead, outbreak, Stats.ini, Stats, outbreak, 0
-				outbreak ++
-				iniWrite, % outbreak, Stats.ini, Stats, outbreak
-				
-				SendClientMessage(prefix . "Es wurde ein Ausbruch (" . cSecond . "#Fall " . outbreak . cwhite . ") gemeldet!")
-
-				outbreakInfo := []
-				outbreakInfo["type"] := "gate"
-				outbreakInfo["count"] := outbreak
-				outbreakInfo["countdown"] := 30			
-			
-				if (emergencySound) {
-					SoundSetWaveVolume, 50
-					SoundPlay, %A_ScriptDir%/sounds/bk.mp3
-				}
-			} else if (RegExMatch(mdcChat1, "^HQ: Es wurde ein Coup im Verwaltungsgebäude in Commerce, Los Santos gemeldet\.$")) {				
-				ShowGameText("~r~Heist~n~~w~Verwaltungsgebaude", 9000, 1)
-				
-				if (emergencySound) {
-					SoundSetWaveVolume, 50
-					SoundPlay, %A_ScriptDir%/sounds/bk.mp3
-				}
-			} else if (RegExMatch(mdcChat1, "^HQ: Es wurde ein Coup im Los Santos Police Department gemeldet\.$")) {				
-				ShowGameText("~r~Heist~n~~w~Los Santos Police Department", 9000, 1)
-
-				if (emergencySound) {
-					SoundSetWaveVolume, 50
-					SoundPlay, %A_ScriptDir%/sounds/bk.mp3
-				}
-			} else if (RegExMatch(mdcChat1, "^HQ: Es wurde ein Waffentransporter Überfall in (.+) gemeldet\.$", mdcChat1_)) {				
-				ShowGameText("~r~Waffentransport-Ueberfall~n~~w~" . mdcChat1_1, 9000, 1)
-				
-				if (emergencySound) {
-					SoundSetWaveVolume, 50
-					SoundPlay, %A_ScriptDir%/sounds/bk.mp3
-				}
-			} else if (RegExMatch(mdcChat1, "^HQ: Es wurde ein Bank Überfall in (.+) gemeldet\.$", mdcChat1_)) {				
-				ShowGameText("~r~Bankueberfall~n~~w~" . mdcChat1_1, 9000, 1)
-				
-				if (emergencySound) {
-					SoundSetWaveVolume, 50
-					SoundPlay, %A_ScriptDir%/sounds/bk.mp3
-				}
-			}
-		}
-	} else if (RegExMatch(message, "^HQ: (.+) (\S+) \((\d+)\) benötigt Verstärkung in (.*)\.$", mdcChat_)) {
-		if (mdcChat_2 != getUserName()) {
-			if (backupSound) {
-				SoundSetWaveVolume, 50
-				SoundPlay, %A_ScriptDir%/sounds/bk.mp3
-			}
-		}
-		
-		ShowGameText("~r~Backup~n~~w~" . mdcChat_4 , 8000, 1)
-	} else if (RegExMatch(message, "^Geschwindigkeit: (\d+) km\/h$", message_)) {		
-		vehOwner := arr[index - 4]
-		vehDriver := arr[index - 3]
-		
-		if (RegExMatch(vehOwner, "^Fahrzeughalter: (\S+)$", vehOwner_)) {
-			if (vehOwner_1 == "LSPD" || vehOwner_1 == "SAPD" || vehOwner_1 == "Sanitäter" || vehOwner_1 == "Ordnungsamt" || vehOwner_1 == "FBI" || vehOwner_1 == "SAFD" || vehOwner_1 == "Kirche" || vehOwner_1 == "Army" || vehOwner_1 == "LVPD") {
-				return
-			}
-		}
-		
-		if (RegExMatch(vehDriver, "^Fahrzeugführer: (\S+) \(ID: (\d+)\)$", driver_)) {
-			kmh := max_kmh
-			
-			Radarcontrols := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=radarcontrols&value=1")
-			IniWrite, %Radarcontrols%, stats.ini, Kontrollen, Radarcontrols
-			
-			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Radarcontrols) . cwhite . " Fahrzeuge geblitzt.")
-			
-			if (kmh == 0) {
-				kmh := 80
-				
-				SendClientMessage(prefix . "Trage zuerst eine erlaubte Höchstgeschwindigkeit ein:  " . csecond . "/setkmh")
-			}
-			
-			if (laserInfo) {
-				if (message_1 > kmh) {
-					IniRead, department, settings.ini, settings, department, %A_Space%
-					
-					lastSpeed := message_1
-					lastSpeedUser := driver_1
-					
-					Sleep, 500
-					
-					useMegaphone(0)
-				}
-			}
-		}
-	} else if (RegExMatch(message, "SMS: (.+), Sender: (\S+) \((\d+)\)", message_)) {
-		if (message_2 != getUserName()) {		
-	
-			if (smsSound) {
-				SoundSetWaveVolume, 50
-				SoundPlay, %A_ScriptDir%/sounds/sms.mp3
-			}
-		}
-	} else if (RegExMatch(message, "\.\.\.(.+), Sender: (\S+) \((\d+)\)", message_)) {
-		if (message_2 != getUserName()) {	
-			
-			if (smsSound) {
-				SoundSetWaveVolume, 50
-				SoundPlay, %A_ScriptDir%/sounds/sms.mp3
-			}
-		}
-	} else if (RegExMatch(message, "^Dein Handy klingelt\. Tippe \/pickup\. Anrufer-ID: (\S+)$", message_)) {
-		
-		if (callSound) {
-			SoundSetWaveVolume, 50
-			SoundPlay, %A_ScriptDir%/sounds/call.mp3
-		}
-	} else if (RegExMatch(message, "^Der Gesprächspartner hat aufgelegt\.$") 
-		|| RegExMatch(message, "^Du hast aufgelegt\.$") 
-		|| RegExMatch(message,"^Die Verbindung zu deinem Gesprächspartner wurde unterbrochen\.$")) {
-		
-		if (callSound) {
-			SoundPlay, Nonexistent.avi
-		}
-	} else if (RegExMatch(message, "\* (\S+) geht an sein Handy\.$", message_)) {
-		if (message_1 == getUserName()) {
-			
-			if (callSound) {
-				SoundPlay, Nonexistent.avi
-			}	
-		}
-	}
-}
-
 ~xButton1::
 {
 	if (isBlocked() || tv) {
@@ -3111,7 +2161,7 @@ return
 	IniRead, firstaid, settings.ini, Items, firstaid, 0
 	IniRead, drugs, settings.ini, Items, drugs, 0
 	IniRead, pakcooldown, settings.ini, Cooldown, pakcooldown, 0
-
+	
 	if (isBlocked() || isPaintball || !autoUse || isPlayerInAnyVehicle() || getPlayerArmor() >= 46) {
 		return
 	}
@@ -5917,7 +4967,7 @@ pauseLabel:
 		}
 
 		if (autoUse) {
-			SetTimer, SyncTimer, 600000
+			SetTimer, SyncTimer, 6000
 		}
 	}
 return
@@ -11086,6 +10136,7 @@ SyncTimer:
 		getCampfire(0)
 		
 		SendClientMessage(prefix . "Das Synchronisieren ist " . cgreen . "abgeschlossen" . cwhite . ".")
+		SetTimer, SyncTimer, 600000
 	} else {
 		SetTimer, SyncTimer, off
 	}
@@ -11187,7 +10238,7 @@ SecondTimer:
 			SendClientMessage(prefix . "Du kannst nun wieder ein Erste-Hilfe-Paket nutzen.")
 		}
 		
-		iniWrite, %pakcooldown%, settings.ini, Coodlwon, pakcooldown
+		iniWrite, %pakcooldown%, settings.ini, Cooldown, pakcooldown
 	}
 	
 	if (healcooldown > 0) {
@@ -11648,236 +10699,972 @@ ChatTimer:
 }
 return
 
-WantedTimer:
-{
-	if (wantedInfo) {
-		wantedCopy := wantedPlayers.clone()
-		
-		for index, entry in wantedCopy {
-			wantedID := getPlayerIdByName(entry["name"], true)
-			
-			if (wantedID == -1) {
-				removeFromWanted(entry["name"])
-			} else if (entry["countdown"] == 0 || entry["countdown"] < -1) {
-				removeFromWanted(entry["name"])
-			}
-			
-			if (entry["countdown"] > 0) {
-				entry["countdown"] --
-			}
-		}	
 
-		if (!updateTextLabelData()) {
-			return
+handleChatMessage(message, index, arr) {
+	global
+	
+	if (RegExMatch(message, "^Es befindet sich zu wenig Kraftstoff im Fahrzeug, um den Motor zu starten\.$", message_)) {
+		SetTimer, RefillTimer, 1
+	} else if (RegExMatch(message, "^** Das funktioniert hier nicht.$", message_)) {
+		if (!garbageTimeout_) {
+			garbageTimeout_ := true
 		}
-
-		if (RegExMatch(getLabelText(), "\[(\d+)\] (\S+)\nWantedlevel: (\d+)\nGrund: (.+)", label_)) {
-			for index, entry in wantedPlayers {
-				if (entry["name"] == label_2) {
-					if (entry["countdown"] > 0) {
-						return
+	} else if (RegExMatch(message, "^Paintball: (\S+) hat die Arena betreten\.$", message_)) {
+		if (message_1 == getUserName()) {
+			isPaintball := true 
+			SendClientMessage(prefix . "Der Paintball-Modus wurde " . cgreen . "angeschaltet" . cwhite . ".")
+		}
+	} else if (RegExMatch(message, "^Du hast eine infizierte Spritze gefunden und dich gestochen\.$", message_)) {
+		gotPoisened := true
+	} else if (RegExMatch(message, "^Du hast dir ein Lagerfeuer gekauft\.$", message_)) {
+		getCampfire(1)
+	} else if (RegExMatch(message, "^Du besitzt kein Erste-Hilfe-Paket\.$", message_)) {
+		getFirstAid(1)
+ 	} else if (RegExMatch(message, "^Du hast ein Erstehilfe-Paket erworben \(-(.*)$\).$", message_)) {
+		getFirstAid(1)
+	} else if (RegExMatch(message, "^Du hast ein Erste-Hilfe-Paket im Müll gefunden\.$", message_)) {
+		getFirstAid(1)
+ 	} else if (RegExMatch(message, "\* Du hast für \$(.*) ein Erste-Hilfe-Paket von (\S+) gekauft\.$", message_)) {
+		getFirstAid(1)
+	} else if (RegExMatch(message, "^\* " . getUserName() . " benutzt ein Erste-Hilfe-Paket und versorgt die Wunden\.$", message_)) {
+		IniWrite, 600, settings.ini, Cooldown, pakcooldown
+	
+		getFirstAid(1)
+	} else if (RegExMatch(message, "^\* " . getUserName() . " hat Drogen konsumiert.$", message_)) {
+		getDrugs(1)
+		drugcooldown := 30
+	} else if (RegExMatch(message, "^(.*)g Drogen aus den Safe geholt\.$", message_)) {
+		getDrugs(1)
+	} else if (RegExMatch(message, "^(.*)g wurden in den Safe gelegt\.$", message_)) {
+		getDrugs(1)
+	} else if (RegExMatch(message, "^\* (\S+) hat deine (.*)g für (.*)\$ gekauft\.$", message_)) {
+		getDrugs(1)
+	} else if (RegExMatch(message, "^\* Du hast (.*)g für (.*)$ von (\S+) gekauft\.$", message_)) {
+		getDrugs(1)
+	} else if (RegExMatch(message, "^\[ AIRDROP \] (\S+) hat den Airdrop abgegeben und (\d+)g Drogen erhalten\.$", message_)) {
+		if (message_1 == getUserName()) {
+			getDrugs(1)	
+		}
+	} else if (RegExMatch(message, "^Du hast (.*)g Drogen ausgelagert\.$", message_)) {
+		getDrugs(1)
+	} else if (RegExMatch(message, "^Du hast (.*)g Drogen eingelagert\.$", message_)) {
+		getDrugs(1)
+	} else if (RegExMatch(message, "^Du hast (.*)g Drogen für (.*)\$ erworben\.$", message_)) {
+		getDrugs(1)
+	} else if (RegExMatch(message, "^Du hast (\d+)g Marihuana in der Mülltonne gefunden\.$", message_)) {
+		getDrugs(1)
+	} else if (RegExMatch(message, "^Du bist nun im SWAT-Dienst als Agent (\d+)\.$", message_)) {
+		agentID := message_1
+		SendChat("/f Agent " . agentID . " meldet sich zum Dienst!")
+	} else if (RegExMatch(message, "^Du bist nicht mehr im SWAT-Dienst$", message_)) {
+		SendChat("/f Agent " . agentID . " meldet sich vom Dienst ab!")
+		agentID := -1
+	} else if (RegExMatch(message, "^Du beginnst in einer Mülltonne rumzuschnüffeln\.$", message_)) {
+		trashs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trash&value=1")
+		iniWrite, %trashs%, Stats.ini, Mülltonnen, trashs
+		
+		SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(trashs) . cwhite . " Mülltonnen durchwühlt.")
+	} else if (RegExMatch(message, "^Du (.*) in der Mülltonne gefunden.$", message_)) {
+		if (RegExMatch(message_1, "^hast nichts$", msg_)) {
+			nothing := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashNothing&value=1")
+			iniWrite, %nothing%, Stats.ini, Mülltonnen, nothing
+			
+			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(nothing) . cwhite . " nichts in Mülltonnen gefunden.")
+		} else if (RegExMatch(message_1, "^hast ein Lagerfeuer$", msg_)) {
+			campfire:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashCampfire&value=1")
+			iniWrite, %campfire%, Stats.ini, Mülltonnen, campfire
+			
+			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(campfire) . cwhite . " Lagerfeuer in Mülltonnen gefunden.")
+			getCampfire(1)
+		} else if (RegExMatch(message_1, "^hast (.*)\$$", msg_)) {
+			money := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashMoney&value=" . numberFormat(msg_1))
+			iniWrite, %money%, Stats.ini, Mülltonnen, money
+			
+			SendClientMessage(prefix . "Du hast bereits $" . cSecond . formatNumber(money) . cwhite . " in Mülltonnen gefunden.")
+		} else if (RegExMatch(message_1, "^hast (\d+) Stunden (\S+)$", msg_)) {
+			if (RegExMatch(msg_2, "VIP")) {
+				vip := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashVIP&value=" . numberFormat(msg_1))
+				iniWrite, %vip%, Stats.ini, Mülltonnen, vip
+				SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(vip) . cwhite . " Stunden VIP in Mülltonnen gefunden.")
+			} else if (RegExMatch(msg_2, "Premium")) {
+				prem := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashPremium&value=" . numberFormat(msg_1))
+				iniWrite, %prem%, Stats.ini, Mülltonnen, prem
+				SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(prem) . cwhite . " Stunden Premium in Mülltonnen gefunden.")
+			}
+		} else if (RegExMatch(message_1, "^hast (\d+) Respektpunkte$", msg_)) {
+			respect:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashRespect&value=" . numberFormat(msg_1))
+			iniWrite, %respect%, Stats.ini, Mülltonnen, respect
+			
+			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(respect) . cwhite . " Respektpunkte in Mülltonnen gefunden.")
+		} else if (RegExMatch(message_1, "^hast (\d+)g Marihuana$", msg_)) {
+			drugs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashDrugs&value=" . numberFormat(msg_1))
+			iniWrite, %drugs%, Stats.ini, Mülltonnen, drugs
+			
+			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(drugs) . cwhite . "g Drogen in Mülltonnen gefunden.")
+		} else if (RegExMatch(message_1, "hast (\d+) Materialien$", msg_)) {
+			mats := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashMats&value=" . numberFormat(msg_1))
+			iniWrite, %mats%, Stats.ini, Mülltonnen, mats
+			
+			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(mats) . cwhite . " Materialien in Mülltonnen gefunden.")
+		} else if (RegExMatch(message_1, "^hast eine Schlagwaffe \((.*)\)$", msg_)) {
+			weaps := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashWeapon&value=1")
+			iniWrite, %weaps%, Stats.ini, Mülltonnen, weaps
+			
+			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(weaps) . cwhite . " Waffen in Mülltonnen gefunden.")
+		}
+	} else if (RegExMatch(message, "^Der Spieler befindet sich in Gebäudekomplex (.*)$", message_)) {
+		if (getOldKomplex != message_1) {
+			getOldKomplex := message_1
+			
+			gk(message_1)
+		}
+	} else if (RegExMatch(message, "^\* (\S+) hat (\S+) Handschellen angelegt\.$", message_)) {
+		if (RegExMatch(message_1, "^Agent (\d+)$", agent_)) {
+			agent_ID := agent_1
+		}
+		
+		if (message_1 == getUserName() || agent_ID == agentID) {
+			for index, grabName in grabList {
+				if (grabName == message_2) {
+					isArrested := true
+				}
+			}
+			
+			for index, arrestName in arrestList {
+				if (arrestName == message_2) {
+					isCuffed := true
+				}
+			}		
+		
+			if (isArrested == false) {
+				arrestList.Push(message_2)			
+			}
+			
+			if (isCuffed == false) {
+				grabList.Push(message_2)
+			}
+			
+			isArrested := false 
+			isCuffed := false
+		}
+	} else if (RegExMatch(message, "^\* Du hast (\S+)'s Handschellen entfernt\.$", message_)) {
+		toRemove := []
+	
+		for index, grabName in grabList {
+			if (grabName == message_1) {
+				toRemove.Push(index)
+			}
+		}
+	
+		for i, id in toRemove {
+			grabList.RemoveAt(id)
+		}
+	} else if (RegExMatch(message, "^\* (\S+) hat seine Kevlarweste (.*)$", message_)) {
+		if (getUserName() == message_1) {			
+			if (InStr(message, "abgelegt")) {
+				isZivil := 1
+				
+				SendClientMessage(prefix . "Du bist nun Zivil.")
+			} else if (RegExMatch(message, "angelegt")) {
+				isZivil := 0
+			
+				SendClientMessage(prefix . "Du bist nun im Dienst.")
+			}
+		}
+	} else if (RegExMatch(message, "^Du bist nun wieder im Dienst!$", message_)) {
+		isZivil := 1
+	} else if (RegExMatch(message, "^Du bist nun nicht mehr im Dienst!$", message_)) {
+		isZivil := 0
+	} else if (RegExMatch(message, "^(\S+) sagt: (.+)", message_)) {
+		if (!tv) {
+			if (message_1 != getUserName()) {			
+				if (InStr(message_2, "ticket") || InStr(message_2, "tkt") || InStr(message_2, "tigget")) {
+					requestName := message_1
+					
+					SetTimer, RequestTimer, 1
+				}
+				
+				if (InStr(message_2, "sucht") && InStr(message_2, "member") || InStr(message_2, "invite") && !InStr(message_2, "uninvite")) {
+					if (!tv) {
+						if (oldInviteAsk != message_1) {
+							oldInviteAsk := message_1
+							
+							SendChat("/l Nein.")
+						}
 					}
 				}
 			}
+		}
+	} else if (RegExMatch(message, "^\*\* (.+) (\S+): HQ: Bitte Zollstation (\S+) schließen! \*\*", message_)) {
+		if (message_2 != getUserName()) {
+			if (rank > 4) {
+				closeZoll := message_3
 				
-			if (label_3 < 5) {
-				colorW := cyellow
-				colorW2 := 0xFFEE00FF
-			} else if (label_3 < 10 && label_3 > 4) {
-				colorW := corange
-				colorW2 := 0xFF8100FF
-			} else if (label_3 >= 10) {
-				colorW := cwanted
-				colorW2 := 0xFF4000FF
+				SetTimer, CloseZollTimer, 1
+			}
+		}
+	} else if (RegExMatch(message, "^\*\* (.*) (\S+): Der Spieler (\S+) \(ID: (\d+)\) (.*)\. \*\*", line_)) {
+		if (line_2 != getUserName() && autoExecute) {
+			wantedIA := line_3
+			wantedContracter := line_2
+			wantedIAReason := line_5
+	
+			SetTimer, WantedIATimer, 1
+		}
+	} else if (RegExMatch(message, "^\*\* (.*) (\S+): Ich konnte bei dem Spieler (\S+) \(ID: (\d+)\) (\S+) festgellen. \*\*", line_)) {
+		if (line_2 != getUserName() && autoExecute) {
+			wantedIA := line_3
+			wantedContracter := line_2
+			wantedIAReason := line_5
+	
+			SetTimer, WantedIATimer, 1
+		}		
+	} else if (RegExMatch(message, "^\*\*\(\( (.+) (\S+): An alle Einheiten: Einsatzziel ist (\S+) \(ID: (\d+)\)\. Alle SOFORT ausrücken! \)\)\*\*$", line_)) {
+		if (line_2 != getUserName()) {
+			target := line_3
+			targetid := line_4
+			
+			SetTimer, TargetTimer, 1
+		}
+	} else if (RegExMatch(message, "^HQ: (.+) (\S+): An alle Einheiten: Einsatzziel ist (\S+) \(ID: (\d+)\)\. Alle SOFORT ausrücken!$", line_)) {
+		if (line_2 != getUserName()) {
+			target := line_3
+			targetid := line_4
+			
+			SetTimer, TargetTimer, 1
+		}		
+	} else if (RegExMatch(message, "^\*\* (.+) (\S+): HQ: Bitte Zollstation (\S+) öffnen! \*\*", message_)) {
+		if (message_2 != getUserName()) {		
+			if (rank > 4) {
+				openZoll := message_3
+				
+				SetTimer, OpenZollTimer, 1
+			}
+		}
+	} else if (RegExMatch(message, "^WARNUNG: Hör auf zu Spamen, sonst wirst du gekickt!$")) {
+		if (antiSpam) {
+			blockChatInput()
+			
+			SendClientMessage(prefix . "Das Antispam System wurde " . cgreen . "aktiviert" . cwhite . ".")
+			
+			SetTimer, SpamTimer, -1500
+		}
+	} else if (RegExMatch(message, "^\[Fraktion\]: (\S+) hat sich eingeloggt\.$", message_)) {
+		if (memberInfo) {
+			loginName := message_1
+			
+			SetTimer, HelloTimer, 1
+		}
+	} else if (RegExMatch(message, "^\* Sanitäter (\S+) bietet dir ein Erste-Hilfe-Paket für \$(\d+) an\. Benutze \/accept Paket$", message_)) {
+		medicName := message_1
+		
+		SetTimer, PaketTimer, 1
+	} else if (RegExMatch(message, "^Paintball: (\S+) wurde von (\S+) getötet\.$", message_)) {
+		if (message_1 == getUsername()) {
+			pbdeaths := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=pbdeaths&value=1")
+			IniWrite, %pbdeaths%, stats.ini, stats, pbdeaths
+			
+			IniRead, pbdeaths, stats.ini, stats, pbdeaths, 0
+			IniRead, pbkills, stats.ini, stats, pbkills, 0 
+			
+			pbKillStreak := 0
+			
+			SendClientMessage(prefix . "Tode: " . csecond . formatNumber(pbdeaths) . cwhite . " | Kills: " . csecond . formatNumber(pbkills) . cwhite . " | K/D: " . csecond . round(pbkills/pbdeaths, 3))
+			
+			if (pbKillStreak > 0 && paintInfo)  {
+				SendChat("/l Meine Killstreak war: " . pbKillStreak)
 			}
 			
-			SendClientMessage(prefix . colorW . "Verdächtiger " . label_2 . " (ID: " . getPlayerIdByName(label_2) . ") mit " . label_3 . " Wanteds gesichtet!")
-
-			wantedAlarm := []
-			wantedAlarm["name"] := label_2
-			wantedAlarm["countdown"] := 120
-
-			wantedPlayers.Push(wantedAlarm)
-		}
-	} else {
-		SetTimer, WantedTimer, off
-	}
-}
-return
-
-SpamTimer:
-{		
-	unBlockChatInput()
-	SendClientMessage(prefix . "Das Antispam System wurde " . cred . "deaktiviert" . cwhite . ".")
-	
-	SetTimer, SpamTimer, off
-}
-return
-
-TargetTimer:
-{
-	if (target != "" && targetid != -1) {
-		SendClientMessage(prefix . "Möchtest du den Spieler suchen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
-	
-		KeyWait, X, D, T10
-	
-		if (!ErrorLevel) {
-			playerToFind := getFullName(targetid)
-			autoFindMode := 2
-
-			findPlayer()
-			findInfo(playerToFind)
-		}
-	}
-	
-	SetTimer, TargetTimer, off
-}
-return
-
-WantedIATimer:
-{
-	if (wantedIA != -1 && wantedIAReason != "" && wantedContracter != -1) {
-		SendClientMessage(prefix . "Möchtest du dem Spieler Wanteds geben? Du kannst mit '" . cSecond . "X" . cwhite . "' bestätigen.")
-		
-		KeyWait, X, D, T10
-		
-		if (!ErrorLevel) {
-			if (InStr(wantedIAReason, "entführt mich")) {
-				if (giveWanteds(wantedIA, "Entführung eines Staatsbeamten (" . wantedContracter . ")", 4)) {
-					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Entführng eingetragen!")
+			pbKillStreak := 0
+		} else if (message_2 == getUsername()) {			
+			pbkills := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=pbkills&value=1")
+			IniWrite, %pbkills%, stats.ini, stats, pbkills
+			
+			IniRead, pbkills, stats.ini, stats, pbkills, 0
+			IniRead, pbdeaths, stats.ini, stats, pbdeaths, 0		
+			IniRead, pbHighestKillStreak, stats.ini, stats.ini, pbHighestKillStreak, 0
+			
+			SendClientMessage(prefix . "Kills: " . csecond . formatNumber(pbkills) . cwhite . " | Tode: " . csecond . formatNumber(pbDeaths) . cwhite . " | K/D: " . csecond . round(pbkills/pbdeaths, 3))
+			
+			pbKillStreak ++ := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=pbKillstreak&value=1")
+			
+			
+			if (pbKillStreak > pbHighestKillStreak) {
+				pbHighestKillStreak := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=pbKillstreak&value=1")
+				IniWrite, %pbHighestKillStreak%, stats.ini, stats.ini, pbHighestKillStreak
+				
+				if (paintInfo) {
+					SendChat("/l Meine neue beste Killstreak: " . pbKillStreak)
+				} else {
+					SendClientMessage(prefix . "Neuer Killstreak-Rekord: " . csecond . pbHighestKillStreak)
 				}
-			} else if (InStr(wantedIAReason, "begeht eine Verweigerung")) {
-				if (giveWanteds(wantedIA, "Verweigerung i.A. " . wantedContracter, 1)) {
-					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Verweigerung eingetragen!")
-				}
-			} else if (InStr(wantedIAReason, "versuchte mich zu bestechen")) {
-				if (giveWanteds(wantedIA, "Beamtenbestechung i.A. " . wantedContracter, 1)) {
-					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Beamtenbestechung eingetragen!")
-				}
-			} else if (InStr(wantedIAReason, "verwendet seine Schlag/Schusswaffen")) {
-				if (giveWanteds(wantedIA, "Waffengebrauch i.d.Ö. i.A. " . wantedContracter, 2)) {
-					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Waffengebrauch i.d.Ö. eingetragen!")
-				}
-			} else if (InStr(wantedIAReason, "ist nicht im Besitz eines Waffenschein")) {
-				if (giveWanteds(wantedIA, "Illegaler Waffenbesitz i.A. " . wantedContracter, 2)) {
-					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " illegaler Waffenbesitz eingetragen!")
-				}
-			} else if (InStr(wantedIAReason, "hat ein Unbrechtigtes Fahrzeug/Gelände")) {
-				if (giveWanteds(wantedIA, "Unautorisiertes Betreten i.A. " . wantedContracter, 2)) {
-					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Einbruch eingetragen!")
-				}
-			} else if (InStr(wantedIAReason, "Behindert die Justiz")) {
-				if (giveWanteds(wantedIA, "Behinderung der Justiz i.A. " . wantedContracter, 1)) {
-					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Behinderung der Justiz eingetragen!")
-				}
-			} else if (InStr(wantedIAReason, "begeht einen Angriff / Beschuss")) {
-				if (giveWanteds(wantedIA, "Angriff/Beschuss i.A. " . wantedContracter, 2)) {
-					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Angriff/Beschuss eingetragen!")
-				}
-			} else if (InStr(wantedIAReason, "Materialien")) {
-				if (giveWanteds(wantedIA, "Besitz von Materialien i.A. " . wantedContracter, 2)) {
-					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Besitz von Materialien eingetragen!")
-				}
-			} else if (InStr(wantedIAReason, "Drogen")) {
-				if (giveWanteds(wantedIA, "Besitz von Drogen i.A. " . wantedContracter, 2)) {
-					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Besitz von Drogen eingetragen!")
+			} else {
+				if (paintInfo) {
+					SendChat("/l Meine Killstreak: " . pbKillStreak)
 				}
 			}
 		}
-	}
-	
-	SetTimer, WantedIATimer, off
-}
-return
-
-HelloTimer:
-{
-	if (loginName != -1) {
-		SendClientMessage(prefix . "Möchtest du " . csecond . loginName . cwhite . " begrüßen? Du kannst mit '" . cSecond . "X" . cwhite . "' bestätigen.")
-		
-		KeyWait, X, D, T10
-		
-		if (!ErrorLevel && !isInChat()) {
-			Random tmp, 1, 3
+	} else if (RegExMatch(message, "^\|=================\|\|============\|\|=================\|$")) {
+		Loop {
+			chat := arr[index - A_Index]
 			
-			if (tmp == 1) {
-				SendChat("/f Sei gegrüßt, " . loginName . "!")
-				loginName := -1
-			} else if (tmp == 2) {
-				SendChat("/f Hallo, " . loginName . "!")
-				loginName := -1
-			} else if (tmp == 3) {
-				SendChat("/f Guten Tag, " . loginName . "!")
-				loginName := -1
+			if (InStr(chat, "KFZ Steuer:")) {
+				RegExMatch(chat, "KFZ Steuer: -(\d*)\$", car)
+				IsPayday ++
 			}
 			
-			; BEARBEITEN -> MEHR SPRACHEN WUNSCH DER MEMBER
-		}
-	}
-	
-	SetTimer, HelloTimer, off
-}
-return
-
-PaketTimer:
-{
-	SendClientMessage(prefix . csecond . medicName . cwhite . " bietet dir ein Paket an, drücke '" . csecond . "X" . cwhite . "' zum Annehmen.")
-	
-	KeyWait, X, D, T10
-	
-	if (!ErrorLevel) {
-		SendChat("/accept paket")
-		
-		Sleep, 200
-		
-		if (RegExMatch(readChatLine(0) . readChatLine(1) . readChatLine(2), "Du hast bereits ein Erste-Hilfe-Paket\. Verwende \/erstehilfe")) {
-			if (paketInfo) {
-				SendChat("/l Vielen Dank " . medicName . ", doch ich habe bereits ein Paket!")
+			if (InStr(chat, "Lohn: ")) {
+				RegExMatch(chat, "Lohn: (.*)\$ \(davon (.*)\$ durch Upgrade und (.*)\$ durch Segnung\)     Miete: -(.*)\$     Lohnsteuer: -(.*)\$", general)
+				IsPayday ++
 			}
-		} else if (RegExMatch(readChatLine(0) . readChatLine(1) . readChatLine(2), "\* Du hast für \$(\d+) ein Erste-Hilfe-Paket von (\S+) gekauft\.", chat_)) {
-			if (paketInfo) {
-				SendChat("/l Vielen Dank " . chat_2 . " für das Erste-Hilfe-Paket!")
+			
+			if (InStr(chat, "Stromrechnung: ")) {
+				RegExMatch(chat, "Stromrechnung: -(.*)\$", electricity)
+				IsPayday ++
+			}
+			
+			if (InStr(chat, "|================| Gehalts-Check |================|")) {
+				IsPayday ++
+				
+				break
 			}
 		}
+		
+		money := numberFormat(general1)
+		money -= numberFormat(general4)
+		money -= numberFormat(general5)
+		money -= numberFormat(car1)
+		money -= numberFormat(electricity1)
+		
+		if (IsPayday > 0) {		
+			Sleep, 100
+			
+			SendClientMessage(prefix . "Dein Gehaltscheck beläuft sich auf $" . csecond . formatNumber(money) . cwhite . ".")
+			IniWrite, 0, stats.ini, stats, paydayMoney
+		}
+	} else if (RegExMatch(message, "^> (\S+) beobachtet (\S+)\.$", message_)) {
+		if (!tv) {
+			tv := true
+		
+			SendClientMessage(prefix . "Beobachtungsmodus " . cgreen . "aktiviert" . cwhite . ".")
+		}
+	} else if (RegExMatch(message, "^> (\S+) hat die Beobachtung beendet\.$")) {
+		if (tv) {
+			tv := false
+			
+			SendClientMessage(prefix . "Beobachtungsmodus " . cred . "deaktiviert" . cwhite . ".")
+		}
+	} else if (RegExMatch(message, "^Du hast dich ausgerüstet, es wurden (.*) Materialien benötigt\. \(Verbleibend: (.*) Materialien\)$", line0_)) {
+		equipMats:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=equipMats&value=" . numberFormat(line0_1))
+		IniWrite, %equipmats%, stats.ini, Allgemein, Equipmats
+		IniRead, DailyMats, stats.ini, stats, %A_DD%_%A_MM%_%A_YYYY%_Mats, 0 ; (( vielleicht son allgemeinen Log noch extra mit Tages, Wochen und Monats equip im CP ?? ))
+		DailyMats += numberFormat(line0_1)
+		IniWrite, %DailyMats%, stats.ini, stats, %A_DD%_%A_MM%_%A_YYYY%_Mats
+		
+		if (DailyMats < 3000) {
+			SendClientMessage(prefix . cgrey . "Materialverbrauch heute: " . formatNumber(DailyMats))
+		} else if (DailyMats > 3000 && DailyMats < 5000) {
+			SendClientMessage(prefix . cyellow . "Materialverbrauch heute: " . formatNumber(DailyMats))
+		} else if (DailyMats > 5000 && DailyMats < 10000) {
+			SendClientMessage(prefix . corange . "Materialverbrauch heute: " . formatNumber(DailyMats))
+		} else if (DailyMats > 10000) {
+			SendClientMessage(prefix . cred . "Materialverbrauch heute: " . formatNumber(DailyMats))
+		}
+		
+		hasEquip := 1
+	} else if (RegExMatch(message, "^\HQ: (.+) (\S+) hat eine Straßensperre in (.+) aufgebaut\.", line0_)) {
+		if (line0_2 == getUserName())  {
+			roadblocks := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=roadblock&value=1")
+			IniWrite, %roadblocks%, stats.ini, Allgemein, Roadblocks
+			
+			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(roadblocks) . cwhite . " Straßensperren aufgebaut.")
+		}
+	} else if (RegExMatch(message, "^HQ: (.+) (\S+) hat (\S+) (\d+) (\S+) aus der Akte entfernt\.$", line0_)) {
+		if (line0_2 == getUserName()) {
+			if (line0_5 == "Strafpunkte") {
+				Pointsclear := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=pclear&value=" . numberFormat(line0_4))
+				IniWrite, %Pointsclear%, stats.ini, Vergaben, Pointsclear
+				
+				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Pointsclear) . cwhite . " Strafpunkte gelöscht.")
+			} else if (line0_5 == "Wanteds") {
+				Wantedsclear := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=wclear&value=" . numberFormat(line0_4))
+				IniWrite, %Wantedsclear%, stats.ini, Vergaben, Wantedsclear
+				
+				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Wantedsclear) . cwhite . " Wanteds gelöscht.")
+			}
+		}
+	} else if (RegExMatch(message, "^\* Du hast (\S+) ein Ticket für (.*)\$ gegeben, Grund: (.+)$", line0_)) {
+		if (RegExMatch(line0_3, "Wanted-Ticket \((\d+) Wanteds?\)", wanteds_)) {
+			wantedTicket := []
+			wantedTicket["name"] := line0_1
+			wantedTicket["wanteds"] := wanteds_1
+			wantedTickets.Push(wantedTicket)
+		}
+		
+		Ticketrequests := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=tickets&value=1")
+		IniWrite, %Ticketrequests%, stats.ini, Tickets, Ticketrequests
+		
+		Sleep, 100
+		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Ticketrequests) . cwhite . " Tickets ausgestellt.")
+		
+		ticket := []
+		ticket["name"] := line0_1
+		ticket["price"] := numberFormat(line0_2)
+		ticket["reason"] := line0_3
+		
+		for index, ticket in tickets {
+			if (line0_1 == ticket["name"] && ticket["reason"] == line0_3) {
+				return
+			}
+		}
+		
+		tickets.Push(ticket)		
+	} else if (RegExMatch(message, "^\* (\S+) hat dein Ticket in Höhe von (.*)\$ bezahlt\.$", line0_)) {
+		ticketID := -1
+		wantedTicketId := -1
+	
+		for index, ticket in tickets {
+			if (ticket["name"] == line0_1 && ticket["price"] == numberFormat(line0_2)) {
+				ticketID := index
+				
+				ticketResult := UrlDownloadToVar(baseURL . "api/ticketLog?username=" . username . "&password=" . password . "&ticketName=" . line0_1 . "&reason=" . ticket["reason"] . "&money=" . line0_2)
+				break
+			}
+		}
+		
+		for index, wantedTicket in wantedTickets {
+			if (line0_1 == wantedTicket["name"]) {
+				wantedTicketId := index
+				SendChat("/clear " . wantedTicket["name"] . " " . wantedTicket["wanteds"])
+				break
+			}
+		}		
+		
+		Tickets := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=tickets_accepted&value=1")
+		IniWrite, %Tickets%, stats.ini, Tickets, Tickets
+		
+		Sleep, 100
+		SendClientMessage(prefix . "Es wurden bereits " . csecond . formatNumber(Tickets) . cwhite . " Tickets von dir angenommen.")
+		
+		ticketMoney := numberFormat(line0_2)
+		ticketMoney := floor(ticketMoney * taxes)
+
+		Sleep, 100
+		payPartnerMoney(numberFormat(ticketMoney), "ticket_money")		
+		
+		ticketID := -1
+		
+		if (ticketID != -1) {
+			tickets.RemoveAt(ticketID)
+		}
+		
+		if (wantedTicketId != -1) {
+			wantedTickets.RemoveAt(wantedTicketId)
+		}
+	} else if (RegExMatch(message, "^\* Du hast (\S+) seinen (\S+) weggenommen\.$", message_)) {
+		if (message_2 == "Flugschein") {
+			fstakes := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=fstakes&value=1")
+			IniWrite, %fstakes%, stats.ini, Scheine, Flugschein
+			
+			Sleep, 100
+			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(fstakes) . cwhite . " Flugscheine entzogen.")
+			Sleep, 100
+			SendClientMessage(prefix . "Der Schaden durch Flugscheine beläuft sich auf $" . csecond . formatNumber(fstakes * 12000) . cwhite . ".")
+		} else if (message_2 == "Bootschein") {
+			Bootschein := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=bstakes&value=1")
+			IniWrite, %Bootschein%, stats.ini, Scheine, Bootschein
+			
+			Sleep, 100
+			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Bootschein) . cwhite . " Bootscheine entzogen.")
+			Sleep, 100
+			SendClientMessage(prefix . "Der Schaden durch Bootscheine beläuft sich auf $" . csecond . formatNumber(Bootschein * 6000) . cwhite . ".")
+		} else if (message_2 == "Waffenschein") {
+			Waffenschein := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=wstakes&value=1")
+			IniWrite, %Waffenschein%, stats.ini, Scheine,  Waffenschein
+			
+			Sleep, 100
+			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Waffenschein) . cwhite . " Waffenscheine entzogen.")
+			Sleep, 100
+			SendClientMessage(prefix . "Der Schaden durch Waffenscheine beläuft sich auf $" . csecond . formatNumber(Waffenschein * 36000) . cwhite . ".")
+		}
+	} else if (RegExMatch(message, "^\* (\S+) nimmt Geld aus seiner Tasche und gibt es " . getUsername() . "\.$", line0_)) {
+		if (RegExMatch(arr[index - 1], "^Du hast (.*)\$ von (\S+)\((\d+)\) erhalten\.$", line1_)) {
+			playerCoords := getCoordinates()
+			
+			if (getDistanceToPoint(playerCoords[1], playerCoords[2], playerCoords[3], 1564.5, -1694.5, 6.5) < 20) {
+			} else if (getDistanceToPoint(playerCoords[1], playerCoords[2], playerCoords[3], -1589.5, 716, -4.5) < 20) {
+			} else if (getDistanceToPoint(playerCoords[1], playerCoords[2], playerCoords[3], 2281.5, 2431, 4) < 20) {
+			} else if (getDistanceToPoint(playerCoords[1], playerCoords[2], playerCoords[3], 2341.6, -2028.5, 13) < 25) {
+			} else {
+				return
+			}
+			
+			arrested := false
+			
+			Loop, 10 {
+				chat := arr[index - A_Index]
+				
+				if (RegExMatch(chat, "^HQ: Alle Einheiten, (.+) " . line0_1 . " hat den Auftrag ausgeführt\.$", chat_)) {
+					arrested := true
+				}
+			}
+			
+			if (arrested) {
+				Money := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=arrest_money&value=" . numberFormat(line1_1))
+				IniWrite, %Money%, stats.ini, Verhaftungen, Money
+				
+				Arrests := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=arrests&value=1")
+				IniWrite, %arrests%, stats.ini, Verhaftungen, Arrests				
+				
+				Sleep, 100
+				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Arrests) . cwhite . " Verbrecher eingesperrt.")
+				Sleep, 100
+				SendClientMessage(prefix . "Du hast bereits $" . csecond . formatNumber(Money) . cwhite . " durch Verhaftungen verdient.")
+			}
+		}
+	} else if (RegExMatch(message, "^\* Du hast (\S+) seine (\d+)g Drogen weggenommen\.$", line0_)) {
+		for index, value in checkingPlayers {
+			if (line0_1 == value) {
+				return
+			}
+		}
+		
+		drugs:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=drugs&value=" . numberFormat(line0_2))
+		IniWrite, %drugs%, stats.ini, Kontrollen, Drugs
+		
+		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(drugs) . "g" . cwhite . " Drogen weggenommen.")
+	} else if (RegExMatch(message, "^\* Du hast (\S+) seine (\d+) Samen weggenommen\.$", line0_)) {
+		for index, value in checkingPlayers {
+			if (line0_1 == value) {
+				return
+			}
+		}
+		
+		IniRead, Seeds, stats.ini, Kontrollen, Seeds, 0 
+		Seeds += numberFormat(line0_2)
+		IniWrite, %seeds%, stats.ini, Kontrollen, Seeds
+		
+		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(seeds) . cwhite . " Samen weggenommen.")
+	} else if (RegExMatch(message, "^\* Du hast (\S+) seine (.*) Materialien weggenommen\.$", line0_)) {
+		for index, value in checkingPlayers {
+			if (line0_1 == value) {
+				return
+			}
+		}
+		
+		Mats:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=mats&value=" . numberFormat(line0_2))
+		IniWrite, %Mats%, stats.ini, Kontrollen, Mats
+		
+		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Mats) . cwhite . " Materialien weggenommen.")
+	} else if (RegExMatch(message, "^\* Du hast (\S+) seine (\d+) Materialpakete weggenommen\.$", line0_)) {
+		for index, value in checkingPlayers {
+			if (line0_1 == value) {
+				return
+			}
+		}
+		
+		Matpackets := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=matpackets&value=" . numberFormat(line0_2))
+		IniWrite, %Matpackets%, stats.ini, Kontrollen, Matpackets
+		
+		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Matpackets) . cwhite . " Materialpakete weggenommen.")
+	} else if (RegExMatch(message, "^\* Du hast (\S+) seine (\d+) Haftbomben weggenommen\.$", line0_)) {
+		for index, value in checkingPlayers {
+			if (line0_1 == value) {
+				return
+			}
+		}
+		
+		Matbombds := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=matBombds&value=" . numberFormat(line0_2))
+		IniWrite, %Matbombs%, stats.ini, Kontrollen, Matbombs
+		
+		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Matbombs) . cwhite . " Haftbomben weggenommen.")
+	} else if (RegExMatch(message, "^Du hast (.*) (.+) aus dem Kofferraum konfisziert\.$", message_)) {
+		if (message_2 == "Materialien") {
+			Mats := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=mats&value=" . numberFormat(line0_1))
+			IniWrite, %Mats%, stats.ini, Kontrollen, Mats
+			
+			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Mats) . cwhite . " Materialien weggenommen.")
+		} else if (message_2 == "Gramm Drogen") {
+			drugs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=drugs&value=" . numberFormat(line0_1))
+			IniWrite, %drugs%, stats.ini, Kontrollen, Drugs
+		
+			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(drugs) . "g " . cwhite . "Drogen weggenommen.")
+		}
+	} else if (RegExMatch(message, "^\* (.*) schießt mit seinen Elektroschocker auf (\S+) und setzt ihn unter Strom\.$", message_)) {
+		if (RegExMatch(message, "^Agent (\d+)$", agent_)) {
+			agent_ID := agent_1
+		}
+		
+		if (getUserName() == message_1 || agentID == agent_ID) {
+			tazer:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=tazer&value=1")
+			IniWrite, %tazer%, stats.ini, Allgemein, Tazer
+		
+			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(tazer) . cwhite . " Spieler getazert.")
+			
+			for index, grabName in grabList {
+				if (grabName == message_2) {
+					isArrested := true
+				}
+			}
+			
+			for index, arrestName in arrestList {
+				if (arrestName == message_2) {
+					isCuffed := true
+				}
+			}		
+		
+			if (isArrested == false) {
+				arrestList.Push(message_2)			
+			}
+			
+			if (isCuffed == false) {
+				grabList.Push(message_2)
+			}
+			
+			isArrested := false
+			isCuffed := false
+		} else {
+			for index, partner in partners {
+				if (getFullName(partner) == message_1) {
+					for index2, grabname in grabList {
+						if (message_2 == grabName) {
+							return
+						}
+					}
+					
+					grabList.Push(message_2)
+				}
+			}
+		}
+	} else if (RegExMatch(message, "^\* Du hast (\S+) ins Fahrzeug gezogen\.$", message_)) {
+		toRemove := []
+	
+		for index, grabName in grabList {
+			if (message_1 == grabName) {
+				toRemove.Push(index)
+			}
+		}
+	
+		for index, grabID in toRemove {
+			grabList.RemoveAt(grabID)
+		}
+	} else if (RegExMatch(message, "^\* Der Staat übernimmt die Kosten\.$", message_)) {
+		if (REgExMatch(arr[index - 1], "^\* Du hast (.*) Liter getankt für (.*)\$\.$", line0_)) {
+			IniRead, govfills, stats.ini, Allgemein, govfills, 0
+			govfills += numberFormat(line0_1)
+			IniWrite, %govfills%, stats.ini, Allgemein, govfills
+			
+			IniRead, govfillprice, stats.ini, Allgemein, govfillprice, 0
+			govfillprice += numberFormat(line0_2)
+			IniWrite, %govfillprice%, stats.ini, Allgemein, govfillprice
+			
+			Sleep, 100
+			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(govfills) . cwhite . " Liter getankt.")
+			Sleep, 100
+			SendClientMessage(prefix . "Die Tankkosten belaufen sich auf $" . csecond . formatNumber(govfillprice) . cwhite . ".")		
+		}
+	} else if (RegExMatch(message, "^HQ: (\S+) wurde getötet, Haftzeit: (\S+) Minuten, Geldstrafe: (.*)\$$", line0_)) {
+		if (RegExMatch(message, "^HQ: Alle Einheiten, (.*) (\S+) hat den Auftrag ausgeführt\.$", line1_)) {
+			if (line0_1 == getFullName(playerToFind)) {
+				stopFinding()
+			}			
+			
+			if (line1_2 == getUserName()) {
+				Crimekills := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=suspect_kills&value=1")
+				IniWrite, %Crimekills%, stats.ini, Verhaftungen, Crimekills
+				
+				SendClientMessage(prefix . "Dies war dein " . csecond . formatNumber(Crimekills) . cwhite . " getöteter Verbrecher.")
+			}
+			
+			for index, grabName in grabList {
+				if (line0_1 == grabName) {
+					toRemove.Push(index)
+				}
+			}
+		
+			for index, grabID in toRemove {
+				grabList.RemoveAt(grabID)
+			}			
+		}
+	} else if (RegExMatch(message, "^HQ: (.*) wurde eingesperrt, Haftzeit: (\d+) Minuten, Geldstrafe: (.*)\$$", line0_)) {		
+		if (RegExMatch(arr[index - 1], "^HQ: Alle Einheiten, (.*) (\S+) hat den Auftrag ausgeführt\.$", line1_)) {
+			if (line0_1 == getFullName(playerToFind)) {
+				stopFinding()
+			}
+			
+			if (line1_2 == getUsername()) {
+				if (line0_3 == 0) {
+					if (!deathArrested) {
+						arrestWanteds := line0_2 / 3
+						arrestMoney := arrestWanteds * 750
+						
+						if (arrestMoney > 16000) {
+							arrestMoney := 16000
+						}
+						
+						IniRead, taxes, settings.ini, settings, taxes, 1
+						if (taxes == 1) {
+							getTaxes()
+							
+							Sleep, 500
+						}
+						
+						totalArrestMoney += arrestMoney
+						totalArrestMoney := floor(totalArrestMoney * taxes)
+						
+						if (!deathArrested) {
+							arrests := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=arrests&value=1")
+							IniWrite, %arrests%, stats.ini, Verhaftungen, Arrests
+							
+							SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(arrests) . cwhite . " Verbrecher eingesperrt.")
+							
+							SetTimer, PartnerMoneyTimer, 1
+						}
+					} else {
+						deathArrested := false
+					
+						deathArrests := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=darrests&value=1")
+						IniWrite, %deathArrests%, stats.ini, Verhaftungen, Deatharrests
+						
+						SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(deathArrests) . cwhite . " Verbrecher nach dem Tod eingesperrt.")
+						
+						SetTimer, PartnerMoneyTimer, 1
+					}
+				} else {
+					if (deathArrested) {
+						deathArrested := false
+		
+						deathPrison := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=dprison&value=1")
+						IniWrite, %deathPrison%, stats.ini, Verhaftungen, deathprison
+						
+						SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(deathPrison) . cwhite . " Verbrecher nach dem Tod ins Prison gesteckt.")
+					}
+				}
+			}
+			
+			for index, grabName in grabList {
+				if (line0_1 == grabName) {
+					toRemove.Push(index)
+				}
+			}
+		
+			for index, grabID in toRemove {
+				grabList.RemoveAt(grabID)
+			}				
+		}
+	} else if (RegExMatch(message, "^HQ: Haftzeit: (\d+) Minuten, Geldstrafe: (.*)\$\.$", line0_)) {
+		if (RegExMatch(arr[index - 1], "^HQ: (.*) (\S+) hat den Verdächtigen (\S+) offline eingesperrt\.$", line1_)) {
+			if (line1_3 == getFullName(playerToFind)) {
+				stopFinding()
+			}
+				
+			if (line1_2 == getUserName()) {
+				if (line0_2 > 0) {
+					offlinePrison := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=oprison&value=1")
+					IniWrite, %offlinePrison%, stats.ini, Verhaftungen, Offlineprison
+					
+					SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(offlinePrison) . cwhite . " Verbrecher offline ins Prison gesteckt.")
+				} else {
+					arrestWanteds := line0_1 / 3
+					arrestMoney := arrestWanteds * 750
+					
+					if (arrestMoney > 16000) {
+						arrestMoney := 16000
+					}
+					
+					IniRead, taxes, settings.ini, settings, taxes, 1
+					
+					if (taxes == 1) {
+						getTaxes()
+						Sleep, 500
+					}
+					
+					totalArrestMoney += arrestMoney
+					totalArrestMoney := floor(totalArrestMoney * taxes)	
+				
+					offlineArrests := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=oarrests&value=1")
+					IniWrite, %offlineArrests%, stats.ini, Verhaftungen, offlinearrests
+					
+					SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(offlineArrests) . cwhite . " Verbrecher offline eingesperrt.")
+					
+					SetTimer, PartnerMoneyTimer, 1
+				}
+			}
+			
+			for index, grabName in grabList {
+				if (line1_3 == grabName) {
+					toRemove.Push(index)
+				}
+			}
+		
+			for index, grabID in toRemove {
+				grabList.RemoveAt(grabID)
+			}				
+		}
+	/* else if (RegExMatch(message, "^HQ: (.+) " . getUsername() . " hat das Marihuana in (.+) gefunden und zerstört\.$", chat_)) {
+		IniRead, plants, stats.ini, Marihuana, plants, 0
+		plants ++
+		IniWrite, %plants%, stats.ini, Marihuana, Plants
+		
+		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(plants) . cwhite . " Marihuana-Pflanzen zerstört.")
+		
+		adrGTA2 := getModuleBaseAddress("gta_sa.exe", hGTA)
+		cText := readString(hGTA, adrGTA2 + 0x7AAD43, 512)
+		
+		if (RegExMatch(cText, "Marihuana zerstoert~n~~g~(.*)\$", cText_)) {
+			paydayMoney += numberFormat(cText_1)
+			payPartnerMoney(numberFormat(cText_1), "plants_money")
+		}		
+	*/
+	} else if (RegExMatch(message, "^HQ: \+\+\+ Alle Einheiten \+\+\+$")) {
+		if (RegExMatch(arr[index - 2], "^HQ: \+\+\+ Alle Einheiten \+\+\+$")) {
+			mdcChat1 := arr[index - 1]
+	
+			if (RegExMatch(mdcChat1, "^HQ: Jemand versucht das Zellentor aufzubrechen\.$")) {
+				ShowGameText("~r~Ausbruch~n~~w~Zellentor", 8000, 1)
+				
+				iniRead, outbreak, Stats.ini, Stats, outbreak, 0
+				outbreak ++
+				iniWrite, % outbreak, Stats.ini, Stats, outbreak
+				
+				SendClientMessage(prefix . "Es wurde ein Ausbruch (" . cSecond . "#Fall " . outbreak . cwhite . ") gemeldet!")
+
+				if (emergencySound) {
+					SoundSetWaveVolume, 50
+					SoundPlay, %A_ScriptDir%/sounds/bk.mp3
+				}
+			} else if (RegExMatch(mdcChat1, "^HQ: Jemand versucht das Verwaltungstor aufzubrechen\.$")) {
+				ShowGameText("~r~Ausbruch~n~~w~Verwaltungstor", 9000, 1)
+			
+				iniRead, outbreak, Stats.ini, Stats, outbreak, 0
+				outbreak ++
+				iniWrite, % outbreak, Stats.ini, Stats, outbreak
+				
+				SendClientMessage(prefix . "Es wurde ein Ausbruch (" . cSecond . "#Fall " . outbreak . cwhite . ") gemeldet!")
+
+				outbreakInfo := []
+				outbreakInfo["type"] := "gate"
+				outbreakInfo["count"] := outbreak
+				outbreakInfo["countdown"] := 30			
+			
+				if (emergencySound) {
+					SoundSetWaveVolume, 50
+					SoundPlay, %A_ScriptDir%/sounds/bk.mp3
+				}
+			} else if (RegExMatch(mdcChat1, "^HQ: Es wurde ein Coup im Verwaltungsgebäude in Commerce, Los Santos gemeldet\.$")) {				
+				ShowGameText("~r~Heist~n~~w~Verwaltungsgebaude", 9000, 1)
+				
+				if (emergencySound) {
+					SoundSetWaveVolume, 50
+					SoundPlay, %A_ScriptDir%/sounds/bk.mp3
+				}
+			} else if (RegExMatch(mdcChat1, "^HQ: Es wurde ein Coup im Los Santos Police Department gemeldet\.$")) {				
+				ShowGameText("~r~Heist~n~~w~Los Santos Police Department", 9000, 1)
+
+				if (emergencySound) {
+					SoundSetWaveVolume, 50
+					SoundPlay, %A_ScriptDir%/sounds/bk.mp3
+				}
+			} else if (RegExMatch(mdcChat1, "^HQ: Es wurde ein Waffentransporter Überfall in (.+) gemeldet\.$", mdcChat1_)) {				
+				ShowGameText("~r~Waffentransport-Ueberfall~n~~w~" . mdcChat1_1, 9000, 1)
+				
+				if (emergencySound) {
+					SoundSetWaveVolume, 50
+					SoundPlay, %A_ScriptDir%/sounds/bk.mp3
+				}
+			} else if (RegExMatch(mdcChat1, "^HQ: Es wurde ein Bank Überfall in (.+) gemeldet\.$", mdcChat1_)) {				
+				ShowGameText("~r~Bankueberfall~n~~w~" . mdcChat1_1, 9000, 1)
+				
+				if (emergencySound) {
+					SoundSetWaveVolume, 50
+					SoundPlay, %A_ScriptDir%/sounds/bk.mp3
+				}
+			}
+		}
+	} else if (RegExMatch(message, "^HQ: (.+) (\S+) \((\d+)\) benötigt Verstärkung in (.*)\.$", mdcChat_)) {
+		if (mdcChat_2 != getUserName()) {
+			if (backupSound) {
+				SoundSetWaveVolume, 50
+				SoundPlay, %A_ScriptDir%/sounds/bk.mp3
+			}
+		}
+		
+		ShowGameText("~r~Backup~n~~w~" . mdcChat_4 , 8000, 1)
+	} else if (RegExMatch(message, "^Geschwindigkeit: (\d+) km\/h$", message_)) {		
+		vehOwner := arr[index - 4]
+		vehDriver := arr[index - 3]
+		
+		if (RegExMatch(vehOwner, "^Fahrzeughalter: (\S+)$", vehOwner_)) {
+			if (vehOwner_1 == "LSPD" || vehOwner_1 == "SAPD" || vehOwner_1 == "Sanitäter" || vehOwner_1 == "Ordnungsamt" || vehOwner_1 == "FBI" || vehOwner_1 == "SAFD" || vehOwner_1 == "Kirche" || vehOwner_1 == "Army" || vehOwner_1 == "LVPD") {
+				return
+			}
+		}
+		
+		if (RegExMatch(vehDriver, "^Fahrzeugführer: (\S+) \(ID: (\d+)\)$", driver_)) {
+			kmh := max_kmh
+			
+			Radarcontrols := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=radarcontrols&value=1")
+			IniWrite, %Radarcontrols%, stats.ini, Kontrollen, Radarcontrols
+			
+			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Radarcontrols) . cwhite . " Fahrzeuge geblitzt.")
+			
+			if (kmh == 0) {
+				kmh := 80
+				
+				SendClientMessage(prefix . "Trage zuerst eine erlaubte Höchstgeschwindigkeit ein:  " . csecond . "/setkmh")
+			}
+			
+			if (laserInfo) {
+				if (message_1 > kmh) {
+					IniRead, department, settings.ini, settings, department, %A_Space%
+					
+					lastSpeed := message_1
+					lastSpeedUser := driver_1
+					
+					Sleep, 500
+					
+					useMegaphone(0)
+				}
+			}
+		}
+	} else if (RegExMatch(message, "SMS: (.+), Sender: (\S+) \((\d+)\)", message_)) {
+		if (message_2 != getUserName()) {		
+	
+			if (smsSound) {
+				SoundSetWaveVolume, 50
+				SoundPlay, %A_ScriptDir%/sounds/sms.mp3
+			}
+		}
+	} else if (RegExMatch(message, "\.\.\.(.+), Sender: (\S+) \((\d+)\)", message_)) {
+		if (message_2 != getUserName()) {	
+			
+			if (smsSound) {
+				SoundSetWaveVolume, 50
+				SoundPlay, %A_ScriptDir%/sounds/sms.mp3
+			}
+		}
+	} else if (RegExMatch(message, "^Dein Handy klingelt\. Tippe \/pickup\. Anrufer-ID: (\S+)$", message_)) {
+		
+		if (callSound) {
+			SoundSetWaveVolume, 50
+			SoundPlay, %A_ScriptDir%/sounds/call.mp3
+		}
+	} else if (RegExMatch(message, "^Der Gesprächspartner hat aufgelegt\.$") 
+		|| RegExMatch(message, "^Du hast aufgelegt\.$") 
+		|| RegExMatch(message,"^Die Verbindung zu deinem Gesprächspartner wurde unterbrochen\.$")) {
+		
+		if (callSound) {
+			SoundPlay, Nonexistent.avi
+		}
+	} else if (RegExMatch(message, "\* (\S+) geht an sein Handy\.$", message_)) {
+		if (message_1 == getUserName()) {
+			
+			if (callSound) {
+				SoundPlay, Nonexistent.avi
+			}	
+		}
 	}
-	
-	SetTimer, PaketTimer, off
 }
-return
-
-PartnerMoneyTimer:
-{	
-	payPartnerMoney(totalArrestMoney, "arrest_money")
-	
-	totalArrestMoney := 0
-	
-	SetTimer, PartnerMoneyTimer, off
-}
-return
-
-ShotAllowedCar:
-{
-	SendClientMessage(prefix . "Du darfst nun das Fahrzeug beschießen, sofern der Verbrecher flüchtet.")
-	
-	SetTimer, ShotAllowedCar, off
-}
-return
-
-ShotAllowedBike:
-{
-	SendClientMessage(prefix . "Du darfst nun das Zweirad beschießen, sofern der Verbrecher flüchtet.")
-
-	SetTimer, ShotAllowedBike, off
-}
-return
-
-TazerAllowed:
-{
-	SendClientMessage(prefix . "Du darfst den Verbrecher nun Tazern oder Handschellen anlegen. " . csecond . "(Ausnahme: Kampfsituation)")
-	
-	SetTimer, TazerAllowed, off
-}
-return
 
 MainTimer:
 {	
@@ -12133,7 +11920,12 @@ MainTimer:
 
 		if (damageInfo) {
 			if (damage > 5 && !isPaintball ) {
-				SendClientMessage(prefix . "Du hast " . csecond . damage . cwhite . " HP verloren (Waffe: " . cRed getDamageWeapon(damage) . cwhite . "), HP über: " . cGreen . getPlayerHealth())
+				if (!gotPoisened) {
+					SendClientMessage(prefix . "Du hast " . csecond . damage . cwhite . " HP verloren (Waffe: " . cRed getDamageWeapon(damage) . cwhite . "), HP über: " . cGreen . getPlayerHealth())
+				} else {
+					SendClientMessage(prefix . "Du hast " . csecond . damage . cwhite . " HP verloren (Giftspritze), HP über: " . cGreen . getPlayerHealth())
+					gotPoisened := false 
+				}
 			}
 		}
 	}
@@ -12141,16 +11933,18 @@ MainTimer:
 	if (isPlayerAtGasStation() && autoFill) {
 		if (fillTimeout_) {
 			if (isPlayerInAnyVehicle() && isPlayerDriver()) {
-				SendClientMessage(prefix . "Möchtest du dein Fahrzeug betanken? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
+				if (getVehicleSpeed() <= 25) {
+					SendClientMessage(prefix . "Möchtest du dein Fahrzeug betanken? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
 
-				KeyWait, X, D, T10
+					KeyWait, X, D, T10
 
-				if (!ErrorLevel && !isBlocked()) {
-					fillTimeout_ := false
-					refillCar()
-					fillTimeout := 0
-				} else {
-					fillTimeout_ := true
+					if (!ErrorLevel && !isBlocked()) {
+						fillTimeout_ := false
+						refillCar()
+						fillTimeout := 0
+					} else {
+						fillTimeout_ := true
+					}
 				}
 			}
 		}
@@ -12333,29 +12127,260 @@ MainTimer:
 		return
 	}
 	
-	found := false
-	
 	for i, o in oTextLabelData {
 		if (o.PLAYERID == 65535 && o.VEHICLEID == 65535) {
 			if (getDistanceBetween(o.XPOS, o.YPOS, o.ZPOS, getCoordinates()[1], getCoordinates()[2], getCoordinates()[3], 2.5)) {
 				if (RegExMatch(o.TEXT, "^Mülltonne\nVerwende \/search zum durchsuchen\.$", mull_)) {
-					if (garbageTimeout_) {
-						SendClientMessage(prefix . "Möchtest du die Mülltonne durchsuchen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
-						
-						KeyWait, X, D, T10
-						
-						if (!ErrorLevel && !isBlocked()) {
-							garbageTimeout_ := false
-							SendChat("/search")
-							garbageTimeout := 0
-						} else {
-							garbageTimeout_ := true
+					if (getDistanceBetween(o.XPOS, o.YPOS, o.ZPOS, getCoordinates()[1], getCoordinates()[2], getCoordinates()[3], 2.5)) {
+						if (garbageTimeout_) {
+							SendClientMessage(prefix . "Möchtest du die Mülltonne durchsuchen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
+							
+							KeyWait, X, D, T10
+							
+							if (!ErrorLevel && !isBlocked()) {
+								garbageTimeout_ := false
+								SendChat("/search")
+								garbageTimeout := 0
+							} else {
+								garbageTimeout_ := true
+							}
 						}
 					}
 				}
 			}
 		}
 	}
+}
+return
+
+WantedTimer:
+{
+	if (wantedInfo) {
+		wantedCopy := wantedPlayers.clone()
+		
+		for index, entry in wantedCopy {
+			wantedID := getPlayerIdByName(entry["name"], true)
+			
+			if (wantedID == -1) {
+				removeFromWanted(entry["name"])
+			} else if (entry["countdown"] == 0 || entry["countdown"] < -1) {
+				removeFromWanted(entry["name"])
+			}
+			
+			if (entry["countdown"] > 0) {
+				entry["countdown"] --
+			}
+		}	
+
+		if (!updateTextLabelData()) {
+			return
+		}
+
+		if (RegExMatch(getLabelText(), "\[(\d+)\] (\S+)\nWantedlevel: (\d+)\nGrund: (.+)", label_)) {
+			for index, entry in wantedPlayers {
+				if (entry["name"] == label_2) {
+					if (entry["countdown"] > 0) {
+						return
+					}
+				}
+			}
+				
+			if (label_3 < 5) {
+				colorW := cyellow
+				colorW2 := 0xFFEE00FF
+			} else if (label_3 < 10 && label_3 > 4) {
+				colorW := corange
+				colorW2 := 0xFF8100FF
+			} else if (label_3 >= 10) {
+				colorW := cwanted
+				colorW2 := 0xFF4000FF
+			}
+			
+			SendClientMessage(prefix . colorW . "Verdächtiger " . label_2 . " (ID: " . getPlayerIdByName(label_2) . ") mit " . label_3 . " Wanteds gesichtet!")
+
+			wantedAlarm := []
+			wantedAlarm["name"] := label_2
+			wantedAlarm["countdown"] := 120
+
+			wantedPlayers.Push(wantedAlarm)
+		}
+	} else {
+		SetTimer, WantedTimer, off
+	}
+}
+return
+
+SpamTimer:
+{		
+	unBlockChatInput()
+	SendClientMessage(prefix . "Das Antispam System wurde " . cred . "deaktiviert" . cwhite . ".")
+	
+	SetTimer, SpamTimer, off
+}
+return
+
+TargetTimer:
+{
+	if (target != "" && targetid != -1) {
+		SendClientMessage(prefix . "Möchtest du den Spieler suchen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
+	
+		KeyWait, X, D, T10
+	
+		if (!ErrorLevel) {
+			playerToFind := getFullName(targetid)
+			autoFindMode := 2
+
+			findPlayer()
+			findInfo(playerToFind)
+		}
+	}
+	
+	SetTimer, TargetTimer, off
+}
+return
+
+WantedIATimer:
+{
+	if (wantedIA != -1 && wantedIAReason != "" && wantedContracter != -1) {
+		SendClientMessage(prefix . "Möchtest du dem Spieler Wanteds geben? Du kannst mit '" . cSecond . "X" . cwhite . "' bestätigen.")
+		
+		KeyWait, X, D, T10
+		
+		if (!ErrorLevel) {
+			if (InStr(wantedIAReason, "entführt mich")) {
+				if (giveWanteds(wantedIA, "Entführung eines Staatsbeamten (" . wantedContracter . ")", 4)) {
+					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Entführng eingetragen!")
+				}
+			} else if (InStr(wantedIAReason, "begeht eine Verweigerung")) {
+				if (giveWanteds(wantedIA, "Verweigerung i.A. " . wantedContracter, 1)) {
+					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Verweigerung eingetragen!")
+				}
+			} else if (InStr(wantedIAReason, "versuchte mich zu bestechen")) {
+				if (giveWanteds(wantedIA, "Beamtenbestechung i.A. " . wantedContracter, 1)) {
+					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Beamtenbestechung eingetragen!")
+				}
+			} else if (InStr(wantedIAReason, "verwendet seine Schlag/Schusswaffen")) {
+				if (giveWanteds(wantedIA, "Waffengebrauch i.d.Ö. i.A. " . wantedContracter, 2)) {
+					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Waffengebrauch i.d.Ö. eingetragen!")
+				}
+			} else if (InStr(wantedIAReason, "ist nicht im Besitz eines Waffenschein")) {
+				if (giveWanteds(wantedIA, "Illegaler Waffenbesitz i.A. " . wantedContracter, 2)) {
+					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " illegaler Waffenbesitz eingetragen!")
+				}
+			} else if (InStr(wantedIAReason, "hat ein Unbrechtigtes Fahrzeug/Gelände")) {
+				if (giveWanteds(wantedIA, "Unautorisiertes Betreten i.A. " . wantedContracter, 2)) {
+					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Einbruch eingetragen!")
+				}
+			} else if (InStr(wantedIAReason, "Behindert die Justiz")) {
+				if (giveWanteds(wantedIA, "Behinderung der Justiz i.A. " . wantedContracter, 1)) {
+					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Behinderung der Justiz eingetragen!")
+				}
+			} else if (InStr(wantedIAReason, "begeht einen Angriff / Beschuss")) {
+				if (giveWanteds(wantedIA, "Angriff/Beschuss i.A. " . wantedContracter, 2)) {
+					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Angriff/Beschuss eingetragen!")
+				}
+			} else if (InStr(wantedIAReason, "Materialien")) {
+				if (giveWanteds(wantedIA, "Besitz von Materialien i.A. " . wantedContracter, 2)) {
+					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Besitz von Materialien eingetragen!")
+				}
+			} else if (InStr(wantedIAReason, "Drogen")) {
+				if (giveWanteds(wantedIA, "Besitz von Drogen i.A. " . wantedContracter, 2)) {
+					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Besitz von Drogen eingetragen!")
+				}
+			}
+		}
+	}
+	
+	SetTimer, WantedIATimer, off
+}
+return
+
+HelloTimer:
+{
+	if (loginName != -1) {
+		SendClientMessage(prefix . "Möchtest du " . csecond . loginName . cwhite . " begrüßen? Du kannst mit '" . cSecond . "X" . cwhite . "' bestätigen.")
+		
+		KeyWait, X, D, T10
+		
+		if (!ErrorLevel && !isInChat()) {
+			Random tmp, 1, 3
+			
+			if (tmp == 1) {
+				SendChat("/f Sei gegrüßt, " . loginName . "!")
+				loginName := -1
+			} else if (tmp == 2) {
+				SendChat("/f Hallo, " . loginName . "!")
+				loginName := -1
+			} else if (tmp == 3) {
+				SendChat("/f Guten Tag, " . loginName . "!")
+				loginName := -1
+			}
+			
+			; BEARBEITEN -> MEHR SPRACHEN WUNSCH DER MEMBER
+		}
+	}
+	
+	SetTimer, HelloTimer, off
+}
+return
+
+PaketTimer:
+{
+	SendClientMessage(prefix . csecond . medicName . cwhite . " bietet dir ein Paket an, drücke '" . csecond . "X" . cwhite . "' zum Annehmen.")
+	
+	KeyWait, X, D, T10
+	
+	if (!ErrorLevel) {
+		SendChat("/accept paket")
+		
+		Sleep, 200
+		
+		if (RegExMatch(readChatLine(0) . readChatLine(1) . readChatLine(2), "Du hast bereits ein Erste-Hilfe-Paket\. Verwende \/erstehilfe")) {
+			if (paketInfo) {
+				SendChat("/l Vielen Dank " . medicName . ", doch ich habe bereits ein Paket!")
+			}
+		} else if (RegExMatch(readChatLine(0) . readChatLine(1) . readChatLine(2), "\* Du hast für \$(\d+) ein Erste-Hilfe-Paket von (\S+) gekauft\.", chat_)) {
+			if (paketInfo) {
+				SendChat("/l Vielen Dank " . chat_2 . " für das Erste-Hilfe-Paket!")
+			}
+		}
+	}
+	
+	SetTimer, PaketTimer, off
+}
+return
+
+PartnerMoneyTimer:
+{	
+	payPartnerMoney(totalArrestMoney, "arrest_money")
+	
+	totalArrestMoney := 0
+	
+	SetTimer, PartnerMoneyTimer, off
+}
+return
+
+ShotAllowedCar:
+{
+	SendClientMessage(prefix . "Du darfst nun das Fahrzeug beschießen, sofern der Verbrecher flüchtet.")
+	
+	SetTimer, ShotAllowedCar, off
+}
+return
+
+ShotAllowedBike:
+{
+	SendClientMessage(prefix . "Du darfst nun das Zweirad beschießen, sofern der Verbrecher flüchtet.")
+
+	SetTimer, ShotAllowedBike, off
+}
+return
+
+TazerAllowed:
+{
+	SendClientMessage(prefix . "Du darfst den Verbrecher nun Tazern oder Handschellen anlegen. " . csecond . "(Ausnahme: Kampfsituation)")
+	
+	SetTimer, TazerAllowed, off
 }
 return
 
@@ -14065,6 +14090,19 @@ refillCar() {
 	if (isPlayerInAnyVehicle() && isPlayerDriver()) {
 		if (getVehicleEngineState()) {
 			SendChat("/motor")
+			
+			Sleep, 250
+			
+			if (InStr(readChatLine(0) . readChatLine(1), "Du fährst zu schnell, um den Motor abzustellen.")) {
+				Sleep, 1000
+				
+				SendChat("/motor")
+				Sleep, 250
+			
+				if (InStr(readChatLine(0) . readChatLine(1), "Du fährst zu schnell, um den Motor abzustellen.")) {
+					return
+				}
+			}
 		}
 		
 		Sleep, 100
