@@ -14910,7 +14910,10 @@ forceStats() {
 		return
 	}
 	
-	dialogBlock("/stats")
+	blockDialog()
+	SendChat("/stats")
+	Sleep, 200
+	unblockDialog()
 }
 
 getFishHP() {
@@ -15684,14 +15687,20 @@ reconnectRPG() {
 checkTrunk() {
 	global 
 	
-	dialogBlock("/trunk check")
+	blockDialog()
+	SendChat("/trunk check")
+	Sleep, 200
+	unblockDialog()
 	Sleep, 200
 
 	if (InStr(readChatLine(0) . readChatLine(1), "Fehler:")) {
 		if (InStr(readChatLine(0) . readChatLine(1), "Der Kofferraum ist nicht offen")) {
 			SendChat("/trunk open")
 			
-			dialogBlock("/trunk check")
+			blockDialog()
+			SendChat("/trunk check")
+			Sleep, 200
+			unblockDialog()
 			Sleep, 200
 			
 			if (InStr(readChatLine(0) . readChatLine(1), "Fehler:")) {
