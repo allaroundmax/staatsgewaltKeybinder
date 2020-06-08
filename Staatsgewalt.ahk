@@ -7,7 +7,7 @@
 #Include, include/UDF.ahk
 #Include, include/API.ahk
 #Include, include/JSON.ahk
-#Include, include/Overlay.ahk
+
 
 SetWorkingDir, %A_ScriptDir%
 
@@ -27,10 +27,22 @@ IfExist update.bat
 	FileDelete update.bat
 }
 
+IfNotExist, bin
+{
+	FileCreateDir, bin	
+}
+
+IfNotExist, bin/overlay.dll
+{
+	URLDownloadToFile, https://staatsgewalt.jameschans.de/keybinder/download/bin/overlay.dll, bin/overlay.dll
+}
+
+#Include, include/Overlay.ahk
+
 global projectName 			:= "Staatsgewalt"
 global fullProjectName 		:= "Staatsgewalt"
 
-global version 				:= "4.1.5"
+global version 				:= "4.1.6"
 global keybinderStart 		:= 0
 global rank					:= 0
 global userFraction			:= 1
