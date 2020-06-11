@@ -41,7 +41,7 @@ IfNotExist, bin/overlay.dll
 global projectName 			:= "Staatsgewalt"
 global fullProjectName 		:= "Staatsgewalt"
 
-global version 				:= "4.1.8"
+global version 				:= "4.1.9"
 global keybinderStart 		:= 0
 global rank					:= 0
 global userFraction			:= 1
@@ -497,6 +497,12 @@ Start:
 	defaultHotkeysArray["jobexecute"]					:= "~!j"
 	defaultHotkeysArray["pause"] 						:= "~Pause"
 	
+	defaultHotkeysArray["wanted"]						:= "~ö"
+	defaultHotkeysArray["wantedLS"]						:= "~!1"
+	defaultHotkeysArray["wantedSF"]						:= "~!2"
+	defaultHotkeysArray["wantedLV"]						:= "~!3"
+	defaultHotkeysArray["wantedInt"]					:= "~!4"
+	
 	if (admin) {
 		defaultHotkeysArray["accept1"] 					:= "~+Numpad1"
 		defaultHotkeysArray["accept2"] 					:= "~+Numpad2"
@@ -721,6 +727,7 @@ Start:
 	global isInVehicle			:= false
 	global agentTog				:= false
 	global startOverlay			:= false
+	global pauseOverlay			:= false
 	global isArrested			:= false
 	global isCuffed				:= false
 	global firstStart			:= false
@@ -1440,12 +1447,11 @@ HotkeysGUI:
 	Gui, Hotkeys: Add, Text, x10 y120 w170 h20 , /wanted LV
 	Gui, Hotkeys: Add, Text, x10 y150 w170 h20 , /wanted INT
 	
-	Gui, Hotkeys: Add, Edit, x190 y30 w120 h20 ReadOnly, LWin
-	Gui, Hotkeys: Add, Edit, x190 y60 w120 h20 ReadOnly, LWin + 1
-	Gui, Hotkeys: Add, Edit, x190 y90 w120 h20 ReadOnly, LWin + 2
-	Gui, Hotkeys: Add, Edit, x190 y120 w120 h20 ReadOnly, LWin + 3
-	Gui, Hotkeys: Add, Edit, x190 y150 w120 h20 ReadOnly, LWin + 4
-	
+	Gui, Hotkeys: Add, Edit, x190 y30 w120 h20 vwanted gSaveHotkeyLabel, %wantedNoMods%
+	Gui, Hotkeys: Add, Edit, x190 y60 w120 h20 vwantedLS gSaveHotkeyLabel, %wantedLSNoMods%
+	Gui, Hotkeys: Add, Edit, x190 y90 w120 h20 vwantedSF gSaveHotkeyLabel, %wantedSFNoMods%
+	Gui, Hotkeys: Add, Edit, x190 y120 w120 h20 vwantedLV gSaveHotkeyLabel, %wantedLVNoMods%
+	Gui, Hotkeys: Add, Edit, x190 y150 w120 h20 vwantedInt gSaveHotkeyLabel, %wantedIntNoMods%
 	
 	Gui, Hotkeys: Tab, Seite 5
 
@@ -2727,7 +2733,7 @@ openDoorLabel:
 }
 return
 
-LWin::
+wantedLabel:
 {
 	if (isBlocked()) {
 		return
@@ -2737,7 +2743,7 @@ LWin::
 }
 return
 
-LWin & 1::
+wantedLSLabel:
 {
 	if (isBlocked()) {
 		return
@@ -2747,7 +2753,7 @@ LWin & 1::
 }
 return
 
-LWin & 2::
+wantedSFLabel:
 {
 	if (isBlocked()) {
 		return
@@ -2757,7 +2763,7 @@ LWin & 2::
 }
 return
 
-LWin & 3::
+wantedLVLabel:
 {
 	if (isBlocked()) {
 		return
@@ -2767,7 +2773,7 @@ LWin & 3::
 }
 return
 
-LWin & 4::
+wantedIntLabeL:
 {
 	if (isBlocked()) {
 		return
@@ -10739,14 +10745,21 @@ loadOverlay:
     SetParam("use_window", "1")
     SetParam("window", "GTA:SA:MP")
 	
-    if (!WinExist("GTA:SA:MP")) {
+    if (!WinExist("GTA:SA:MP") || isPlayerInMenu()) {
         if (overlay) {
-            destroyOverlay()
-            startOverlay := false
+			if (startOverlay) {
+				destroyOverlay()
+				pauseOverlay := true
+			}
         }
     }
 	
 	if (WinActive("GTA:SA:MP")) {
+		if (pauseOverlay) {
+			pauseOverlay := false
+			SetTimer, createOverlay, -1
+		}
+		
 		IniRead, spotifyOv, ini/settings.ini, overlay, spotifyOv, 1
 		IniRead, cooldownOv, ini/settings.ini, overlay, cooldownOv, 1
 		IniRead, alertOv, ini/settings.ini, overlay, alertOv, 1
@@ -11710,6 +11723,8 @@ handleChatMessage(message, index, arr) {
 		getCanister(0)
 	} else if (RegExMatch(message, "^Du hast eine infizierte Spritze gefunden und dich gestochen\.$", message_)) {
 		gotPoisened := true
+	} else if (RegExMatch(message, "^Du hast ein Lagerfeuer gesetzt, dieses brennt ca\. 40 Sekunden\.$", message_)) {
+		getCampfire(0)
 	} else if (RegExMatch(message, "^Du hast dir ein Lagerfeuer gekauft\.$", message_)) {
 		getCampfire(0)
 	} else if (RegExMatch(message, "^Du hast ein Erstehilfe-Paket erworben \(-(\d+)\$\)\.$")) {
@@ -11756,7 +11771,7 @@ handleChatMessage(message, index, arr) {
 		IniWrite, 0, ini/Settings.ini, items, mobilePhone
 	
 		if (overlay && startOverlay) {
-			imageDestroy(ov_Phone)
+			ov_Info(0)
 			ov_Info()
 		}	
 		
@@ -11770,7 +11785,7 @@ handleChatMessage(message, index, arr) {
 		IniWrite, 1, ini/Settings.ini, items, mobilePhone
 	
 		if (overlay && startOverlay) {
-			imageDestroy(ov_Phone)
+			ov_Info(0)
 			ov_Info()
 		}	
 
@@ -12076,7 +12091,7 @@ handleChatMessage(message, index, arr) {
 			
 			IniRead, pbkills, ini/Stats.ini, stats, pbkills, 0
 			IniRead, pbdeaths, ini/Stats.ini, stats, pbdeaths, 0		
-			IniRead, pbHighestKillStreak, ini/Stats.ini, ini/Stats.ini, pbHighestKillStreak, 0
+			IniRead, pbHighestKillStreak, ini/Stats.ini, Stats.ini, pbHighestKillStreak, 0
 			
 			SendInfo(cOrange . "Paintball:" . cWhite . " Kills: " . csecond . formatNumber(pbkills) . cwhite . " | Tode: " . csecond . formatNumber(pbDeaths) . cwhite . " | K/D: " . csecond . round(pbkills/pbdeaths, 3))
 			
@@ -12816,7 +12831,7 @@ handleChatMessage(message, index, arr) {
 			IniWrite, 1, ini/Settings.ini, items, mobilePhone
 	
 			if (overlay && startOverlay) {
-				imageDestroy(ov_Phone)
+				ov_Info(0)
 				ov_Info()
 			}	
 	
@@ -12830,7 +12845,7 @@ handleChatMessage(message, index, arr) {
 			IniWrite, 1, ini/Settings.ini, items, mobilePhone
 			
 			if (overlay && startOverlay) {
-				imageDestroy(ov_Phone)
+				ov_Info(0)
 				ov_Info()
 			}
 			
@@ -12843,7 +12858,7 @@ handleChatMessage(message, index, arr) {
 		IniWrite, 1, ini/Settings.ini, items, mobilePhone
 	
 		if (overlay && startOverlay) {
-			imageDestroy(ov_Phone)
+			ov_Info(0)
 			ov_Info()
 		}	
 
@@ -12857,7 +12872,7 @@ handleChatMessage(message, index, arr) {
 		IniWrite, 1, ini/Settings.ini, items, mobilePhone
 		
 		if (overlay && startOverlay) {
-			imageDestroy(ov_Phone)
+			ov_Info(0)
 			ov_Info()
 		}		
 		
@@ -12869,7 +12884,7 @@ handleChatMessage(message, index, arr) {
 			IniWrite, 1, ini/Settings.ini, items, mobilePhone
 			
 			if (overlay && startOverlay) {
-				imageDestroy(ov_Phone)
+				ov_Info(0)
 				ov_Info()
 			}
 
@@ -12887,7 +12902,7 @@ handleChatMessage(message, index, arr) {
 		Sleep, 100
 		
 		if (overlay && startOverlay) {
-			imageDestroy(ov_Phone)
+			ov_Info(0)
 			ov_Info()
 		}		
 	} else if (RegExMatch(message, "^\* Du hast einen (.+) \((\d+) LBS\) gegessen, es wurde deiner Gesundheit hinzugefügt.$", message_)) {
@@ -12903,11 +12918,7 @@ handleChatMessage(message, index, arr) {
 		}
 
 		if (overlay && startOverlay) {
-			imageDestroy(ov_Fish)
-			imageDestroy(ov_UncookedFish)
-			textDestroy(ov_FishText)
-			textDestroy(ov_UncookedFishText)
-			
+			ov_Info(0)
 			ov_Info()
 		}	
 	} else if (RegExMatch(message, "^\* Du hast ein\/e (.+) mit (\d+) LBS gekocht\.$", message_)) {
@@ -12923,11 +12934,7 @@ handleChatMessage(message, index, arr) {
 		}
 		
 		if (overlay && startOverlay) {
-			imageDestroy(ov_Fish)
-			imageDestroy(ov_UncookedFish)
-			textDestroy(ov_FishText)
-			textDestroy(ov_UncookedFishText)
-			
+			ov_Info(0)
 			ov_Info()
 		}			
 	}
@@ -12974,8 +12981,8 @@ KillTimer:
 				}				
 				
 				IniWrite, % killWeaponShort, ini/Stats.ini, Stats, MurdererWeaponArt
-				IniWrite, % killFaction, ini/Stats.ini, MurdererFaction
-				IniWrite, % killWeapon, ini/Stats.ini, MurdererWeapon
+				IniWrite, % killFaction, ini/Stats.ini, Stats, MurdererFaction
+				IniWrite, % killWeapon, ini/Stats.ini, Stats, MurdererWeapon
 				IniWrite, % killName, ini/Stats.ini, Stats, Murderer
 				IniWrite, % deathPlace, ini/Stats.ini, Stats, DeathPlace
 			
@@ -13013,7 +13020,7 @@ KillTimer:
 					}
 					
 					if (overlay && startOverlay) {
-						imageDestroy(ov_Phone)
+						ov_Info(0)
 						ov_Info()
 					}	
 				}					
@@ -13111,7 +13118,7 @@ MainTimer:
 					isInVehicle := true
 					
 					if (overlay && startOverlay && getVehicleType() != 6) {
-						imageDestroy(ov_Canister)
+						ov_Info(0)
 						ov_Info()
 					}	
 				}
@@ -13120,7 +13127,7 @@ MainTimer:
 					isInVehicle := false
 					
 					if (overlay && startOverlay && getVehicleType() != 6) {
-						imageDestroy(ov_Canister)
+						ov_Info(0)
 						ov_Info()
 					}
 				}
@@ -14586,11 +14593,7 @@ startFish() {
 	}
 	
 	if (overlay && startOverlay) {
-		imageDestroy(ov_Fish)
-		imageDestroy(ov_UncookedFish)
-		textDestroy(ov_FishText)
-		textDestroy(ov_UncookedFishText)
-		
+		ov_Info(0)
 		ov_Info()
 	}	
 }
@@ -15133,11 +15136,7 @@ checkFish() {
 	SendInfo("Gesamt HP: " . cSecond . formatNumber(allFishHP) . cwhite . " HP | Gesamt Wert: $" . cSecond . formatNumber(allFishMoney))
 	
 	if (overlay && startOverlay) {
-		imageDestroy(ov_Fish)
-		imageDestroy(ov_UncookedFish)
-		textDestroy(ov_FishText)
-		textDestroy(ov_UncookedFishText)
-		
+		ov_Info(0)
 		ov_Info()
 	}	
 	
@@ -15176,11 +15175,7 @@ checkCook() {
 	SendInfo("Gesamt HP: " . cSecond . formatNumber(allHP) . cwhite . " HP.")
 	
 	if (overlay && startOverlay) {
-		imageDestroy(ov_Fish)
-		imageDestroy(ov_UncookedFish)
-		textDestroy(ov_FishText)
-		textDestroy(ov_UncookedFishText)
-		
+		ov_Info(0)
 		ov_Info()
 	}	
 	
@@ -15310,7 +15305,7 @@ getFirstAid(setted = 0) {
 		}
 		
 		if (overlay && startOverlay) {
-			imageDestroy(ov_Firstaid)
+			ov_Info(0)
 			ov_Info()
 		}			
 		
@@ -15344,7 +15339,7 @@ getCanister(setted = 0) {
 		
 		if (isPlayerInAnyVehicle()) { 
 			if (overlay && startOverlay) {
-				imageDestroy(ov_Canister)
+				ov_Info(0)
 				ov_Info()
 			}			
 		}
@@ -16438,10 +16433,12 @@ ov_Info(create := 1) {
 
 	if (create) {
 		if (infoOv) {
-			IniRead, mobilePhone, ini/Settings.ini, Items, mobilePhone, 0
+			IniRead, drugs, ini/Settings.ini, Items, drugs, 0
 			IniRead, firstaid, ini/Settings.ini, Items, firstaid, 0
 			IniRead, canister, ini/Settings.ini, Items, canister, 0
-			
+			IniRead, campfire, ini/Settings.ini, Items, campfire, 0
+			IniRead, mobilePhone, ini/Settings.ini, Items, mobilePhone, 0
+					
 			if (mobilePhone) {
 				ov_Phone := imageCreate("images\Overlay\phoneOn.png", infoPhoneX, infoPhoneY, 0, true, true)
 			} else {
@@ -16489,11 +16486,6 @@ ov_Info(create := 1) {
 			if (hasFish) {
 				ov_UncookedFish := imageCreate("images\Overlay\fishUncooked.png", infoFishUncookedX, infoFishUncookedY, 0, true, true)
 				ov_UncookedFishText := textCreate("Arial", 9, true, false, infoFishUncookedX + 8, infoFishUncookedY + 8, 0xFFFFFFFF, hasFish, true, true)
-			} else {
-				imageDestroy(ov_Fish)
-				imageDestroy(ov_UncookedFish)
-				textDestroy(ov_FishText)
-				textDestroy(ov_UncookedFishText)
 			}
 		}
 	} else {
@@ -16501,6 +16493,8 @@ ov_Info(create := 1) {
 		imageDestroy(ov_Firstaid)
 		imageDestroy(ov_Canister)
 		imageDestroy(ov_Campfire)
+		imageDestroy(ov_Fish)
+		imageDestroy(ov_UncookedFish)
 		
 		textDestroy(ov_CampfireText)
 		textDestroy(ov_FishText)
@@ -16602,8 +16596,7 @@ SendError(message) {
 }
 
 /*
-- /resetovpos eingefügt, womit man seine Overlaypositionen resetten kann.
-- Die Overlay-files werden nun gedownloadet.
-- Auf einem Fahrrad kann man kein /fill mehr eingeben. Ebenfalls wird das automatische Tanksystem dabei ingoriert.
-- Möglicher Fix beim /relog crash (?)
+- Die Wantedhotkeys können nun umbelegt werden. Standard: ALT + (1-5)
+- Fehler am Killzähler behoben, dass Variablen falsch gespeichert wurden.
+- Fehler am Overlay behoben.
 */
