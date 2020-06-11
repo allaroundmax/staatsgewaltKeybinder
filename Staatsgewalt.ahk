@@ -10,7 +10,7 @@
 
 
 SetWorkingDir, %A_ScriptDir%
-
+/*
 if (!A_IsAdmin) {
 	try {
 		Run *RunAs "%A_ScriptFullPath%"
@@ -19,6 +19,7 @@ if (!A_IsAdmin) {
 		ExitApp
 	}
 }
+*/
 
 IfExist update.bat
 {
@@ -40,7 +41,7 @@ IfNotExist, bin/overlay.dll
 global projectName 			:= "Staatsgewalt"
 global fullProjectName 		:= "Staatsgewalt"
 
-global version 				:= "4.1.7"
+global version 				:= "4.1.8"
 global keybinderStart 		:= 0
 global rank					:= 0
 global userFraction			:= 1
@@ -176,6 +177,9 @@ Start:
 	IfNotExist, images
 		FileCreateDir, images
 	
+	IfNotExist, images/overlay
+		FileCreateDir, images/overlay
+	
 	IfNotExist, images/LogoSmallFBI.png
 		URLDownloadToFile, %baseURL%download/images/LogoSmallFBI.png, images\LogoSmallFBI.png
 	
@@ -184,6 +188,27 @@ Start:
 	
 	IfNotExist, images/LogoSmallArmy.png
 		URLDownloadToFile, %baseURL%download/images/LogoSmallArmy.png, images\LogoSmallArmy.png	
+	
+	IfNotExist, images/campfire.png
+		URLDownloadToFile, %baseURL%download/bin/overlay/campfire.png, images\Overlay\campfire.png
+	
+	IfNotExist, images/canister.png
+		URLDownloadToFile, %baseURL%download/bin/overlay/canister.png, images\Overlay\canister.png
+	
+	IfNotExist, images/firstaid.png
+		URLDownloadToFile, %baseURL%download/bin/overlay/firstaid.png, images\Overlay\firstaid.png
+	
+	IfNotExist, images/fishCooked.png
+		URLDownloadToFile, %baseURL%download/bin/overlay/fishCooked.png, images\Overlay\fishCooked.png
+	
+	IfNotExist, images/fishUncooked.png
+		URLDownloadToFile, %baseURL%download/bin/overlay/fishUncooked.png, images\Overlay\fishUncooked.png
+	
+	IfNotExist, images/phoneOn.png
+		URLDownloadToFile, %baseURL%download/bin/overlay/phoneOn.png, images\Overlay\phoneOn.png
+		
+	IfNotExist, images/phoneOff.png
+		URLDownloadToFile, %baseURL%download/bin/overlay/phoneOff.png, images\Overlay\phoneOff.png
 	
 	IfNotExist, sounds
 		FileCreateDir, sounds
@@ -340,6 +365,9 @@ Start:
 	
 	IniRead, infoCanisterX, ini/settings.ini, overlay, infoCanisterX, 215
 	IniRead, infoCanisterY, ini/settings.ini, overlay, infoCanisterY, 555
+	
+	IniRead, infoCampfireX, ini/settings.ini, overlay, infoCampfireX, 223
+	IniRead, infoCampfireY, ini/settings.ini, overlay, infoCampfireY, 558
 	
 	IniRead, infoFishCookedX, ini/settings.ini, overlay, infoFishCookedX, 765
 	IniRead, infoFishCookedY, ini/settings.ini, overlay, infoFishCookedY, 350	
@@ -2140,6 +2168,7 @@ HelpGUI:
 /ovmove /moveov -> Overlay bewegen
 /ovsave /saveov -> Overlay speichern
 /ovedit /editov -> Overlayteile de/aktivieren
+/resetovpos -> Overlaypositionen zurückesetzen
 
 .:: Allgemeines ::.
 /thx -> Vielen Dank!
@@ -2288,6 +2317,8 @@ return
 			infoFishCookedY -= 1
 		} else if (ovMoveMode == 9) {
 			infoFishUncookedY -= 1
+		} else if (ovMoveMode == 10) {
+			infoCampfireY -= 1
 		}
 		
 		ov_UpdatePosition(ovMoveMode)
@@ -2317,6 +2348,8 @@ return
 			infoFishCookedY += 1
 		} else if (ovMoveMode == 9) {
 			infoFishUncookedY += 1
+		} else if (ovMoveMode == 10) {
+			infoCampfireY += 1
 		}
 		
 		ov_UpdatePosition(ovMoveMode)
@@ -2346,6 +2379,8 @@ return
 			infoFishCookedX -= 1
 		} else if (ovMoveMode == 9) {
 			infoFishUncookedX -= 1
+		} else if (ovMoveMode == 10) {
+			infoCampfireX -= 1
 		}
 		
 		ov_UpdatePosition(ovMoveMode)
@@ -2375,6 +2410,8 @@ return
 			infoFishCookedX += 1
 		} else if (ovMoveMode == 9) {
 			infoFishUncookedX += 1
+		} else if (ovMoveMode == 10) {
+			infoCampfireX += 1
 		}
 		
 		ov_UpdatePosition(ovMoveMode)
@@ -2417,7 +2454,7 @@ return
 				
 				SendChat("/pbenter")
 			} else {
-				SendClientMessage(prefix . "Du benötigst mindestens 2.500$.")
+				SendInfo("Du benötigst mindestens 2.500$.")
 			}
 		}
 	}
@@ -2489,10 +2526,10 @@ jobexecuteLabel:
 	}
 	
 	if ((job == "") || (job <= 1)) {
-		SendClientMessage(prefix . "Fehler: Du hast keinen Job gesetzt. Verwende '" . csecond . "/setjob" . cwhite . "'.")
+		SendError("Du hast keinen Job gesetzt. Verwende '" . csecond . "/setjob" . cwhite . "'.")
 	} else if (job == 4) {
 		if ((jobLine == "") || (jobLine <= 1)) {
-			SendClientMessage(prefix . "Fehler: Du hast keine Linie gesetzt. Verwende '" . csecond . "/setlinie" . cwhite . "'.")
+			SendError("Du hast keine Linie gesetzt. Verwende '" . csecond . "/setlinie" . cwhite . "'.")
 			
 			SendChat("/linie")
 		} else {
@@ -2517,21 +2554,21 @@ tempomatLabel:
 				
 				tempomat := false
 				
-				SendClientMessage(prefix . "Du hast den Tempomat " . cred . "deaktiviert" . cwhite . ".")
+				SendInfo("Du hast den Tempomat " . cred . "deaktiviert" . cwhite . ".")
 			} else {
 				if (!tempomat) {
 					tempomat := true
 					
 					SetTimer, TempoTimer, 100
 					
-					SendClientMessage(prefix . "Du hast den Tempomat " . cgreen . "aktiviert" . cwhite . " (Tempo: " . csecond . tempo . " km/h" . cwhite . ").")
+					SendInfo("Du hast den Tempomat " . cgreen . "aktiviert" . cwhite . " (Tempo: " . csecond . tempo . " km/h" . cwhite . ").")
 				}
 			}
 		} else {
-			SendClientMessage(prefix . "Fehler: Du bist nicht der Fahrer des Fahrzeuges.")
+			SendError("Du bist nicht der Fahrer des Fahrzeuges.")
 		}
 	} else {
-		SendClientMessage(prefix . "Fehler: Du befindest dich in keinem Fahrzeug.")
+		SendError("Du befindest dich in keinem Fahrzeug.")
 	}
 }
 return
@@ -2580,19 +2617,19 @@ govClosedCustomsLabel:
 		return
 	}
 	
-	SendClientMessage(prefix . "Welche Zollstation soll als 'geschlossen' angekündigt werden (1-13)?")
+	SendInfo("Welche Zollstation soll als 'geschlossen' angekündigt werden (1-13)?")
 	
 	zollID := PlayerInput("Zoll-ID: ")
 	if (zollID == "" || zollID == " ") {
 		return
 	} else if (zollID is not number) {
-		SendClientMessage(prefix . "Fehler: Die Zoll-ID muss eine Zahl sein.")
+		SendError("Die Zoll-ID muss eine Zahl sein.")
 		return
 	} else if (zollID > 13 || zollID < 1) {
-		SendClientMessage(prefix . "Fehler: Die Zoll-ID darf nicht höher als 13 und niedriger als 1 sein.")
+		SendError("Die Zoll-ID darf nicht höher als 13 und niedriger als 1 sein.")
 		return
 	} else if (rank < 7) {
-		SendClientMessage(prefix . "Fehler: Du benötigst Rang 7.")
+		SendError("Du benötigst Rang 7.")
 		return
 	}
 	
@@ -2626,19 +2663,19 @@ govOpenedCustomsLabel:
 		return
 	}
 	
-	SendClientMessage(prefix . "Welche Zollstation soll als 'offen' angekündigt werden (1-13)?")
+	SendInfo("Welche Zollstation soll als 'offen' angekündigt werden (1-13)?")
 	
 	zollID := PlayerInput("Zoll-ID: ")
 	if (zollID == "" || zollID == " ") {
 		return
 	} else if (zollID is not number) {
-		SendClientMessage(prefix . "Fehler: Die Zoll-ID muss eine Zahl sein.")
+		SendError("Die Zoll-ID muss eine Zahl sein.")
 		return
 	} else if (zollID > 13 || zollID < 1) {
-		SendClientMessage(prefix . "Fehler: Die Zoll-ID darf nicht höher als 13 und niedriger als 1 sein.")
+		SendError("Die Zoll-ID darf nicht höher als 13 und niedriger als 1 sein.")
 		return
 	} else if (rank < 7) {
-		SendClientMessage(prefix . "Fehler: Du benötigst Rang 7.")
+		SendError("Du benötigst Rang 7.")
 		return
 	}
 	
@@ -2675,7 +2712,7 @@ openCustomsLabel:
 	if (isPlayerAtMaut()) {
 		openMaut()
 	} else {
-		SendClientMessage(prefix . "Du bist an keiner Zollstation.")
+		SendInfo("Du bist an keiner Zollstation.")
 	}
 }
 return
@@ -2769,7 +2806,7 @@ megaControlLabel:
 	if (!maumode) {
 		useMegaphone(2)
 	} else {
-		SendClientMessage(prefix . "Mau-Modus: Mau 1 wird gelegt:")
+		SendInfo("Mau-Modus: Mau 1 wird gelegt:")
 		SendChat("/mau 1")
 	}
 }
@@ -2784,7 +2821,7 @@ megaStopLabel:
 	if (!maumode) {
 		useMegaphone(3)
 	} else {
-		SendClientMessage(prefix . "Mau-Modus: Mau 2 wird gelegt:")
+		SendInfo("Mau-Modus: Mau 2 wird gelegt:")
 		SendChat("/mau 2")
 	}
 }
@@ -2799,7 +2836,7 @@ megaByNameLabel:
 	if (!maumode) {
 		useMegaphone(4)
 	} else {
-		SendClientMessage(prefix . "Mau-Modus: Mau 3 wird gelegt:")
+		SendInfo("Mau-Modus: Mau 3 wird gelegt:")
 		SendChat("/mau 3")
 	}
 }
@@ -2814,7 +2851,7 @@ megaGetOutOfCarLabel:
 	if (!maumode) {
 		useMegaphone(5)
 	} else {
-		SendClientMessage(prefix . "Mau-Modus: Mau 4 wird gelegt:")
+		SendInfo("Mau-Modus: Mau 4 wird gelegt:")
 		SendChat("/mau 4")
 	}
 }
@@ -2829,7 +2866,7 @@ megaClearLabel:
 	if (!maumode) {
 		useMegaphone(6)
 	} else {
-		SendClientMessage(prefix . "Mau-Modus: Mau 5 wird gelegt:")
+		SendInfo("Mau-Modus: Mau 5 wird gelegt:")
 		SendChat("/mau 5")
 	}
 }
@@ -2844,7 +2881,7 @@ megaWeaponsLabel:
 	if (!maumode) {
 		useMegaphone(7)
 	} else {
-		SendClientMessage(prefix . "Mau-Modus: Mau 6 wird gelegt:")
+		SendInfo("Mau-Modus: Mau 6 wird gelegt:")
 		SendChat("/mau 6")
 	}
 }
@@ -2859,7 +2896,7 @@ megaLeaveLabel:
 	if (!maumode) {
 		useMegaphone(8)
 	} else {
-		SendClientMessage(prefix . "Mau-Modus: Mau 9 wird gelegt:")
+		SendInfo("Mau-Modus: Mau 9 wird gelegt:")
 		SendChat("/mau 9")
 	}
 }
@@ -2907,7 +2944,7 @@ return
 	}
 
 	if (!getFullName(playerToFind)) {
-		SendClientMessage(prefix . "Fehler: Du hast keinen Spieler auf Find.")
+		SendError("Du hast keinen Spieler auf Find.")
 		return
 	}
 
@@ -2943,7 +2980,7 @@ return
 	}
 
 	if (!getFullName(playerToFind)) {
-		SendClientMessage(prefix . "Fehler: Du hast keinen Spieler auf Find.")
+		SendError("Du hast keinen Spieler auf Find.")
 		return
 	}
 	
@@ -2988,7 +3025,7 @@ return
 	}
 
 	if (!getFullName(playerToFind)) {
-		SendClientMessage(prefix . "Fehler: Du hast keinen Spieler auf Find.")
+		SendError("Du hast keinen Spieler auf Find.")
 		return
 	}
 	
@@ -3018,7 +3055,7 @@ return
 	}
 
 	if (!getFullName(playerToFind)) {
-		SendClientMessage(prefix . "Fehler: Du hast keinen Spieler auf Find.")
+		SendError("Du hast keinen Spieler auf Find.")
 		return
 	}
 	
@@ -3036,13 +3073,12 @@ possessionWantedsLabel:
 	name := getFullName(name)
 	
 	if (name != "") {
-		SendClientMessage(prefix . csecond . "1: {FFFFFF}Drogen/Samen | " . csecond . "2: {FFFFFF}Materialien/Pakete")
+		SendInfo("Materialien/Pakete: " . cSecond . "1" . cWhite . ", Drogen/Samen: " . cSecond . "2")
 		
 		wantedType := PlayerInput("Typ: ")
-		
-		if (wantedType == "1") {
+		if (wantedType == 2) {
 			giveWanteds(name, "Besitz von Marihuana(samen)", 2)
-		} else if (wantedType == "2") {
+		} else if (wantedType == 1) {
 			giveWanteds(name, "Besitz von Materialien/Materialpakete", 2)
 		}
 	}
@@ -3071,7 +3107,7 @@ return
 	}
 
 	if (!getFullName(playerToFind)) {
-		SendClientMessage(prefix . "Fehler: Du hast keinen Spieler auf Find.")
+		SendError("Du hast keinen Spieler auf Find.")
 		return
 	}
 	
@@ -3101,7 +3137,7 @@ return
 	}
 
 	if (!getFullName(playerToFind)) {
-		SendClientMessage(prefix . "Fehler: Du hast keinen Spieler auf Find.")
+		SendError("Du hast keinen Spieler auf Find.")
 		return
 	}
 	
@@ -3150,7 +3186,7 @@ return
 	}
 
 	if (!getFullName(playerToFind)) {
-		SendClientMessage(prefix . "Fehler: Du hast keinen Spieler auf Find.")
+		SendError("Du hast keinen Spieler auf Find.")
 		return
 	}
 	
@@ -3168,7 +3204,7 @@ vehicleTheftWantedsLabel:
 	name := getFullName(name)
 	
 	if (name != "") {
-		SendClientMessage(prefix . csecond . "1: " . cwhite . "Privatfahrzeug, " . csecond . "2: " . cwhite . "Dienstfahrzeug, " . csecond . "3: " . cwhite . "gep./bew. Dienstfahrzeug")
+		SendInfo("1: " . cwhite . "Privatfahrzeug, " . csecond . "2: " . cwhite . "Dienstfahrzeug, " . csecond . "3: " . cwhite . "gep./bew. Dienstfahrzeug")
 		
 		wantedType := PlayerInput("Typ: ")
 		
@@ -3205,7 +3241,7 @@ return
 	}
 
 	if (!getFullName(playerToFind)) {
-		SendClientMessage(prefix . "Fehler: Du hast keinen Spieler auf Find.")
+		SendError("Du hast keinen Spieler auf Find.")
 		return
 	}
 	
@@ -3235,7 +3271,7 @@ return
 	}
 
 	if (!getFullName(playerToFind)) {
-		SendClientMessage(prefix . "Fehler: Du hast keinen Spieler auf Find.")
+		SendError("Du hast keinen Spieler auf Find.")
 		return
 	}
 	
@@ -3265,7 +3301,7 @@ return
 	}
 
 	if (!getFullName(playerToFind)) {
-		SendClientMessage(prefix . "Fehler: Du hast keinen Spieler auf Find.")
+		SendError("Du hast keinen Spieler auf Find.")
 		return
 	}
 	
@@ -3314,7 +3350,7 @@ return
 	}
 
 	if (!getFullName(playerToFind)) {
-		SendClientMessage(prefix . "Fehler: Du hast keinen Spieler auf Find.")
+		SendError("Du hast keinen Spieler auf Find.")
 		return
 	}
 	
@@ -3336,14 +3372,14 @@ kidnapWantedsLabel:
 	name := getFullName(name)
 	
 	if (name == "") {
-		SendClientMessage(prefix . "Fehler: Der angegebene Spieler ist offline.")
+		SendError("Der angegebene Spieler ist offline.")
 		return
 	} else if (name == getUserName()) {
-		SendClientMessage(prefix . "Fehler: Du kannst dir selber keine Wanteds eintragen.")
+		SendError("Du kannst dir selber keine Wanteds eintragen.")
 		return
 	}
 	
-	SendClientMessage(prefix . csecond . "1" . cWhite . ": Bürger, " . csecond . "2" . cWhite . ": Staatsbeamter")
+	SendInfo(csecond . "1" . cWhite . ": Bürger, " . csecond . "2" . cWhite . ": Staatsbeamter")
 		
 	wantedType := PlayerInput("Typ: ")
 		
@@ -3352,7 +3388,7 @@ kidnapWantedsLabel:
 	} else if (wantedType == "2") {
 		giveWanteds(name, "Entführung von Beamten", 4)
 	} else {
-		SendClientMessage(prefix . "Fehler: Es gibt nur Typ 1 (normal) und Typ 2 (Beamter).")
+		SendError("Es gibt nur Typ 1 (normal) und Typ 2 (Beamter).")
 	}
 }
 return
@@ -3467,7 +3503,7 @@ clearPointsLabel:
 	if (name == "" || name == " ") {
 		return
 	} else if (getFullName(name) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -3475,7 +3511,7 @@ clearPointsLabel:
 	if (amount == "" || amount == " ") {
 		return
 	} else if (amount is not number) {
-		SendClientMessage(prefix . "Fehler: Du musst eine Zahl angeben.")
+		SendError("Du musst eine Zahl angeben.")
 		return
 	}
 	
@@ -3675,7 +3711,7 @@ noBackupLabel:
 			SendChat("/hq +++ Einweisung - nicht Beachten! +++")
 		}				
 	} else {
-		SendClientMessage(prefix . "Du hast keine Verstärkung angefordert.")
+		SendInfo("Du hast keine Verstärkung angefordert.")
 	}
 }
 return
@@ -3710,7 +3746,7 @@ imprisonLabel:
 		if (name == "" || name == " ") {
 			return
 		} else if (getFullName(name) == "") {
-			SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+			SendError("Dieser Spieler ist nicht online.")
 			return
 		}		
 		
@@ -3722,7 +3758,7 @@ imprisonLabel:
 			}
 		}
 	} else {
-		SendClientMessage(prefix . "Mau-Modus: Mau 8 wird gelegt:")
+		SendInfo("Mau-Modus: Mau 8 wird gelegt:")
 		SendChat("/mau 8")
 	}
 }
@@ -3741,7 +3777,7 @@ arrestLabel:
 		}
 		
 		if (getFullName(name) == "") {
-			SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+			SendError("Dieser Spieler ist nicht online.")
 			return
 		}
 
@@ -3779,7 +3815,7 @@ arrestLabel:
 			}
 		}
 	} else {
-		SendClientMessage(prefix . "Mau-Modus: Mau 7 wird gelegt:")
+		SendInfo("Mau-Modus: Mau 7 wird gelegt:")
 		SendChat("/mau 7")
 	}
 }
@@ -3798,7 +3834,7 @@ uncuffLabel:
 
 	name := getFullName(name)
 	if (name == "") {
-		SendClientMessage(prefix . "Fehler: Der Spieler ist nicht online.")
+		SendError("Der Spieler ist nicht online.")
 		return
 	}
 	
@@ -3822,17 +3858,17 @@ arrestSlotsLabel:
 	
 	arrestCount := 0
 	
-	SendClientMessage(prefix . "Verbrecher in der Arrestliste:")
+	SendInfo("Verbrecher in der Arrestliste:")
 	
 	for index, arrestName in arrestList {
-		SendClientMessage(prefix . "ID: " . getPlayerIdByName(getFullName(arrestName), 1) . " - " . csecond . getFullName(arrestName))
+		SendInfo("ID: " . getPlayerIdByName(getFullName(arrestName), 1) . " - " . csecond . getFullName(arrestName))
 		arrestCount ++
 	}
 	
 	if (!arrestCount) {
-		SendClientMessage(prefix . "Es sind aktuell keine Spieler in deiner Arrest-Liste.")
+		SendInfo("Es sind aktuell keine Spieler in deiner Arrest-Liste.")
 	} else {
-		SendClientMessage(prefix . "Spieler in Arrest-Liste: " . csecond . arrestCount)
+		SendInfo("Spieler in Arrest-Liste: " . csecond . arrestCount)
 	}
 }
 return
@@ -3845,7 +3881,7 @@ resetArrestSlotsLabel:
 	
 	arrestList := []
 	
-	SendClientMessage(prefix . "Arrestslots zurückgesetzt.")
+	SendInfo("Arrestslots zurückgesetzt.")
 }
 return
 
@@ -3861,12 +3897,12 @@ checkLabel:
 	}
 
 	if (getFullName(frisk_name) == "") {
-		SendClientMessage(prefix . "Fehler: Der angegebene Spieler ist nicht online.")
+		SendError("Der angegebene Spieler ist nicht online.")
 		return
 	}
 	
 	if (getFullName(frisk_name) == getUserName()) {
-		SendClientMessage(prefix . "Fehler: Du kannst dich nicht selber durchsuchen.")
+		SendError("Du kannst dich nicht selber durchsuchen.")
 		return
 	}
 
@@ -3944,7 +3980,7 @@ askPapersLabel:
 	id := getId()
 	
 	if (getPlayerSkinID() == 285) {
-		SendClientMessage(prefix . "Fehler: Du kannst im SWAT Modus nicht deine Scheine anfordern.")
+		SendError("Du kannst im SWAT Modus nicht deine Scheine anfordern.")
 		return
 	}
 	
@@ -4067,7 +4103,7 @@ arrestedByNameLabel:
 	}
 
 	if (!getFullName(playerToFind)) {
-		SendClientMessage(prefix . "Fehler: Du hast keinen Spieler auf Find.")
+		SendError("Du hast keinen Spieler auf Find.")
 		return
 	}	
 	
@@ -4102,12 +4138,12 @@ ramLabel:
 	}
 	
 	if (isPlayerInAnyVehicle()) {
-		SendClientMessage(prefix . "Fehler: Du darfst dich in keinem Fahrzeug befinden.")
+		SendError("Du darfst dich in keinem Fahrzeug befinden.")
 		return
 	}
 	
 	if (getPlayerInteriorId()) {
-		SendClientMessage(prefix . "Fehler: Du befindest dich in einem Gebäude.")
+		SendError("Du befindest dich in einem Gebäude.")
 		return
 	}
 	
@@ -4164,27 +4200,27 @@ grabLabel:
 								return
 							}
 							
-							SendClientMessage(prefix . "Es ist kein Platz im Fahrzeug frei.")
+							SendInfo("Es ist kein Platz im Fahrzeug frei.")
 						} else if (getVehicleType() == 4) {
 							if (seatID[2] == -1) {
 								SendChat("/grab " . grabName . " 1")
 								return
 							}
 							
-							SendClientMessage(prefix . "Es ist kein Platz auf dem Motorrad frei.")
+							SendInfo("Es ist kein Platz auf dem Motorrad frei.")
 						}
 					}
 					
 					SendInput, t/grab{space}
-					SendClientMessage(prefix . "Es sind keine gecufften Spieler in deiner Nähe.")
+					SendInfo("Es sind keine gecufften Spieler in deiner Nähe.")
 					return
 				}
 			}
 		} else {
-			SendClientMessage(prefix . "Fehler: Du bist nicht der Fahrer des Fahrzeuges.")
+			SendError("Du bist nicht der Fahrer des Fahrzeuges.")
 		}
 	} else {
-		SendClientMessage(prefix . "Fehler: Du bist in keinem Fahrzeug.")	
+		SendError("Du bist in keinem Fahrzeug.")	
 	}
 }
 return
@@ -4199,10 +4235,10 @@ manuellGrabLabel:
 		if (IsPlayerDriver()) {
 			SendInput, t/grab{space}
 		} else {
-			SendClientMessage(prefix . "Fehler: Du bist nicht der Fahrer des Fahrzeuges.")
+			SendError("Du bist nicht der Fahrer des Fahrzeuges.")
 		}
 	} else {
-		SendClientMessage(prefix . "Fehler: Du bist nicht in einem Fahrzeug.")
+		SendError("Du bist nicht in einem Fahrzeug.")
 	}
 }
 return
@@ -4234,10 +4270,10 @@ motorSystemLabel:
 				SendChat("/licht")
 			}
 		} else {
-			SendClientMessage(prefix . "Fehler: Du bist nicht der Fahrer eines Fahrzeuges.")
+			SendError("Du bist nicht der Fahrer eines Fahrzeuges.")
 		}
 	} else {
-		SendClientMessage(prefix . "Fehler: Du bist in keinem Fahrzeug.")
+		SendError("Du bist in keinem Fahrzeug.")
 	}
 }
 return
@@ -4279,10 +4315,10 @@ lockLabel:
 		if (IsPlayerDriver()) {
 			SendChat("/lock")
 		} else {
-			SendClientMessage(prefix . "Fehler: Du bist nicht der Fahrer eines Fahrzeuges.")
+			SendError("Du bist nicht der Fahrer eines Fahrzeuges.")
 		}
 	} else {
-		SendClientMessage(prefix . "Fehler: Du bist in keinem Fahrzeug.")
+		SendError("Du bist in keinem Fahrzeug.")
 	}
 }
 return
@@ -4297,10 +4333,10 @@ lightLabel:
 		if (IsPlayerDriver()) {
 			SendChat("/licht")
 		} else {
-			SendClientMessage(prefix . "Fehler: Du bist nicht der Fahrer eines Fahrzeuges.")
+			SendError("Du bist nicht der Fahrer eines Fahrzeuges.")
 		}
 	} else {
-		SendClientMessage(prefix . "Fehler: Du bist in keinem Fahrzeug.")
+		SendError("Du bist in keinem Fahrzeug.")
 	}
 }
 return
@@ -4315,10 +4351,10 @@ uclightLabel:
 		if (IsPlayerDriver()) {
 			SendChat("/uclight")
 		} else {
-			SendClientMessage(prefix . "Fehler: Du bist nicht der Fahrer des Fahrzeuges.")
+			SendError("Du bist nicht der Fahrer des Fahrzeuges.")
 		}
 	} else {
-		SendClientMessage(prefix . "Fehler: Du bist in keinem Fahrzeug.")
+		SendError("Du bist in keinem Fahrzeug.")
 	}
 }
 return
@@ -4333,10 +4369,10 @@ ucaLabel:
 		if (IsPlayerDriver()) {
 			SendChat("/uca")
 		} else {
-			SendClientMessage(prefix . "Fehler: Du bist nicht der Fahrer des Fahrzeuges.")
+			SendError("Du bist nicht der Fahrer des Fahrzeuges.")
 		}
 	} else {
-		SendClientMessage(prefix . "Fehler: Du bist in keinem Fahrzeug.")
+		SendError("Du bist in keinem Fahrzeug.")
 	}
 }
 return
@@ -4372,7 +4408,7 @@ stopAutomaticSystemsLabel:
 	}
 	
 	if (!stoppedAnything) {
-		SendClientMessage(prefix . "Es laufen keine Systeme.")
+		SendInfo("Es laufen keine Systeme.")
 	}
 }
 return
@@ -4508,12 +4544,12 @@ giveQuickTicketLabel:
 	}
 	
 	if (getFullName(playerForTicket) == "") {
-		SendClientMessage(prefix . "Fehler: Der angegebene Spieler ist nicht online.")
+		SendError("Der angegebene Spieler ist nicht online.")
 		return
 	}
 	
 	if (getFullName(playerForTicket) == getUserName()) {
-		SendClientMessage(prefix . "Fehler: Der angegebene Spieler ist nicht online.")
+		SendError("Der angegebene Spieler ist nicht online.")
 		return
 	}
 		
@@ -4525,12 +4561,12 @@ giveQuickTicketLabel:
 	}
 	
 	if (wantedCount is not number) {
-		SendClientMessage(prefix . "Fehler: Ungültiger Wert.")
+		SendError("Ungültiger Wert.")
 		return
 	}
 	
 	if (wantedCount > 4 || wantedCount < 1) {
-		SendClientmessage(prefix . "Fehler: Die Wantedanzahl darf nicht höher als 4 und muss mind. 1 sein.")
+		SendError("Die Wantedanzahl darf nicht höher als 4 und muss mind. 1 sein.")
 		return
 	}
 
@@ -4548,7 +4584,7 @@ autoAcceptEmergencyLabel:
 		
 	Loop {
 		if (i > 150) {
-			SendClientMessage(prefix . "Fehler: Es wurde kein freier Notruf gefunden.")
+			SendError("Es wurde kein freier Notruf gefunden.")
 			break
 		}
 		
@@ -4593,19 +4629,19 @@ autoAcceptEmergencyLabel:
 					IniWrite, % services, ini/Stats.ini, Übernahmen, Services
 					
 					Sleep, 100
-					SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(services) . cwhite . " Notrufe übernommen.")
+					SendInfo("Du hast bereits " . csecond . formatNumber(services) . cwhite . " Notrufe übernommen.")
 					break
 				}
 			} else if (acceptedByPlayer == 1) {
 				if (takeowerName == getUserName()) {
-					SendClientMessage(prefix . "Fehler: Du hast diesen Notruf bereits übernommen.")
+					SendError("Du hast diesen Notruf bereits übernommen.")
 				} else {
-					SendClientMEssage(prefix . "Fehler: Dieser Notruf wurde bereits von " . takeowerName . " übernommen.")
+					SendError("Dieser Notruf wurde bereits von " . takeowerName . " übernommen.")
 				}
 				
 				break
 			} else if (acceptedByPlayer == 2) {
-				SendClientMessage(prefix . "Fehler: Der Notruf ist hinfällig, da kein Streifenwagen mehr benötigt wird.")
+				SendError("Der Notruf ist hinfällig, da kein Streifenwagen mehr benötigt wird.")
 				break
 			}
 		} else if (RegExMatch(chat, "HQ: Verbrechen: Überfall GK (\S+) \((\S+)\), Zeuge: Niemand, Verdächtiger: (\S+)", emergency)) {
@@ -4621,7 +4657,7 @@ autoAcceptEmergencyLabel:
 				SendChat("/d HQ: Übernehme Ladenüberfall von " . emergency3 . "(" . getPlayerIdByName(emergency3) . ") - GK: " . emergency1 . " (" . emergency2 . ")")
 				
 				Sleep, 100
-				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(storerobs) . cwhite . " Raubüberfälle übernommen.")
+				SendInfo("Du hast bereits " . csecond . formatNumber(storerobs) . cwhite . " Raubüberfälle übernommen.")
 				
 				gk(emergency1, emergency2, true)				
 			}
@@ -4657,13 +4693,13 @@ acceptEmergencyLabel:
 					IniWrite, %services%, ini/Stats.ini, Übernahmen, Services
 	
 					Sleep, 100
-					SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(services) . cwhite . " Notrufe übernommen.")
+					SendInfo("Du hast bereits " . cSecond . formatNumber(services) . cwhite . " Notrufe übernommen.")
 				}
 			} else {
-				SendClientMessage(prefix . "Fehler: Du kannst dich nicht selbst übernehmen.")
+				SendError("Du kannst dich nicht selbst übernehmen.")
 			}
 		} else {
-			SendClientMessage(prefix . "Fehler: Der angegebene Spieler ist nicht online.")
+			SendError("Der angegebene Spieler ist nicht online.")
 		}
 	}
 }
@@ -4691,7 +4727,7 @@ stopwatchLabel:
 		SetTimer, StopwatchTimer, 1000
 		
 		SendChat("/l .:: Stoppuhr gestartet! ::.")
-		SendClientMessage(prefix . "Du kannst die Stopuhr mit '" . cSecond . getUserFriendlyHotkeyName(stopwatchNoMods)  . cwhite . "' beenden.")
+		SendInfo("Du kannst die Stopuhr mit '" . cSecond . getUserFriendlyHotkeyName(stopwatchNoMods)  . cwhite . "' beenden.")
 	}
 }
 return
@@ -4713,12 +4749,12 @@ eatFishLabel:
 	}
 	
 	if (getPlayerArmor()) {
-		SendClientMessage(prefix . "Fehler: Du kannst mit Armor keine Fische essen.")
+		SendError("Du kannst mit Armor keine Fische essen.")
 		return
 	}
 	
 	if (94 < getPlayerHealth()) {
-		SendClientMessage(prefix . "Fehler: Du kannst erst unter 94 HP Fische essen.")
+		SendError("Du kannst erst unter 94 HP Fische essen.")
 		return
 	}
 		
@@ -4774,7 +4810,7 @@ CountdownLabel:
 		cdChat := "l"
 		cdGoMessage := "Letzte Warnung!"
 		
-		SendClientMessage(prefix . "Du kannst den Countdown mit '" . csecond . stopAutomaticSystemsNoMods . cwhite . "' abbrechen.")
+		SendInfo("Du kannst den Countdown mit '" . csecond . stopAutomaticSystemsNoMods . cwhite . "' abbrechen.")
 		
 		SendChat("/" . cdChat . " Es folgt ein Countdown, sollten Sie sich weigern, erschießen wird Sie!")
 		
@@ -4855,7 +4891,7 @@ pauseLabel:
 	IniRead, autoUse, ini/Settings.ini, settings, autoUse, 1
 
 	if (A_IsSuspended) {
-		SendClientMessage(prefix . "Du hast den Keybinder " . cred . "deaktiviert" . cwhite . ".")
+		SendInfo("Du hast den Keybinder " . cred . "deaktiviert" . cwhite . ".")
 		
 		SetTimer, TempoTimer, off
 		SetTimer, ChatTimer, off
@@ -4896,7 +4932,7 @@ pauseLabel:
 			SetTimer, SyncTimer, off
 		}
 	} else {
-		SendClientMessage(prefix . "Du hast den Keybinder " . cgreen . "aktiviert" . cwhite . ".")
+		SendInfo("Du hast den Keybinder " . cgreen . "aktiviert" . cwhite . ".")
 	
 		SetTimer, TempoTimer, 100
 		SetTimer, ChatTimer, 200
@@ -4944,17 +4980,17 @@ return
 SendInput, {Enter}
 {
 	if (!overlay) {
-		SendClientMessage(prefix . "Das Overlay ist " . cRed . "ausgeschaltet" . cWhite . ".")
+		SendInfo("Das Overlay ist " . cRed . "ausgeschaltet" . cWhite . ".")
 	} else {
 		if (startOverlay) {
 			startOverlay := false 
 			
-			SendClientMessage(prefix . "Das Overlay wurde " . cRed . "deaktiviert" . cWhite . ".")
+			SendInfo("Das Overlay wurde " . cRed . "deaktiviert" . cWhite . ".")
 			destroyOverlay()
 		} else {
 			startOverlay := true
 		
-			SendClientMessage(prefix . "Das Overlay wurde " . cGreen . "aktiviert" . cWhite . ".")
+			SendInfo("Das Overlay wurde " . cGreen . "aktiviert" . cWhite . ".")
 			destroyOverlay()
 			SetTimer, createOverlay, -1
 		}
@@ -4966,17 +5002,17 @@ return
 :?:/ovmove::
 {
 	if (!startOverlay) {
-		SendClientMessage(prefix . "Du musst das Overlay anschalten (/(ov)erlay)")
+		SendInfo("Du musst das Overlay anschalten (/(ov)erlay)")
 		return 
 	}	
 	
 	if (ovMoveMode) {
 		ovMoveMode := 0
-		SendClientMessage(prefix . "Das Verschieben des Overlays wurde " . cRed . "beendet" . cWhite . ".")
+		SendInfo("Das Verschieben des Overlays wurde " . cRed . "beendet" . cWhite . ".")
 	} else {
-		SendClientMessage(prefix . "1: " . cSecond . "Spotify Overlay" . cWhite . " | 2: " . cSecond . "Cooldown Overlay")
-		SendClientMessage(prefix . "3: " . cSecond . "Ausbruch Overlay" . cWhite . " | 4: " . cSecond . "FPS und Ping Overlay")
-		SendClientMessage(prefix . "5: " . cSecond . "Info Overlay")
+		SendInfo("1: " . cSecond . "Spotify Overlay" . cWhite . " | 2: " . cSecond . "Cooldown Overlay")
+		SendInfo("3: " . cSecond . "Ausbruch Overlay" . cWhite . " | 4: " . cSecond . "FPS und Ping Overlay")
+		SendInfo("5: " . cSecond . "Info Overlay")
 	
 		overlayInput := PlayerInput("Overlay-ID: ")
 		
@@ -4984,75 +5020,75 @@ return
 			if (spotifyOv) {
 				ovMoveMode := 1
 				
-				SendClientMessage(prefix . "Das Verschieben des Spotify Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
+				SendInfo("Das Verschieben des Spotify Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
 				SendClientMessage("")
-				SendClientMessage(prefix . "Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
-				SendClientMessage(prefix . "Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")
+				SendInfo("Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
+				SendInfo("Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")
 				
 				if (!isPlayerInAnyVehicle()) {
 					SendChat("/lay")
 				}
 			} else {
-				SendClientMessage(prefix . "Das Spotify Overlay muss in den Einstellungen aktiviert sein.")
+				SendInfo("Das Spotify Overlay muss in den Einstellungen aktiviert sein.")
 			}
 		} else if (overlayInput == 2) {
 			if (cooldownOv) {
 				ovMoveMode := 2
 				
-				SendClientMessage(prefix . "Das Verschieben des Cooldown Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
+				SendInfo("Das Verschieben des Cooldown Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
 				SendClientMessage("")
-				SendClientMessage(prefix . "Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
-				SendClientMessage(prefix . "Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")
+				SendInfo("Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
+				SendInfo("Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")
 				
 				if (!isPlayerInAnyVehicle()) {
 					SendChat("/lay")
 				}				
 			} else {
-				SendClientMessage(prefix . "Das Cooldown Overlay muss in den Einstellungen aktiviert sein.")
+				SendInfo("Das Cooldown Overlay muss in den Einstellungen aktiviert sein.")
 			}
 		} else if (overlayInput == 3) {
 			if (alertOv) {
 				ovMoveMode := 3
 				
-				SendClientMessage(prefix . "Das Verschieben des Alarm Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
+				SendInfo("Das Verschieben des Alarm Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
 				SendClientMessage("")
-				SendClientMessage(prefix . "Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
-				SendClientMessage(prefix . "Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")
+				SendInfo("Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
+				SendInfo("Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")
 				
 				if (!isPlayerInAnyVehicle()) {
 					SendChat("/lay")
 				}				
 			} else {
-				SendClientMessage(prefix . "Das Ausbruch Overlay muss in den Einstellungen aktiviert sein.")
+				SendInfo("Das Ausbruch Overlay muss in den Einstellungen aktiviert sein.")
 			}
 		} else if (overlayInput == 4) {
 			if (spotifyOv) {
 				ovMoveMode := 4
 				
-				SendClientMessage(prefix . "Das Verschieben des FPS/Ping Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
+				SendInfo("Das Verschieben des FPS/Ping Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
 				SendClientMessage("")
-				SendClientMessage(prefix . "Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
-				SendClientMessage(prefix . "Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")
+				SendInfo("Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
+				SendInfo("Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")
 				
 				if (!isPlayerInAnyVehicle()) {
 					SendChat("/lay")
 				}
 			} else {
-				SendClientMessage(prefix . "Das FPS/Ping Overlay muss in den Einstellungen aktiviert sein.")
+				SendInfo("Das FPS/Ping Overlay muss in den Einstellungen aktiviert sein.")
 			}
 		} else if (overlayInput == 5) {
 			if (infoOv) {
-				SendClientMessage(prefix . "1: Telefon Overlay, 2: Erste-Hilfe Overlay, 3: Kanister Overlay")
-				SendClientMessage(prefix . "4: Gekochte Fische Overlay, 5: Ungekochte Fische Overlay")
+				SendInfo("1: Telefon Overlay, 2: Erste-Hilfe Overlay, 3: Kanister Overlay")
+				SendInfo("4: Gekochte Fische Overlay, 5: Ungekochte Fische Overlay, 6: Lagerfeuer Overlay")
 				
 				typ := PlayerInput("Typ: ")
 				if (typ == 1) {
 					ovMoveMode := 5
 					
-					SendClientMessage(prefix . "Das Verschieben des Handy Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
+					SendInfo("Das Verschieben des Handy Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
 					SendClientMessage("")
-					SendClientMessage(prefix . "Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
-					SendClientMessage(prefix . "Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")
+					SendInfo("Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
+					SendInfo("Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")
 					
 					if (!isPlayerInAnyVehicle()) {
 						SendChat("/lay")
@@ -5060,41 +5096,48 @@ return
 				} else if (typ == 2) {
 					ovMoveMode := 6
 					
-					SendClientMessage(prefix . "Das Verschieben des Erste-Hilfe Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
+					SendInfo("Das Verschieben des Erste-Hilfe Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
 					SendClientMessage("")
-					SendClientMessage(prefix . "Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
-					SendClientMessage(prefix . "Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")
+					SendInfo("Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
+					SendInfo("Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")
 				} else if (typ == 3) {
 					ovMoveMode := 7
 					
-					SendClientMessage(prefix . "Das Verschieben des Kanister Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
+					SendInfo("Das Verschieben des Kanister Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
 					SendClientMessage("")
-					SendClientMessage(prefix . "Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
-					SendClientMessage(prefix . "Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")			
+					SendInfo("Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
+					SendInfo("Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")			
 				} else if (typ == 4) {
 					ovMoveMode := 8
 					
-					SendClientMessage(prefix . "Das Verschieben des Gekochten Fische Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
+					SendInfo("Das Verschieben des Gekochten Fische Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
 					SendClientMessage("")
-					SendClientMessage(prefix . "Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
-					SendClientMessage(prefix . "Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")	
+					SendInfo("Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
+					SendInfo("Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")	
 				} else if (typ == 5) {
 					ovMoveMode := 9
 					
-					SendClientMessage(prefix . "Das Verschieben des Ungekochten Fische Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
+					SendInfo("Das Verschieben des Ungekochten Fische Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
 					SendClientMessage("")
-					SendClientMessage(prefix . "Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
-					SendClientMessage(prefix . "Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")						
+					SendInfo("Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
+					SendInfo("Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")		
+				} else if (typ == 6) {
+					ovMoveMode := 10
+					
+					SendInfo("Das Verschieben des Lagerfeuer Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
+					SendClientMessage("")
+					SendInfo("Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
+					SendInfo("Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")		
 				} else {
-					SendClientMessage(prefix . "1: Telefon Overlay, 2: Erste-Hilfe Overlay, 3: Kanister Overlay")
-					SendClientMessage(prefix . "4: Gekochte Fische Overlay, 5: Ungekochte Fische Overlay")
+					SendInfo("1: Telefon Overlay, 2: Erste-Hilfe Overlay, 3: Kanister Overlay")
+					SendInfo("4: Gekochte Fische Overlay, 5: Ungekochte Fische Overlay, 6: Lagerfeuer Overlay")
 				}
 				
 				if (!isPlayerInAnyVehicle()) {
 					SendChat("/lay")
 				}				
 			} else {
-				SendClientMessage(prefix . "Das Info Overlay muss in den Einstellungen aktiviert sein.")
+				SendInfo("Das Info Overlay muss in den Einstellungen aktiviert sein.")
 			}
 		} 
 	}
@@ -5105,7 +5148,7 @@ return
 :?:/saveov::
 {
 	if (!startOverlay) {
-		SendClientMessage(prefix . "Du musst das Overlay anschalten (/(ov)erlay)")
+		SendInfo("Du musst das Overlay anschalten (/(ov)erlay)")
 		return 
 	}
 	
@@ -5114,7 +5157,7 @@ return
 		IniWrite, % spotifyYPos, ini/settings.ini, Overlay, spotifyYPos
 		
 		ovMoveMode := 0
-		SendClientMessage(prefix . "Die Position des Spotify Overlays wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
+		SendInfo("Die Position des Spotify Overlays wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
 	} else if (ovMoveMode == 2) {
 		IniWrite, % cooldownXPos, ini/settings.ini, Overlay, cooldownXPos
 		IniWrite, % cooldownYPos, ini/settings.ini, Overlay, cooldownYPos
@@ -5122,51 +5165,57 @@ return
 		IniWrite, % cooldownBoxY, ini/settings.ini, Overlay, cooldownBoxY
 		
 		ovMoveMode := 0
-		SendClientMessage(prefix . "Die Position des Cooldown Overlays wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
+		SendInfo("Die Position des Cooldown Overlays wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
 	} else if (ovMoveMode == 3) {
 		IniWrite, % alertXPos, ini/settings.ini, Overlay, alertXPos
 		IniWrite, % alertYPos, ini/settings.ini, Overlay, alertYPos
 
 		ovMoveMode := 0
-		SendClientMessage(prefix . "Die Position des Alarm Overlays wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
+		SendInfo("Die Position des Alarm Overlays wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
 	} else if (ovMoveMode == 4) {
 		IniWrite, % pingXPos, ini/settings.ini, Overlay, pingXPos
 		IniWrite, % pingYPos, ini/settings.ini, Overlay, pingYPos
 
 		ovMoveMode := 0
-		SendClientMessage(prefix . "Die Position des FPS/Ping Overlays wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
+		SendInfo("Die Position des FPS/Ping Overlays wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
 	} else if (ovMoveMode == 5) {
 		IniWrite, % infoPhoneX, ini/settings.ini, overlay, infoPhoneX
 		IniWrite, % infoPhoneY, ini/settings.ini, overlay, infoPhoneY
 		
 		ovMoveMode := 0
-		SendClientMessage(prefix . "Die Position der Handy Info wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")		
+		SendInfo("Die Position der Handy Info wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")		
 	} else if (ovMoveMode == 6) {
 		IniWrite, % infoFirstaidX, ini/settings.ini, overlay, infoFirstaidX
 		IniWrite, % infoFirstaidY, ini/settings.ini, overlay, infoFirstaidY
 		
 		ovMoveMode := 0
-		SendClientMessage(prefix . "Die Position der Erste-Hilfe Info wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")	
+		SendInfo("Die Position der Erste-Hilfe Info wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")	
 	} else if (ovMoveMode == 7) {
 		IniWrite, % infoCanisterX, ini/settings.ini, overlay, infoCanisterX
 		IniWrite, % infoCanisterY, ini/settings.ini, overlay, infoCanisterY
 		
 		ovMoveMode := 0
-		SendClientMessage(prefix . "Die Position der Gekochen Fische wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
+		SendInfo("Die Position der Gekochen Fische wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
 	} else if (ovMoveMode == 8) {
 		IniWrite, % infoFishCookedX, ini/settings.ini, overlay, infoFishCookedX
 		IniWrite, % infoFishCookedY, ini/settings.ini, overlay, infoFishCookedY
 		
 		ovMoveMode := 0
-		SendClientMessage(prefix . "Die Position der Ungekochten Fische wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")		
+		SendInfo("Die Position der Ungekochten Fische wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")		
 	} else if (ovMoveMode == 9) {
 		IniWrite, % infoFishUncookedX, ini/settings.ini, overlay, infoFishUncookedX
 		IniWrite, % infoFishUncookedY, ini/settings.ini, overlay, infoFishUncookedY
 		
 		ovMoveMode := 0
-		SendClientMessage(prefix . "Die Position der Kanister Info wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")			
+		SendInfo("Die Position der Kanister Info wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")		
+	} else if (ovMoveMode == 10) {
+		IniWrite, % infoCampfireX, ini/settings.ini, overlay, infoCampfireX
+		IniWrite, % infoCampfireY, ini/settings.ini, overlay, infoCampfireY
+		
+		ovMoveMode := 0
+		SendInfo("Die Position des Lagerfeuers wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")		
 	} else {
-		SendClientMessage(prefix . "Der Overlay-Move Modus ist nicht aktiviert.")
+		SendInfo("Der Overlay-Move Modus ist nicht aktiviert.")
 		return
 	}
 	
@@ -5179,17 +5228,17 @@ return
 :?:/editov::
 :?:/ovedit::
 {
-	SendClientMessage(prefix . "1: " . cSecond . "Spotify Overlay" . cWhite . " | 2: " . cSecond . "Cooldown Overlay")
-	SendClientMessage(prefix . "3: " . cSecond . "Ausbruch Overlay" . cWhite . " | 4: " . cSecond . "FPS und Ping Overlay")
-	SendClientMessage(prefix . "5: " . cSecond . "Info Overlay")
+	SendInfo("1: " . cSecond . "Spotify Overlay" . cWhite . " | 2: " . cSecond . "Cooldown Overlay")
+	SendInfo("3: " . cSecond . "Ausbruch Overlay" . cWhite . " | 4: " . cSecond . "FPS und Ping Overlay")
+	SendInfo("5: " . cSecond . "Info Overlay")
 		
 	overlayID := PlayerInput("Overlay: ")
 	if (overlayID == "" || overlayID == " ") {
 		return
 	} else if (overlayID < 1 && overlayID > 4) {
-		SendClientMessage(prefix . "1: " . cSecond . "Spotify Overlay" . cWhite . " | 2: " . cSecond . "Cooldown Overlay")
-		SendClientMessage(prefix . "3: " . cSecond . "Ausbruch Overlay" . cWhite . " | 4: " . cSecond . "FPS und Ping Overlay")
-		SendClientMessage(prefix . "5: " . cSecond . "Info Overlay")
+		SendInfo("1: " . cSecond . "Spotify Overlay" . cWhite . " | 2: " . cSecond . "Cooldown Overlay")
+		SendInfo("3: " . cSecond . "Ausbruch Overlay" . cWhite . " | 4: " . cSecond . "FPS und Ping Overlay")
+		SendInfo("5: " . cSecond . "Info Overlay")
 		return
 	}
 	
@@ -5202,65 +5251,105 @@ return
 	if (overlayID == 1) {
 		if (spotifyOv) {
 			IniWrite, 0, ini/settings.ini, overlay, spotifyOv
-			SendClientMessage(prefix . "Du hast das Spotify-Overlay " . cRed . "deaktiviert" . cWhite . ".")
+			SendInfo("Du hast das Spotify-Overlay " . cRed . "deaktiviert" . cWhite . ".")
 			textDestroy(ov_Spotify)
 		} else {
 			IniWrite, 1, ini/settings.ini, overlay, spotifyOv
-			SendClientMessage(prefix . "Du hast das Spotify-Overlay " . cGreen . "aktiviert" . cWhite . ".")
+			SendInfo("Du hast das Spotify-Overlay " . cGreen . "aktiviert" . cWhite . ".")
 		}
 	} else if (overlayID == 2) {
-		SendClientMessage(prefix . "1: Cooldown Text, 2: Cooldown Box")
+		SendInfo("1: Cooldown Text, 2: Cooldown Box")
 		
 		type := PlayerInput("Typ: ")
 		if (type == 1) {
 			if (cooldownOv) {
 				IniWrite, 0, ini/settings.ini, overlay, cooldownOv
-				SendClientMessage(prefix . "Du hast das Cooldown-Overlay " . cRed . "deaktiviert" . cWhite . ".")
+				SendInfo("Du hast das Cooldown-Overlay " . cRed . "deaktiviert" . cWhite . ".")
 				textDestroy(ov_Cooldown)
 			} else {
 				IniWrite, 1, ini/settings.ini, overlay, cooldownOv
-				SendClientMessage(prefix . "Du hast das Cooldown-Overlay " . cGreen . "aktiviert" . cWhite . ".")
+				SendInfo("Du hast das Cooldown-Overlay " . cGreen . "aktiviert" . cWhite . ".")
 			}
 		} else if (type == 2) {
 			if (cooldownBoxOv) {
 				IniWrite, 0, ini/settings.ini, overlay, cooldownBoxOv
-				SendClientMessage(prefix . "Du hast die Cooldown-Box " . cRed . "deaktiviert" . cWhite . ".")
+				SendInfo("Du hast die Cooldown-Box " . cRed . "deaktiviert" . cWhite . ".")
 				boxDestroy(ov_CooldownBox)
 			} else {
 				IniWrite, 1, ini/settings.ini, overlay, cooldownBoxOv
-				SendClientMessage(prefix . "Du hast das Cooldown-Box " . cGreen . "aktiviert" . cWhite . ".")
+				SendInfo("Du hast das Cooldown-Box " . cGreen . "aktiviert" . cWhite . ".")
 			}
 		} else {
-			SendClientMessage(prefix . "1: Cooldown Text, 2: Cooldown Box")
+			SendInfo("1: Cooldown Text, 2: Cooldown Box")
 		}
 	} else if (overlayID == 3) {
 		if (alertOv) {
 			IniWrite, 0, ini/settings.ini, overlay, alertOv
-			SendClientMessage(prefix . "Du hast das Alarm-Overlay " . cRed . "deaktiviert" . cWhite . ".")
+			SendInfo("Du hast das Alarm-Overlay " . cRed . "deaktiviert" . cWhite . ".")
 			textDestroy(ov_Alert)
 		} else {
 			IniWrite, 1, ini/settings.ini, overlay, alertOv
-			SendClientMessage(prefix . "Du hast das Alarm-Overlay " . cGreen . "aktiviert" . cWhite . ".")
+			SendInfo("Du hast das Alarm-Overlay " . cGreen . "aktiviert" . cWhite . ".")
 		}
 	} else if (overlayID == 4) {
 		if (pingOv) {
 			IniWrite, 0, ini/settings.ini, overlay, pingOv
-			SendClientMessage(prefix . "Du hast das Ping-Overlay " . cRed . "deaktiviert" . cWhite . ".")
+			SendInfo("Du hast das Ping-Overlay " . cRed . "deaktiviert" . cWhite . ".")
 			textDestroy(ov_Ping)
 		} else {
 			IniWrite, 1, ini/settings.ini, overlay, pingOv
-			SendClientMessage(prefix . "Du hast das Ping-Overlay " . cGreen . "aktiviert" . cWhite . ".")
+			SendInfo("Du hast das Ping-Overlay " . cGreen . "aktiviert" . cWhite . ".")
 		}	
 	} else if (overlayID == 5) {
 		if (infoOv) {
 			IniWrite, 0, ini/settings.ini, overlay, infoOv
-			SendClientMessage(prefix . "Du hast das Info-Overlay " . cRed . "deaktiviert" . cWhite . ".")
+			SendInfo("Du hast das Info-Overlay " . cRed . "deaktiviert" . cWhite . ".")
 			imageDestroy(ov_Phone)
 		} else {
 			IniWrite, 1, ini/settings.ini, overlay, infoOv
-			SendClientMessage(prefix . "Du hast das Info-Overlay " . cGreen . "aktiviert" . cWhite . ".")
+			SendInfo("Du hast das Info-Overlay " . cGreen . "aktiviert" . cWhite . ".")
 		}
 	}
+}
+return
+
+:?:/resetovpos::
+{
+	if (!overlay) {
+		SendError("Das Overlay ist abgeschaltet.")
+		return
+	} else if (!startOverlay) {
+		SendError("Das Overlay ist aus.")
+		return
+	}
+	
+	IniWrite, 3, settings.ini, Overlay, spotifyXPos
+	IniWrite, 586, settings.ini, Overlay, spotifyYPos
+	IniWrite, 645, settings.ini, Overlay, cooldownXPos
+	IniWrite, 474, settings.ini, Overlay, cooldownYPos
+	IniWrite, 640, settings.ini, Overlay, cooldownBoxX
+	IniWrite, 470, settings.ini, Overlay, cooldownBoxY
+	IniWrite, 695, settings.ini, Overlay, pingXPos
+	IniWrite, 75, settings.ini, Overlay, pingYPos
+	IniWrite, 26, settings.ini, overlay, infoPhoneX
+	IniWrite, 460, settings.ini, overlay, infoPhoneY
+	IniWrite, 193, settings.ini, overlay, infoFirstaidX
+	IniWrite, 556, settings.ini, overlay, infoFirstaidY
+	IniWrite, 296, settings.ini, overlay, infoCanisterX
+	IniWrite, 518, settings.ini, overlay, infoCanisterY
+	IniWrite, 223, settings.ini, overlay, infoCampfireX
+	IniWrite, 558, settings.ini, overlay, infoCampfireY
+	IniWrite, 765, settings.ini, overlay, infoFishCookedX
+	IniWrite, 350, settings.ini, overlay, infoFishCookedY
+	IniWrite, 765, settings.ini, overlay, infoFishUncookedX
+	IniWrite, 385, settings.ini, overlay, infoFishUncookedY
+
+			
+	destroyOverlay()
+	SetTimer, loadOverlay, off
+
+	SetTimer, createOverlay, -1
+	SendInfo("Die Positionen des Overlays wurden resettet.")
 }
 return
 
@@ -5332,13 +5421,13 @@ SendInput, {Enter}
 				
 				SendChat("/pbenter")
 			} else {
-				SendClientMessage(prefix . "Fehler: Du benötigst mindestens 2.500$.")
+				SendError("Du benötigst mindestens 2.500$.")
 			}
 		} else {
-			SendClientMessage(prefix . "Fehler: Du bist nicht an der Paintball-Arena.")
+			SendError("Du bist nicht an der Paintball-Arena.")
 		}
 	} else {
-		SendClientMessage(prefix . "Fehler: Du darfst dich in keinem Fahrzeug befinden.")
+		SendError("Du darfst dich in keinem Fahrzeug befinden.")
 	}
 }
 return
@@ -5379,14 +5468,14 @@ SendInput, {Enter}
 	
 	if (RegExMatch(cText, "(.+)In Behandlung: (\d+)", cText_)) {
 		writeString(hGTA, adrGTA2 + 0x7AAD43, cText_1 . "Noch " . formatTime(cText_2) . " im KH")
-		SendClientMessage(prefix . "Du bist noch " . csecond . formatTime(cText_2) . cwhite . " im Krankenhaus.")
+		SendInfo("Du bist noch " . csecond . formatTime(cText_2) . cwhite . " im Krankenhaus.")
 	} else if (RegExMatch(cText, "(.+)Knastzeit: (\d+)", cText_)) {
 		if (getPlayerInteriorId() == 1) {
 			writeString(hGTA, adrGTA2 + 0x7AAD43, cText_1 . "Noch " . formatTime(cText_2) . " im Prison")
-			SendClientMessage(prefix . "Du bist noch " . csecond . formatTime(cText_2) . cwhite . " im Prison.")
+			SendInfo("Du bist noch " . csecond . formatTime(cText_2) . cwhite . " im Prison.")
 		} else {
 			writeString(hGTA, adrGTA2 + 0x7AAD43, cText_1 . "Noch " . formatTime(cText_2) . " im Knast")
-			SendClientMessage(prefix . "Du bist noch " . csecond . formatTime(cText_2) . cwhite . " im Knast.")
+			SendInfo("Du bist noch " . csecond . formatTime(cText_2) . cwhite . " im Knast.")
 		}
 	}
 }
@@ -5405,7 +5494,7 @@ SendInput, {Enter}
 			if (isMarkerCreated()) {
 				coords := coordsFromRedmarker()
 				
-				SendClientMessage(prefix . "Dein " . o_1 . " befindet sich in " . calculateZone(coords[1], coords[2], coords[3]))
+				SendInfo("Dein " . o_1 . " befindet sich in " . calculateZone(coords[1], coords[2], coords[3]))
 				return
 			}
 		}
@@ -5418,9 +5507,11 @@ return
 SendInput, {Enter}
 {
 	if (!isPlayerInAnyVehicle() || !isPlayerDriver()) {
-		SendClientMessage(prefix . "Fehler: Du bist nicht der Fahrer eines Fahrzeuges.")
+		SendError("Du bist nicht der Fahrer eines Fahrzeuges.")
 	} else if (!isPlayerAtGasStation()) {
-		SendClientMessage(prefix . "Fehler: Du bist nicht in der Nähe einer Tankstelle.")
+		SendError("Du bist nicht in der Nähe einer Tankstelle.")
+	} else if (getVehicleType() == 6) {
+		SendError("Du sitzt auf einem Fahrrad.")
 	} else {
 		refillCar()
 	}
@@ -5536,14 +5627,14 @@ return
 	name := getFullName(name)
 	
 	if (name == "") {
-		SendClientMessage(prefix . "Fehler: Der angegebene Spieler ist offline.")
+		SendError("Der angegebene Spieler ist offline.")
 		return
 	} else if (name == getUserName()) {
-		SendClientMessage(prefix . "Fehler: Du kannst dir selber keine Wanteds eintragen.")
+		SendError("Du kannst dir selber keine Wanteds eintragen.")
 		return
 	}
 	
-	SendClientMessage(prefix . csecond . "1" . cWhite . ": Bürger, " . csecond . "2" . cWhite . ": Staatsbeamter")
+	SendInfo(csecond . "1" . cWhite . ": Bürger, " . csecond . "2" . cWhite . ": Staatsbeamter")
 		
 	wantedType := PlayerInput("Typ: ")
 		
@@ -5552,7 +5643,7 @@ return
 	} else if (wantedType == "2") {
 		giveWanteds(name, "Entführung von Beamten", 4)
 	} else {
-		SendClientMessage(prefix . "Fehler: Es gibt nur Typ 1 (normal) und Typ 2 (Beamter).")
+		SendError("Es gibt nur Typ 1 (normal) und Typ 2 (Beamter).")
 	}
 }
 return
@@ -5563,10 +5654,10 @@ return
 	name := getFullName(name)
 	
 	if (name == "") {
-		SendClientMessage(prefix . "Fehler: Der angegebene Spieler ist offline.")
+		SendError("Der angegebene Spieler ist offline.")
 		return
 	} else if (name == getUserName()) {
-		SendClientMessage(prefix . "Fehler: Du kannst dir selber keine Wanteds eintragen.")
+		SendError("Du kannst dir selber keine Wanteds eintragen.")
 		return
 	}
 	
@@ -5582,10 +5673,10 @@ return
 	if (reInput == "" || reInput == " ") {
 		return
 	} else if (getFullName(reInput) == "") {
-		SendClientMessage(prefix . "Fehler: Der Spieler ist nicht online.")
+		SendError("Der Spieler ist nicht online.")
 		return
 	} else if (getFullName(reInput) == getUserName()) {
-		SendClientMessage(prefix . "Fehler: Du kannst dir selbst keine Wanteds eintragen.")
+		SendError("Du kannst dir selbst keine Wanteds eintragen.")
 		return
 	}
 	
@@ -5593,10 +5684,10 @@ return
 	if (reCount == "" || reCount == " ") {
 		return
 	} else if (reCount is not number) {
-		SendClientMessage(prefix . "Fehler: Es wurde ein ungültiger Wert angegeben.")
+		SendError("Es wurde ein ungültiger Wert angegeben.")
 		return
 	} else if (rewantedting) {
-		SendClientMessage(prefix . "Die Vergabe läuft bereits. Du kannst es mit '" . cSecond . stopAutomaticSystemsNoMods . cwhite . "' beenden.")
+		SendInfo("Die Vergabe läuft bereits. Du kannst es mit '" . cSecond . stopAutomaticSystemsNoMods . cwhite . "' beenden.")
 		return
 	}
 	
@@ -5620,7 +5711,7 @@ return
 		wanteds := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=wanteds&value=" . wanteds)
 		IniWrite, %wanteds%, ini/Stats.ini, Vergaben, Wanteds
 		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(wanteds) . cwhtie . " Wanteds vergeben.")	
+		SendInfo("Du hast bereits " . csecond . formatNumber(wanteds) . cwhtie . " Wanteds vergeben.")	
 	}
 }
 return
@@ -5632,7 +5723,7 @@ return
 	if (name == "" || name == " ") {
 		return
 	} else if (getFullName(name) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -5640,7 +5731,7 @@ return
 	if (amount == "" || amount == " ") {
 		return
 	} else if (amount is not number) {
-		SendClientMessage(prefix . "Fehler: Du musst eine Zahl angeben.")
+		SendError("Du musst eine Zahl angeben.")
 		return
 	}
 	
@@ -5659,7 +5750,7 @@ return
 
 :?:/frag::
 {
-	SendClientMessage(prefix . "Frag-Uhrzeit wurde erfolgreich gespeichert.")
+	SendInfo("Frag-Uhrzeit wurde erfolgreich gespeichert.")
 	
 	currentTime := A_Now
 	Frags ++
@@ -5675,49 +5766,49 @@ return
 	if (InStr(jobInput, "Dro")) {
 		job := 2
 		
-		SendClientMessage(prefix . "Du hast deinen Job auf " . csecond . "Drogendealer " . cwhite . "gesetzt.")
+		SendInfo("Du hast deinen Job auf " . csecond . "Drogendealer " . cwhite . "gesetzt.")
 	} else if (InStr(jobInput, "Waf")) {
 		job := 3
 		
-		SendClientMessage(prefix . "Du hast deinen Job auf " . csecond . "Waffendealer " . cwhite . "gesetzt.")
+		SendInfo("Du hast deinen Job auf " . csecond . "Waffendealer " . cwhite . "gesetzt.")
 	} else if (InStr(jobInput, "Bus")) {
 		job := 4
 		
-		SendClientMessage(prefix . "Du hast deinen Job auf " . csecond . "Busfahrer " . cwhite . "gesetzt.")
+		SendInfo("Du hast deinen Job auf " . csecond . "Busfahrer " . cwhite . "gesetzt.")
 	} else if (InStr(jobInput, "Pil")) {
 		job := 5
 		
-		SendClientMessage(prefix . "Du hast deinen Job auf " . csecond . "Pilot " . cwhite . "gesetzt.")
+		SendInfo("Du hast deinen Job auf " . csecond . "Pilot " . cwhite . "gesetzt.")
 	} else if (InStr(jobInput, "Fis") || InStr(jobInput, "Hoch")) {
 		job := 6
 		
-		SendClientMessage(prefix . "Du hast deinen Job auf " . csecond . "Hochseefischer " . cwhite . "gesetzt.")
+		SendInfo("Du hast deinen Job auf " . csecond . "Hochseefischer " . cwhite . "gesetzt.")
 	} else if (InStr(jobInput, "Anw")) {
 		job := 7
 		
-		SendClientMessage(prefix . "Du hast deinen Job auf " . csecond . "Anwalt " . cwhite . "gesetzt.")
+		SendInfo("Du hast deinen Job auf " . csecond . "Anwalt " . cwhite . "gesetzt.")
 	} else if (InStr(jobInput, "Det")) {
 		job := 8
 		
-		SendClientMessage(prefix . "Du hast deinen Job auf " . csecond . "Detektiv " . cwhite . "gesetzt.")
+		SendInfo("Du hast deinen Job auf " . csecond . "Detektiv " . cwhite . "gesetzt.")
 	} else if (InStr(jobInput, "Tru")) {
 		job := 9
 		
-		SendClientMessage(prefix . "Du hast deinen Job auf " . csecond . "Trucker " . cwhite . "gesetzt.")
+		SendInfo("Du hast deinen Job auf " . csecond . "Trucker " . cwhite . "gesetzt.")
 	} else if (InStr(jobInput, "Far")) {
 		job := 10
 		
-		SendClientMessage(prefix . "Du hast deinen Job auf " . csecond . "Farmer " . cwhite . "gesetzt.")
+		SendInfo("Du hast deinen Job auf " . csecond . "Farmer " . cwhite . "gesetzt.")
 	} else if (InStr(jobInput, "Zug")) {
 		job := 11
 		
-		SendClientMessage(prefix . "Du hast deinen Job auf " . csecond . "Zugfahrer " . cwhite . "gesetzt.")
+		SendInfo("Du hast deinen Job auf " . csecond . "Zugfahrer " . cwhite . "gesetzt.")
 	} else if (InStr(jobInput, "Gär") || InStr(jobInput, "Gar")) {
 		job := 12
 		
-		SendClientMessage(prefix . "Du hast deinen Job auf " . csecond . "Gärtner " . cwhite . "gesetzt.")
+		SendInfo("Du hast deinen Job auf " . csecond . "Gärtner " . cwhite . "gesetzt.")
 	} else {
-		SendClientMessage(prefix . "Unbekannter Job.")
+		SendInfo("Unbekannter Job.")
 		return
 	}
 	
@@ -5734,19 +5825,19 @@ return
 	}
 	
 	if (lineInput is not number) {
-		SendClientMessage(prefix . "Fehler: Du musst eine gültige Nummer (1 - 21) eintragen.")
+		SendError("Du musst eine gültige Nummer (1 - 21) eintragen.")
 		return
 	}
 	
 	if (lineInput > 21 || lineInput < 1) {
-		SendClientMessage(prefix . "Fehler: Du musst eine gültige Nummer (1 - 21) eintragen.")
+		SendError("Du musst eine gültige Nummer (1 - 21) eintragen.")
 		return
 	}
 
 	jobLine := lineInput + 1
 	IniWrite, %jobLine%, ini/Settings.ini, job, jobLine
 	
-	SendClientMessage(prefix . "Du hast deine Linie auf '" . csecond . lineInput . cwhite . "' gesetzt.")
+	SendInfo("Du hast deine Linie auf '" . csecond . lineInput . cwhite . "' gesetzt.")
 }
 return
 
@@ -5840,7 +5931,7 @@ return
 	taskCount := tasks.Length()
 	
 	if (taskCount == 0) {
-		SendClientMessage(prefix . "Es sind keine offenen Tasks vorhanden.")
+		SendInfo("Es sind keine offenen Tasks vorhanden.")
 		return
 	}
 	
@@ -5887,7 +5978,7 @@ return
 :?:/ontasks::
 {
 	if (tasks.Length() == 0) {
-		SendClientMessage(prefix . "Es sind keine offenen Tasks vorhanden.")
+		SendInfo("Es sind keine offenen Tasks vorhanden.")
 		return
 	}
 	
@@ -5903,7 +5994,7 @@ return
 	}
 	
 	if (!taskSubjectsOnline) {
-		SendClientMessage(prefix . "Es ist kein Spieler online, für den ein Task existiert.")
+		SendInfo("Es ist kein Spieler online, für den ein Task existiert.")
 	}
 }
 return
@@ -5927,23 +6018,23 @@ return
 	addtaskResult := UrlDownloadToVar(url)
 	
 	if (addtaskResult == "ERROR_BAD_LINK") {
-		SendClientMessage(prefix . "Fehlerhafte Parameterübergabe.")
+		SendInfo("Fehlerhafte Parameterübergabe.")
 	} else if (addtaskResult == "ERROR_USER_NOT_FOUND") {
-		SendClientMessage(prefix . "Der Account mit dem Namen " . username . " wurde nicht gefunden.")
+		SendInfo("Der Account mit dem Namen " . username . " wurde nicht gefunden.")
 	} else if (addtaskResult == "ERROR_WRONG_PASSWORD") {
-		SendClientMessage(prefix . "Zugriff verweigert, das Passwort ist falsch.")
+		SendInfo("Zugriff verweigert, das Passwort ist falsch.")
 	} else if (addtaskResult == "ERROR_ACCESS_DENIED") {
-		SendClientMessage(prefix . "Zugriff verweigert.")
+		SendInfo("Zugriff verweigert.")
 	} else if (addtaskResult == "ERROR_NO_SUCH_ACTION") {
-		SendClientMessage(prefix . "Diese Aktion wird nicht unterstützt.")
+		SendInfo("Diese Aktion wird nicht unterstützt.")
 	} else if (addtaskResult == "ERROR_MYSQL_QUERY") {
-		SendClientMessage(prefix . "Es ist ein Fehler bei der MySQL-Abfrage aufgetreten.")
+		SendInfo("Es ist ein Fehler bei der MySQL-Abfrage aufgetreten.")
 	} else if (addtaskResult == "ERROR_CONNECTION") {
-		SendClientMessage(prefix . "Aktuell liegt ein Fehler in der Verbindung zum Server vor.")
+		SendInfo("Aktuell liegt ein Fehler in der Verbindung zum Server vor.")
 	} else if (addtaskResult == "SUCCESS") {
 		SendChat("/d HQ: Neuer Task - Betreffender Spieler: " . subject . ", Aufgabe: " . newTask)
 	} else {
-		SendClientMessage(prefix . "Es ist ein unbekannter Fehler aufgetreten: " . csecond . addtaskResult)
+		SendInfo("Es ist ein unbekannter Fehler aufgetreten: " . csecond . addtaskResult)
 	}
 }
 return
@@ -5961,23 +6052,23 @@ return
 	deltaskResult := UrlDownloadToVar(url)
 	
 	if (deltaskResult == "ERROR_BAD_LINK") {
-		SendClientMessage(prefix . "Fehlerhafte Parameterübergabe.")
+		SendInfo("Fehlerhafte Parameterübergabe.")
 	} else if (deltaskResult == "ERROR_USER_NOT_FOUND") {
-		SendClientMessage(prefix . "Der Account mit dem Namen " . username . " wurde nicht gefunden.")
+		SendInfo("Der Account mit dem Namen " . username . " wurde nicht gefunden.")
 	} else if (deltaskResult == "ERROR_WRONG_PASSWORD") {
-		SendClientMessage(prefix . "Zugriff verweigert, das Passwort ist falsch.")
+		SendInfo("Zugriff verweigert, das Passwort ist falsch.")
 	} else if (deltaskResult == "ERROR_ACCESS_DENIED") {
-		SendClientMessage(prefix . "Zugriff verweigert.")
+		SendInfo("Zugriff verweigert.")
 	} else if (deltaskResult == "ERROR_NO_SUCH_ACTION") {
-		SendClientMessage(prefix . "Diese Aktion wird nicht unterstützt.")
+		SendInfo("Diese Aktion wird nicht unterstützt.")
 	} else if (deltaskResult == "ERROR_MYSQL_QUERY") {
-		SendClientMessage(prefix . "Es ist ein Fehler bei der MySQL-Abfrage aufgetreten.")
+		SendInfo("Es ist ein Fehler bei der MySQL-Abfrage aufgetreten.")
 	} else if (deltaskResult == "ERROR_CONNECTION") {
-		SendClientMessage(prefix . "Aktuell liegt ein Fehler in der Verbindung zum Server vor.")
+		SendInfo("Aktuell liegt ein Fehler in der Verbindung zum Server vor.")
 	} else if (deltaskResult == "SUCCESS") {
 		SendChat("/d HQ: Task " . deltaskID . " wurde bearbeitet und gelöscht!")
 	} else {
-		SendClientMessage(prefix . "Es ist ein unbekannter Fehler aufgetreten: " . csecond . deltaskResult)
+		SendInfo("Es ist ein unbekannter Fehler aufgetreten: " . csecond . deltaskResult)
 	}
 }
 return
@@ -5988,7 +6079,7 @@ return
 	StringSplit, afk_, afk, ~
 	
 	if (afk_1 == "error") {
-		SendClientMessage(prefix . "Es ist ein Fehler aufgetreten: " . csecond . afk_2)
+		SendInfo("Es ist ein Fehler aufgetreten: " . csecond . afk_2)
 		return
 	} else if (afk_1) {
 		SendChat("/f HQ: Ich bin nun nicht mehr afk und melde mich zurück!")
@@ -5999,7 +6090,7 @@ return
 			if (afkTime is number) {
 				SendChat("/f HQ: Ich melde für " . afkTime . " Minuten afk!")
 			} else {
-				SendClientMessage(prefix . "Fehler: Du musst eine Zeit in Minuten angeben")
+				SendError("Du musst eine Zeit in Minuten angeben")
 				return
 			}
 		}
@@ -6011,7 +6102,7 @@ return
 	StringSplit, afk_, afk, ~
 	
 	if (afk_1 == "error") {
-		SendClientMessage(prefix . "Es ist ein Fehler aufgetreten: " . csecond . afk_2)
+		SendInfo("Es ist ein Fehler aufgetreten: " . csecond . afk_2)
 	} else {
 		SendClientMessage(prefix . csecond . afk_2)
 	}
@@ -6024,19 +6115,19 @@ SendInput, {Enter}
 	result := UrlDownloadToVar(baseURL . "api/afklist?username=" . username . "&password=" . password) 
 	
 	if (result == "ERROR_BAD_LINK") {
-		SendClientMessage(prefix . "Fehlerhafte Parameterübergabe.")
+		SendInfo("Fehlerhafte Parameterübergabe.")
 	} else if (result == "ERROR_USER_NOT_FOUND") {
-		SendClientMessage(prefix . "Der Account mit dem Namen " . username . " wurde nicht gefunden.")
+		SendInfo("Der Account mit dem Namen " . username . " wurde nicht gefunden.")
 	} else if (result == "ERROR_WRONG_PASSWORD") {
-		SendClientMessage(prefix . "Zugriff verweigert, das Passwort ist falsch.")
+		SendInfo("Zugriff verweigert, das Passwort ist falsch.")
 	} else if (result == "ERROR_ACCESS_DENIED") {
-		SendClientMessage(prefix . "Zugriff verweigert.")
+		SendInfo("Zugriff verweigert.")
 	} else if (result == "ERROR_MYSQL_QUERY") {
-		SendClientMessage(prefix . "Es ist ein Fehler bei der MySQL-Abfrage aufgetreten.")
+		SendInfo("Es ist ein Fehler bei der MySQL-Abfrage aufgetreten.")
 	} else if (result == "ERROR_CONNECTION") {
-		SendClientMessage(prefix . "Aktuell liegt ein Fehler in der Verbindung zum Server vor.")
+		SendInfo("Aktuell liegt ein Fehler in der Verbindung zum Server vor.")
 	} else if (result == "ERROR_NOBODY_AFK") {
-		SendClientMessage(prefix . "Es hat sich niemand AFK gemeldet.")
+		SendInfo("Es hat sich niemand AFK gemeldet.")
 	} else {
 		Loop, Parse, result, `n
 		{
@@ -6053,7 +6144,7 @@ SendInput, {Enter}
 	i := 75
 	Loop {
 		if (i < 0) {
-			SendClientMessage(prefix . "Fehler: Es wurde kein Raubüberfall gefunden.")
+			SendError("Es wurde kein Raubüberfall gefunden.")
 			break
 		}
 		
@@ -6084,7 +6175,7 @@ return
 
 :?:/bwgov::
 {
-	SendClientMessage(prefix . "1: LSPD, 2: FBI, 3: Army")
+	SendInfo("1: LSPD, 2: FBI, 3: Army")
 	
 	fracNumber := PlayerInput("Fraktion: ")
 	if (fracNumber == "" || fracNumber == " " || fracNumber is not number) {
@@ -6104,13 +6195,13 @@ return
 		preposition := "Die"
 		copTitle := "Soldaten"
 	} else {
-		SendClientMessage(prefix . "Fehler: Verwende eine Zahl für eine der folgenden Fraktionen:")
-		SendClientMessage(prefix . "Fehler: 1: LSPD, 2: FBI, 3: Army")
+		SendError("Verwende eine Zahl für eine der folgenden Fraktionen:")
+		SendError("1: LSPD, 2: FBI, 3: Army")
 		return
 	}
 	
-	SendClientMessage(prefix . "1: Aktuell (bestimmte Anzahl gesucht)")
-	SendClientMessage(prefix . "2: Dauerhaft (Bewerbung dauerhaft offen")
+	SendInfo("1: Aktuell (bestimmte Anzahl gesucht)")
+	SendInfo("2: Dauerhaft (Bewerbung dauerhaft offen")
 	
 	typeOf := PlayerInput("Art der Bewerbung: ")
 	if (typeOf == "" || typeOf == " ") {
@@ -6138,7 +6229,7 @@ return
 
 			SendChat("/gov Versuchen Sie Ihr Glück und werden Teil unseres Teams. Mehr Informationen im Forum!")
 		} else {
-			SendClientMessage(prefix . "Du musst mindestens ein Member suchen.")
+			SendInfo("Du musst mindestens ein Member suchen.")
 		}
 	} else if (typeOf == "2") {
 		SendChat("/gov .:: " . fraction . " - Bewerbungsrunde ::.")
@@ -6155,9 +6246,9 @@ return
 
 		SendChat("/gov Werden Sie Teil unseres Teams und versuchen Sie Ihr Glück!")
 	} else {
-		SendClientMessage(prefix . "Fehler: Verwende eine Zahl für einer der folgenden Bewerbungsrunden:")
-		SendClientMessage(prefix . "Fehler: 1: Aktuell (bestimmte Anzahl gesucht)")
-		SendClientMessage(prefix . "Fehler: 2: Dauerhaft (Bewerbung dauerhaft offen")	
+		SendError("Verwende eine Zahl für einer der folgenden Bewerbungsrunden:")
+		SendError("1: Aktuell (bestimmte Anzahl gesucht)")
+		SendError("2: Dauerhaft (Bewerbung dauerhaft offen")	
 	}
 }
 return
@@ -6181,11 +6272,11 @@ SendInput, {Enter}
 	if (autoUse == 0) {
 		autoUse := 1
 
-		SendClientMessage(prefix . "Heal-Modus wurde " . cgreen . "aktiviert" . cwhite . ".")
+		SendInfo("Heal-Modus wurde " . cgreen . "aktiviert" . cwhite . ".")
 	} else {
 		autoUse := 0
 
-		SendClientMessage(prefix . "Heal-Modus wurde " . cred . "deaktiviert" . cwhite . ".")
+		SendInfo("Heal-Modus wurde " . cred . "deaktiviert" . cwhite . ".")
 	}
 	
 	IniWrite, %autoUse%, ini/Settings.ini, settings, autoUse
@@ -6195,8 +6286,8 @@ return
 :?:/zollhelp::
 SendInput, {Enter}
 {
-	SendClientMessage(prefix . ".:: Zoll-Informationen ::.")
-	SendClientMessage(prefix . csecond . "/zollinfo [Zoll-ID]{FFFFFF} - Zollinformationen nach ID")
+	SendInfo(".:: Zoll-Informationen ::.")
+	SendInfo(csecond . "/zollinfo [Zoll-ID]{FFFFFF} - Zollinformationen nach ID")
 	
 	closeHotkey := closeCustomsControlNoMods
 	closeHotkey := StrReplace(closeHotkey, "!", "ALT+")
@@ -6217,53 +6308,53 @@ SendInput, {Enter}
 	customsID := PlayerInput("Zoll-ID: ")
 	
 	if (customsID == "" || customsID == " ") {
-		SendClientMessage(prefix . "Fehler: Du hast die Eingabe abgebrochen.")
+		SendError("Du hast die Eingabe abgebrochen.")
 		return
 	}
 
 	if (customsID is not number) {
-		SendClientMessage(prefix . "Fehler: Du musst eine Nummer eintragen.")
+		SendError("Du musst eine Nummer eintragen.")
 		return
 	}
 
 	if (customsID == "1") {
-		SendClientMessage(prefix . "Zollinformation (" . csecond . "Zollstation " . customsID . cwhite . "):")
-		SendClientMessage(prefix . "Stadt: Los Santos - Las Venturas")
-		SendClientMessage(prefix . "Beschreibung: Zollstation von Red County nach Las Venturas (Nähe Hitman Base)")
+		SendInfo("Zollinformation (" . csecond . "Zollstation " . customsID . cwhite . "):")
+		SendInfo("Stadt: Los Santos - Las Venturas")
+		SendInfo("Beschreibung: Zollstation von Red County nach Las Venturas (Nähe Hitman Base)")
 	} else if (customsID == "2") {
-		SendClientMessage(prefix . "Zollinformation (" . csecond . "Zollstation " . customsID . cwhite . "):")
-		SendClientMessage(prefix . "Stadt: Red County - Bone County")
-		SendClientMessage(prefix . "Beschreibung: Zollstation von Red County nach Bone County (Nähe Hunter Quarry)")
+		SendInfo("Zollinformation (" . csecond . "Zollstation " . customsID . cwhite . "):")
+		SendInfo("Stadt: Red County - Bone County")
+		SendInfo("Beschreibung: Zollstation von Red County nach Bone County (Nähe Hunter Quarry)")
 	} else if (customsID == "3") {
-		SendClientMessage(prefix . "Zollinformation (" . csecond . "Zollstation " . customsID . cwhite . "):")
-		SendClientMessage(prefix . "Stadt: Blueberry - Bone County")
-		SendClientMessage(prefix . "Beschreibung: Zollstation auf der Martin Bridge von Blueberry nach Fort Carson")
+		SendInfo("Zollinformation (" . csecond . "Zollstation " . customsID . cwhite . "):")
+		SendInfo("Stadt: Blueberry - Bone County")
+		SendInfo("Beschreibung: Zollstation auf der Martin Bridge von Blueberry nach Fort Carson")
 	} else if (customsID == "4") {
-		SendClientMessage(prefix . "Zollinformation (" . csecond . "Zollstation " . customsID . cwhite . "):")
-		SendClientMessage(prefix . "Stadt: San Fierro - Tierra Robada")
-		SendClientMessage(prefix . "Beschreibung: Zollstation auf der Garver Bridge (Nähe FBI Base)")
+		SendInfo("Zollinformation (" . csecond . "Zollstation " . customsID . cwhite . "):")
+		SendInfo("Stadt: San Fierro - Tierra Robada")
+		SendInfo("Beschreibung: Zollstation auf der Garver Bridge (Nähe FBI Base)")
 	} else if (customsID == "5") {
-		SendClientMessage(prefix . "Zollinformation (" . csecond . "Zollstation " . customsID . cwhite . "):")
-		SendClientMessage(prefix . "Stadt: San Fierro - Bayside")
-		SendClientMessage(prefix . "Beschreibung: Zollstation bei der Gant Bride (von San Fierro nach Bayside)")
+		SendInfo("Zollinformation (" . csecond . "Zollstation " . customsID . cwhite . "):")
+		SendInfo("Stadt: San Fierro - Bayside")
+		SendInfo("Beschreibung: Zollstation bei der Gant Bride (von San Fierro nach Bayside)")
 	} else if (customsID == "6") {
-		SendClientMessage(prefix . "Zollinformation (" . csecond . "Zollstation " . customsID . cwhite . "):")
-		SendClientMessage(prefix . "Stadt: Flint County - Red County")
-		SendClientMessage(prefix . "Beschreibung: Zollstation von der ehem. GmbH-Base nach The Panopticon")
+		SendInfo("Zollinformation (" . csecond . "Zollstation " . customsID . cwhite . "):")
+		SendInfo("Stadt: Flint County - Red County")
+		SendInfo("Beschreibung: Zollstation von der ehem. GmbH-Base nach The Panopticon")
 	} else if (customsID == "7") {
-		SendClientMessage(prefix . "Zollinformation (" . csecond . "Zollstation " . customsID . cwhite . "):")
-		SendClientMessage(prefix . "Stadt: Flint County - Red County")
-		SendClientMessage(prefix . "Beschreibung: Zollstation von Flint County nach Red County (Richtung Blueberry)")
+		SendInfo("Zollinformation (" . csecond . "Zollstation " . customsID . cwhite . "):")
+		SendInfo("Stadt: Flint County - Red County")
+		SendInfo("Beschreibung: Zollstation von Flint County nach Red County (Richtung Blueberry)")
 	} else if (customsID == "8") {
-		SendClientMessage(prefix . "Zollinformation (" . csecond . "Zollstation " . customsID . cwhite . "):")
-		SendClientMessage(prefix . "Stadt: Los Santos - Flint County")
-		SendClientMessage(prefix . "Beschreibung: Zollstation von Flint County nach Los Santos (Waffendealer Tunnel)")
+		SendInfo("Zollinformation (" . csecond . "Zollstation " . customsID . cwhite . "):")
+		SendInfo("Stadt: Los Santos - Flint County")
+		SendInfo("Beschreibung: Zollstation von Flint County nach Los Santos (Waffendealer Tunnel)")
 	} else if (customsID == "9") {
-		SendClientMessage(prefix . "Zollinformation (" . csecond . "Zollstation " . customsID . cwhite . "):")
-		SendClientMessage(prefix . "Stadt: Los Santos - Flint County")
-		SendClientMessage(prefix . "Beschreibung: Zollstation von Flint County nach Los Santos (Flint Intersection)")
+		SendInfo("Zollinformation (" . csecond . "Zollstation " . customsID . cwhite . "):")
+		SendInfo("Stadt: Los Santos - Flint County")
+		SendInfo("Beschreibung: Zollstation von Flint County nach Los Santos (Flint Intersection)")
 	} else {
-		SendClientMessage(prefix . "Diese Zollstation existiert nicht (1-9).")
+		SendInfo("Diese Zollstation existiert nicht (1-9).")
 	}
 }
 return
@@ -6294,10 +6385,10 @@ SendInput, {Enter}
 		mkd := mkills . ".00"
 	}
 
-	SendClientMessage(prefix . "Aktuelle Kills: " . cSecond . formatNumber(kills) cWhite . " - Aktuelle Tode: " . cSecond . formatNumber(deaths))
-	SendClientMessage(prefix . "Tages-Kills: " . cSecond . dkills . cWhite . " - Tages-Tode: " . cSecond . ddeaths)
-	SendClientMessage(prefix . "Monats-Kills: " . cSecond . formatNumber(mkills) . cWhite . " - Monats-Tode: " . cSecond . formatNumber(mdeaths))
-	SendClientMessage(prefix . "DKD: " . cSecond . kd . cWhite . " - MKD: " . cSecond . mkd . cWhite . " - KD: " . cSecond . kd)	
+	SendInfo("Aktuelle Kills: " . cSecond . formatNumber(kills) cWhite . " - Aktuelle Tode: " . cSecond . formatNumber(deaths))
+	SendInfo("Tages-Kills: " . cSecond . dkills . cWhite . " - Tages-Tode: " . cSecond . ddeaths)
+	SendInfo("Monats-Kills: " . cSecond . formatNumber(mkills) . cWhite . " - Monats-Tode: " . cSecond . formatNumber(mdeaths))
+	SendInfo("DKD: " . cSecond . kd . cWhite . " - MKD: " . cSecond . mkd . cWhite . " - KD: " . cSecond . kd)	
 }
 return
 
@@ -6335,7 +6426,7 @@ SendInput, {Enter}
 	IniWrite, 0, ini/Stats.ini, Stats, DDeaths[%A_DD%:%A_MM%:%A_YYYY%]
 	IniWrite, 0, ini/Stats.ini, Stats, DKills[%A_DD%:%A_MM%:%A_YYYY%]
 
-	SendClientMessage(Prefix . "Deine Tages-Kills und Tode wurden auf 0 gesetzt.")
+	SendInfo("Deine Tages-Kills und Tode wurden auf 0 gesetzt.")
 }
 return
 
@@ -6371,11 +6462,11 @@ SendInput, {Enter}
 		cAvailable := cred . "nicht vorhanden"
 	}
 	
-	SendClientMessage(prefix . "|============| Inventar |============|")
-	SendClientMessage(prefix . "Drogen dabei: " . dColor . drugs . "g")
-	SendClientMessage(prefix . "Erste-Hilfe-Paket: " . fAvailable)
-	SendClientMessage(prefix . "Lagerfeuer: " . cAvailable)
-	SendClientMessage(prefix . "|============| Inventar |============|")
+	SendInfo("|============| Inventar |============|")
+	SendInfo("Drogen dabei: " . dColor . drugs . "g")
+	SendInfo("Erste-Hilfe-Paket: " . fAvailable)
+	SendInfo("Lagerfeuer: " . cAvailable)
+	SendInfo("|============| Inventar |============|")
 }
 return
 
@@ -6426,7 +6517,7 @@ return
 SendInput, {Enter}
 {
 	if (getuserName() != "jacob.tremblay") {
-		SendClientMessage(prefix . "Du kannst diesen Befehl nicht verwenden.")
+		SendInfo("Du kannst diesen Befehl nicht verwenden.")
 		return
 	}	
 	
@@ -6447,7 +6538,7 @@ return
 SendInput, {Enter}
 {
 	if (getuserName() != "jacob.tremblay") {
-		SendClientMessage(prefix . "Du kannst diesen Befehl nicht verwenden.")
+		SendInfo("Du kannst diesen Befehl nicht verwenden.")
 		return
 	}
 	
@@ -6474,32 +6565,32 @@ SendInput, {Enter}
 		owner := label_1
 		type := "house"
 		description := label_3
-		SendClientMessage(prefix . "Besitzer: " . csecond . label_1)
+		SendInfo("Besitzer: " . csecond . label_1)
 	} else if (RegExMatch(getLabelText(), "^(.+)\nDrücke Enter\.$", label_)) { ; Fraktionsbase
 		owner := label_1
 		type := "faction"
 		description := ""
-		SendClientMessage(prefix . "Besitzer: " . csecond . label_1)
+		SendInfo("Besitzer: " . csecond . label_1)
 	} else if (RegExMatch(getLabelText(), "^Dieses Haus gehört (\S+)\.\n\nPreis: (.*)\nBeschreibung: (.+)\n\n(.+)$", label_)) { ; Crewhaus (unmietbar)
 		owner := label_1
 		type := "house"
 		description := label_3
-		SendClientMessage(prefix . "Besitzer: " . csecond . label_1)
+		SendInfo("Besitzer: " . csecond . label_1)
 	} else if (RegExMatch(getLabelText(), "^Dieses Haus vermietet Zimmer\.\n\nBesitzer: (\S+)\nMiet-Preis: (.*)\nBeschreibung: (.+)\nTippe \/renthouse\.\n\n(.+)$", label_)) {
 		owner := label_1
 		type := "house"
 		description := label_3
-		SendClientMessage(prefix . "Besitzer: " . csecond . label_1)
+		SendInfo("Besitzer: " . csecond . label_1)
 	} else if (RegExMatch(getLabelText(), "^Dieses Haus gehört (\S+)\.\n\nPreis: (.*)\nBeschreibung: (.+)$", label_)) { ; Unmietbares Haus
 		owner := label_1
 		type := "house"
 		description := label_3
-		SendClientMessage(prefix . "Besitzer: " . csecond . label_1)
+		SendInfo("Besitzer: " . csecond . label_1)
 	} else if (RegExMatch(getLabelText(), "^Dieses Haus steht zum Verkauf\.\n\nPreis: (.*)\nBeschreibung: (.+)\nTippe \/buyhouse\.$", label_)) { ; Haus Verkauft
 		owner := "niemand"
 		type := "house"
 		description := label_2
-		SendClientMessage(prefix . "Besitzer: " . csecond . owner)
+		SendInfo("Besitzer: " . csecond . owner)
 	}
 	
 	Sleep, 200
@@ -6524,18 +6615,18 @@ SendInput, {Enter}
 		description := PlayerInput("Beschreibung: ")
 	}
 	
-	SendClientMessage(prefix . "Trage einen der folgenden Typen ein: public, faction, house")
+	SendInfo("Trage einen der folgenden Typen ein: public, faction, house")
 	
 	if (!type) {
 		type := PlayerInput("Typ: ")
 	}
 	
 	if (type == "public" || type == "faction" || type == "house") {
-		SendClientMessage(prefix . "Möchtest du folgendes Gebäudekomplex eintragen? Du kannst mit '" csecond . "X" . cwhite . "' bestätigen!")
-		SendClientMessage(prefix . "GK: " . gk)
-		SendClientMessage(prefix . "Besitzer: " . owner)
-		SendClientMessage(prefix . "Beschreibung: " . description)
-		SendClientMessage(prefix . "Location: " . getPlayerZone() . ", " . getPlayerCity())
+		SendInfo("Möchtest du folgendes Gebäudekomplex eintragen? Du kannst mit '" csecond . "X" . cwhite . "' bestätigen!")
+		SendInfo("GK: " . gk)
+		SendInfo("Besitzer: " . owner)
+		SendInfo("Beschreibung: " . description)
+		SendInfo("Location: " . getPlayerZone() . ", " . getPlayerCity())
 			
 		KeyWait, X, D, T10
 			
@@ -6543,10 +6634,10 @@ SendInput, {Enter}
 			string := "GK: " . gk . ", Besitzer: " . owner . ", Beschreibung: " . description . ", X: " . posX . ", Y: " . posY . "`n"
 			
 			FileAppend, %string%, komplexes.txt
-			SendClientMessage(prefix . "Gebäudekomplex " . csecond . gk . cwhite . " von " . csecond . owner . cwhite . " (" . getPlayerZone() . ", " . getPlayerCity() . ") wurde gespeichert!")
+			SendInfo("Gebäudekomplex " . csecond . gk . cwhite . " von " . csecond . owner . cwhite . " (" . getPlayerZone() . ", " . getPlayerCity() . ") wurde gespeichert!")
 		}
 	} else {
-		SendClientMessage(prefix . "Trage einen der folgenden Typen ein: public, faction, house")
+		SendInfo("Trage einen der folgenden Typen ein: public, faction, house")
 	}
 	
 	owner := ""
@@ -6626,12 +6717,12 @@ return
 	}
 	
 	if (wantedInput is not number) {
-		SendClientMessage(prefix . "Fehler: Die Wantedanzahl muss eine Nummer sein.")
+		SendError("Die Wantedanzahl muss eine Nummer sein.")
 		return
 	}
 	
-	SendClientMessage(prefix . "10% von " . wantedInput . " Wanteds sind " . csecond . Round(wantedInput / 10) . cwhite . " (" . csecond . (wantedInput / 10) . cwhite . ") Wanteds.")
-	SendClientMessage(prefix . "Damit würdest du ihm " . wantedInput * 3 . " Minuten Knastzeit ersparen.")
+	SendInfo("10% von " . wantedInput . " Wanteds sind " . csecond . Round(wantedInput / 10) . cwhite . " (" . csecond . (wantedInput / 10) . cwhite . ") Wanteds.")
+	SendInfo("Damit würdest du ihm " . wantedInput * 3 . " Minuten Knastzeit ersparen.")
 }
 return
 
@@ -6643,13 +6734,13 @@ return
 	}
 	
 	if (tempoInput is not number) {
-		SendClientMessage(prefix . "Fehler: Die Geschwindigkeit muss eine Zahl sein.")
+		SendError("Die Geschwindigkeit muss eine Zahl sein.")
 		return
 	}
 	
 	tempo := tempoInput
 	
-	SendClientMessage(prefix . "Du hast das Tempo auf " . csecond . tempo . " km/h " . cwhite . "gesetzt. Starte den Tempomat mit '" . csecond . tempomatNoMods . cwhite . "'")
+	SendInfo("Du hast das Tempo auf " . csecond . tempo . " km/h " . cwhite . "gesetzt. Starte den Tempomat mit '" . csecond . tempomatNoMods . cwhite . "'")
 }
 return
 
@@ -6676,7 +6767,7 @@ return
 	}
 	
 	if (getFullName(name) == "") {
-		SendclientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -6692,7 +6783,7 @@ return
 	}
 	
 	if (getFullName(name) == "") {
-		SendclientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -6708,7 +6799,7 @@ return
 	}
 	
 	if (getFullName(name) == "") {
-		SendclientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -6722,7 +6813,7 @@ SendInput, {Enter}
 	if (currentTicketMoney > 0) {
 		giveTicket(lastTicketPlayer, currentTicketMoney, lastTicketReason)
 	} else {
-		SendClientMessage(prefix . "Fehler: Es ist kein Ticket mehr ausstellbar.")
+		SendError("Es ist kein Ticket mehr ausstellbar.")
 	}
 }
 return
@@ -6753,28 +6844,28 @@ return
 							
 							Sleep, 200
 							
-							SendClientMessage(prefix . csecond . "/apunkte{FFFFFF} - Punkte dafür ausstellen, " . csecond . "/aticket{FFFFFF} - Ticket dafür anbieten")
+							SendInfo(csecond . "/apunkte{FFFFFF} - Punkte dafür ausstellen, " . csecond . "/aticket{FFFFFF} - Ticket dafür anbieten")
 							
 							autoName := fullName
 							autoReason := pointReason
 							autoTicket := pointAmount * 2000							
 						} else {
-							SendClientMessage(prefix . "Fehler: Du musst mindestens 1 Strafpunkt angeben.")
+							SendError("Du musst mindestens 1 Strafpunkt angeben.")
 						}
 					} else {
-						SendClientMessage(prefix . "Fehler: Du darfst nicht mehr als 4 Strafpunkte eintragen.")
+						SendError("Du darfst nicht mehr als 4 Strafpunkte eintragen.")
 					}
 				} else {
-					SendClientMessage(prefix . "Fehler: Du musst eine gültige Punkteanzahl angeben.")
+					SendError("Du musst eine gültige Punkteanzahl angeben.")
 				}
 			} else {
-				SendClientMessage(prefix . "Fehler: Der Grund muss mind. 5 Zeichen lang sein.")
+				SendError("Der Grund muss mind. 5 Zeichen lang sein.")
 			}
 		} else {
-			SendClientMessage(prefix . "Fehler: Der angegebene Spieler wurde nicht gefunden.")
+			SendError("Der angegebene Spieler wurde nicht gefunden.")
 		}
 	} else {
-		SendClientMessage(prefix . "Fehler: Der Name muss mindestens 3 Zeichen haben.")
+		SendError("Der Name muss mindestens 3 Zeichen haben.")
 	}
 }
 return
@@ -6809,7 +6900,7 @@ return
 	if (kmh == 0) {
 		kmh := 80
 		
-		SendClientMessage(prefix . "Du musst die maximal erlaubte Höchstgeschwindigkeit noch eintragen, verwende " . csecond . "/setkmh{FFFFFF}.")
+		SendInfo("Du musst die maximal erlaubte Höchstgeschwindigkeit noch eintragen, verwende " . csecond . "/setkmh{FFFFFF}.")
 	}
 	
 	SendChat("/l Guten " . getDayTime() . " " . autoName . ", Sie haben gegen die StVO verstoßen.")
@@ -6828,7 +6919,7 @@ return
 	
 	Sleep, 100
 	
-	SendClientMessage(prefix . "Verwende " . csecond . "/aticket {FFFFFF}um ein Ticket oder " . csecond . "/apunkte{FFFFFF}, um die Punkte auszustellen.")
+	SendInfo("Verwende " . csecond . "/aticket {FFFFFF}um ein Ticket oder " . csecond . "/apunkte{FFFFFF}, um die Punkte auszustellen.")
 	
 	lastSpeed := 0
 	lastSpeedUser := ""
@@ -6848,7 +6939,7 @@ SendInput, {Enter}
 		autoName := ""
 		autoSpeed := 0
 	} else {
-		SendClientMessage(prefix . "Du musst erst einen Verstoß mit " . csecond . "/stvo {FFFFFF}eintragen.")
+		SendInfo("Du musst erst einen Verstoß mit " . csecond . "/stvo {FFFFFF}eintragen.")
 	}
 }
 return
@@ -6866,7 +6957,7 @@ SendInput, {Enter}
 		autoName := ""
 		autoSpeed := 0
 	} else {
-		SendClientMessage(prefix . "Du musst erst einen Verstoß mit " . csecond . "/stvo {FFFFFF}eintragen.")
+		SendInfo("Du musst erst einen Verstoß mit " . csecond . "/stvo {FFFFFF}eintragen.")
 	}
 }
 return
@@ -6908,7 +6999,7 @@ return
 	
 	Sleep, 100
 	
-	SendClientMessage(prefix . csecond . "/fst{FFFFFF} - Ticket anbieten, " . csecond . "/tfs{FFFFFF} - Schein taken")
+	SendInfo(csecond . "/fst{FFFFFF} - Ticket anbieten, " . csecond . "/tfs{FFFFFF} - Schein taken")
 }
 return
 
@@ -6935,7 +7026,7 @@ return
 	
 	Sleep, 100
 	
-	SendClientMessage(prefix . csecond . "/wst{FFFFFF} - Ticket anbieten, " . csecond . "/tws{FFFFFF} - Schein taken")
+	SendInfo(csecond . "/wst{FFFFFF} - Ticket anbieten, " . csecond . "/tws{FFFFFF} - Schein taken")
 }
 return
 
@@ -6962,7 +7053,7 @@ return
 	
 	Sleep, 100
 	
-	SendClientMessage(prefix . csecond . "/bst{FFFFFF} - Ticket anbieten, " . csecond . "/tbs{FFFFFF} - Schein taken")
+	SendInfo(csecond . "/bst{FFFFFF} - Ticket anbieten, " . csecond . "/tbs{FFFFFF} - Schein taken")
 }
 return
 
@@ -7062,9 +7153,9 @@ return
 		
 		IniWrite, %max_kmh%, ini/Settings.ini, settings, max_kmh
 		
-		SendClientMessage(prefix . "Du hast die maximal erlaubte Geschwindigkeit bei Radarkontrollen auf " . csecond . max_kmh . " km/h " . cwhite . "gesetzt.")
+		SendInfo("Du hast die maximal erlaubte Geschwindigkeit bei Radarkontrollen auf " . csecond . max_kmh . " km/h " . cwhite . "gesetzt.")
 	} else {
-		SendClientMessage(prefix . "Fehler: Gib bitte eine Zahl für die maximal erlaubte Geschwindigkeit bei Radarkontrollen ein.")
+		SendError("Gib bitte eine Zahl für die maximal erlaubte Geschwindigkeit bei Radarkontrollen ein.")
 	}
 }
 return
@@ -7083,7 +7174,7 @@ SendInput, {Enter}
 		Sleep, 500
 	}
 	
-	SendClientMessage(prefix . "Geld am nächsten Payday: $" . csecond . formatNumber(paydayMoney))
+	SendInfo("Geld am nächsten Payday: $" . csecond . formatNumber(paydayMoney))
 }
 return
 
@@ -7119,8 +7210,8 @@ SendInput, {Enter}
 		Sleep, 500
 	}	
 	
-	SendClientMessage(prefix . "Geld am nächsten Payday: $" . csecond . formatNumber(paydayMoney))
-	SendClientMessage(prefix . "Du hast das Geld für den nächsten Payday auf 0$ zurückgesetzt.")
+	SendInfo("Geld am nächsten Payday: $" . csecond . formatNumber(paydayMoney))
+	SendInfo("Du hast das Geld für den nächsten Payday auf 0$ zurückgesetzt.")
 	
 	iniWrite, 0, ini/Stats.ini, stats, paydayMoney
 }
@@ -7134,12 +7225,12 @@ return
 	}
 	
 	if (taxClass is not number) {
-		SendClientMessage(prefix . "Gib bitte eine gültige Steuerklasse (1-4) ein.")
+		SendInfo("Gib bitte eine gültige Steuerklasse (1-4) ein.")
 		return
 	}
 	
 	if (taxClass < 1 || taxClass > 4) {
-		SendClientMessage(prefix . "Gib bitte eine gültige Steuerklasse (1-4) ein!")
+		SendInfo("Gib bitte eine gültige Steuerklasse (1-4) ein!")
 		return
 	}
 	
@@ -7151,7 +7242,7 @@ return
 	taxes := (100 - chat_1) / 100
 	
 	IniWrite, %taxes%, ini/Settings.ini, settings, taxes
-	SendClientMessage(prefix . "Der Steuersatz (Steuerklasse " . cSecond . taxClass . cwhite . ") wurde auf " . cSecond . chat_1 . cwhite . " Prozent gesetzt.")
+	SendInfo("Der Steuersatz (Steuerklasse " . cSecond . taxClass . cwhite . ") wurde auf " . cSecond . chat_1 . cwhite . " Prozent gesetzt.")
 }
 return
 
@@ -7161,11 +7252,11 @@ SendInput, {Enter}
 	if (showDriver) {
 		showDriver := false
 		
-		SendClientMessage(prefix . "Es wird nun nicht mehr automatisch dem Fahrer des Wagens gezeigt. (/asp)")
+		SendInfo("Es wird nun nicht mehr automatisch dem Fahrer des Wagens gezeigt. (/asp)")
 	} else {
 		showDriver := true
 		
-		SendClientMessage(prefix . "Es wird nun immer automatisch dem Fahrer des Wagens gezeigt. (/asp)")
+		SendInfo("Es wird nun immer automatisch dem Fahrer des Wagens gezeigt. (/asp)")
 	}
 }
 return
@@ -7176,10 +7267,10 @@ return
 	if (partner == "") {
 		return
 	} else if (getFullName(partner) == "") {
-		SendClientMessage(prefix . "Fehler: Der Spieler ist offline.")
+		SendError("Der Spieler ist offline.")
 		return
 	} else if (getFullName(partner) == getUserName()) {
-		SendClientMessage(prefix . "Halts Maul.")
+		SendInfo("Halts Maul.")
 		return
 	}
 	
@@ -7204,7 +7295,7 @@ SendInput, {Enter}
 {
 	partnerCount := 0
 	
-	SendClientMessage(prefix . "Aktuelle Dienstpartner:")
+	SendInfo("Aktuelle Dienstpartner:")
 	
 	for index, partner in partners {
 		partnerPlayerID := getPlayerIdByName(partner)
@@ -7223,7 +7314,7 @@ SendInput, {Enter}
 {
 	partners := []
 	
-	SendClientMessage(prefix . "Dienstpartner zurückgesetzt.")
+	SendInfo("Dienstpartner zurückgesetzt.")
 }
 return
 
@@ -7248,7 +7339,7 @@ SendInput, {Enter}
 	}
 	
 	if (!found) {
-		SendClientMessage(prefix . "Es konnten keine Offline-Pickups gefunden werden!")
+		SendInfo("Es konnten keine Offline-Pickups gefunden werden!")
 	}
 }
 return
@@ -7274,7 +7365,7 @@ SendInput, {Enter}
 	}
 	
 	if (!found) {
-		SendClientMessage(prefix . "Es konnten keine Offline-Pickups gefunden werden!")
+		SendInfo("Es konnten keine Offline-Pickups gefunden werden!")
 	}
 }
 return
@@ -7300,7 +7391,7 @@ SendInput, {Enter}
 	}
 	
 	if (!found) {
-		SendClientMessage(prefix . "Es konnten keine Death-Pickups gefunden werden!")
+		SendInfo("Es konnten keine Death-Pickups gefunden werden!")
 	} else {
 		deathArrested := true
 		
@@ -7330,7 +7421,7 @@ SendInput, {Enter}
 	}
 	
 	if (!found) {
-		SendClientMessage(prefix . "Es konnten keine Death-Pickups gefunden werden!")
+		SendInfo("Es konnten keine Death-Pickups gefunden werden!")
 	} else {
 		deathArrested := true
 		
@@ -7344,18 +7435,18 @@ SendInput, {Enter}
 {
 	arrestCount := 0
 	
-	SendClientMessage(prefix . "Verbrecher in der Arrestliste:")
+	SendInfo("Verbrecher in der Arrestliste:")
 	
 	for index, arrestName in arrestList {
-		SendClientMessage(prefix . "ID: " . getPlayerIdByName(getFullName(arrestName), 1) . " - " . csecond . getFullName(arrestName))
+		SendInfo("ID: " . getPlayerIdByName(getFullName(arrestName), 1) . " - " . csecond . getFullName(arrestName))
 	
 		arrestCount ++
 	}
 	
 	if (!arrestCount) {
-		SendClientMessage(prefix . "Es sind aktuell keine Spieler in deiner Arrest-Liste.")
+		SendInfo("Es sind aktuell keine Spieler in deiner Arrest-Liste.")
 	} else {
-		SendClientMessage(prefix . "Spieler in Arrest-Liste: " . csecond . arrestCount)
+		SendInfo("Spieler in Arrest-Liste: " . csecond . arrestCount)
 	}
 }
 return
@@ -7365,18 +7456,18 @@ SendInput, {Enter}
 {
 	grabCount := 0
 	
-	SendClientMessage(prefix . "Verbrecher in der Cuffliste:")
+	SendInfo("Verbrecher in der Cuffliste:")
 	
 	for index, grabName in grabList {
-		SendClientMessage(prefix . "ID: " . getPlayerIdByName(getFullName(grabName), 1) . " - " . csecond . getFullName(grabName))
+		SendInfo("ID: " . getPlayerIdByName(getFullName(grabName), 1) . " - " . csecond . getFullName(grabName))
 	
 		grabCount ++
 	}
 	
 	if (!grabCount) {
-		SendClientMessage(prefix . "Es sind aktuell keine Spieler in deiner Cuffliste.")
+		SendInfo("Es sind aktuell keine Spieler in deiner Cuffliste.")
 	} else {
-		SendClientMessage(prefix . "Spieler in Cuffliste: " . csecond . grabCount)
+		SendInfo("Spieler in Cuffliste: " . csecond . grabCount)
 	}
 }
 return
@@ -7446,7 +7537,7 @@ return
 	
 	if (playerForTicket != "") {
 		if (playerForTicket == getUsername()) {
-			SendClientMessage(prefix . "Fehler: Du kannst dir selbst kein Ticket anbieten.")
+			SendError("Du kannst dir selbst kein Ticket anbieten.")
 		} else {
 			SendChat("/l Guten Tag " . playerForTicket . ",")
 
@@ -7480,16 +7571,16 @@ return
 	
 	if (playerForTicket != "") {
 		if (playerForTicket == getUsername()) {
-			SendClientMessage(prefix . "Fehler: Du kannst dir selbst kein Ticket anbieten.")
+			SendError("Du kannst dir selbst kein Ticket anbieten.")
 		} else {
 			wantedCount := PlayerInput("Wanteds: ")
 			if (wantedCount is not number) {
-				SendClientMessage(prefix . "Fehler: Du kannst nur Zahlen eingeben.")
+				SendError("Du kannst nur Zahlen eingeben.")
 				return
 			}
 			
 			if (wantedCount > 4) {
-				SendClientMessage(prefix . "Fehler: Du kannst nur bis 4 Wanteds ein Ticket ausstellen.")
+				SendError("Du kannst nur bis 4 Wanteds ein Ticket ausstellen.")
 				return
 			}
 		
@@ -7512,7 +7603,7 @@ return
 			}			
 			
 			if ((wantedCount * 750) > 3000) {
-				SendClientMessage(prefix . "Fehler: Diese Summe konnte unmöglich erreicht werden. Siehe max. Ticket-Wanted Regel.")
+				SendError("Diese Summe konnte unmöglich erreicht werden. Siehe max. Ticket-Wanted Regel.")
 			} else {
 				SendChat("/ticket " . playerForTicket . " " . (wantedCount * 750) " Wanted-Ticket (" . wantedCount . " Wanted" . (wantedCount == 1 ? "" : "s") . ")")
 			}		
@@ -7532,7 +7623,7 @@ return
 	carID := PlayerInput("Fahrzeug-ID: ")
 	
 	if (carID != "") {
-		SendClientMessage(prefix . "Fahrzeuginformationen werden gespeichert, bitte warte einen Moment...")
+		SendInfo("Fahrzeuginformationen werden gespeichert, bitte warte einen Moment...")
 		Sleep, 250
 		
 		SendChat("/carinfo " . carID)
@@ -7550,19 +7641,19 @@ return
 {
 	playerToFindInput := PlayerInput("Spieler: ")
 	if (playerToFindInput == "" || playerToFindInput == " ") {
-		SendClientMessage(prefix . "Fehler: Die Eingabe wurde abgebrochen.")
+		SendError("Die Eingabe wurde abgebrochen.")
 		return
 	}
 
 	playerToFind := playerToFindInput
 
 	if (getFullName(playerToFind) == "") {
-		SendClientMessage(prefix . "Fehler: Der angegebene Spieler ist nicht online.")
+		SendError("Der angegebene Spieler ist nicht online.")
 		return
 	}
 
 	if (getFullName(playerToFind) == getUserName()) {
-		SendClientMessage(prefix . "Fehler: Du kannst dich nicht selber finden.")
+		SendError("Du kannst dich nicht selber finden.")
 		return
 	}
 
@@ -7580,17 +7671,17 @@ return
 		playerToShowToInput := PlayerInput("Partner: ")
 		
 		if (playerToShowToInput == "" || playerToShowToInput == " ") {
-			SendClientMessage(prefix . "Fehler: Du hast die Eingabe abgebrochen.")
+			SendError("Du hast die Eingabe abgebrochen.")
 			return
 		}
 
 		if (!getFullName(playerToShowToInput)) {
-			SendClientMessage(prefix . "Fehler: Der angegebene Show-Partner ist offline.")
+			SendError("Der angegebene Show-Partner ist offline.")
 			return
 		}
 
 		if (getFullName(playerToShowToInput) == getUserName()) {
-			SendClientMessage(prefix . "Fehler: Du kannst dir selbst niemanden anzeigen, nutze /af[ind]")
+			SendError("Du kannst dir selbst niemanden anzeigen, nutze /af[ind]")
 			return
 		}
 
@@ -7598,12 +7689,12 @@ return
 		playerToFindInput := PlayerInput("Gesuchter: ")
 
 		if (playerToFindInput == "" || playerToFindInput == " ") {
-			SendClientMessage(prefix . "Fehler: Du hast die Eingabe abgebrochen.")
+			SendError("Du hast die Eingabe abgebrochen.")
 		} else if (!getFullName(playerToFindInput)) {
-			SendClientMessage(prefix . "Fehler: Der gesuchte Spieler ist offline.")
+			SendError("Der gesuchte Spieler ist offline.")
 			return
 		} else if (getFullName(playerToFindInput) == getUserName()) {
-			SendClientMessage(prefix . "Fehler: Du kannst dich nicht selbst finden.")
+			SendError("Du kannst dich nicht selbst finden.")
 			return
 		} else {
 			playerToFind := playerToFindInput
@@ -7697,7 +7788,7 @@ return
 */
 :?:/einsatz::
 {	
-	SendClientMessage(prefix . csecond . "Info: {FFFFFF}Trage die Zeit in 'Minuten' ein, anschließend wird die Uhrzeit berechnet.")
+	SendInfo(csecond . "Info: {FFFFFF}Trage die Zeit in 'Minuten' ein, anschließend wird die Uhrzeit berechnet.")
 	
 	commitmentMins := PlayerInput("Zeit: ")
 	if (commitmentMins == "" || commitmentMins == " ") {
@@ -7709,7 +7800,7 @@ return
 		return
 	}
 	
-	SendClientMessage(prefix . csecond . "Info: " . cwhite . "Trage Extras ein, Beispiele: " . csecond . "(U)nder(c)over, Swat, normal")
+	SendInfo(csecond . "Info: " . cwhite . "Trage Extras ein, Beispiele: " . csecond . "(U)nder(c)over, Swat, normal")
 	
 	extras := PlayerInput("Zusatz: ")
 	if (extras == "" || extras == " ") {
@@ -7722,7 +7813,7 @@ return
 		} else if (InStr(extras, "SWAT")) {
 			extras := "S.W.A.T."
 		} else {
-			SendClientMessage(prefix . "Fehler: Verwende folgende Parameter: (U)nder(c)over, Normal, SWAT")
+			SendError("Verwende folgende Parameter: (U)nder(c)over, Normal, SWAT")
 			return
 		}
 			
@@ -7769,7 +7860,7 @@ return
 	} else if (rank > 7) {
 		extra := "/hq"
 	} else {
-		SendClientMessage(prefix . "Bei der Rang-Abfrage ist ein Fehler aufgetreten.")
+		SendInfo("Bei der Rang-Abfrage ist ein Fehler aufgetreten.")
 		extra := "/f HQ:"
 	}
 	
@@ -7785,7 +7876,7 @@ return
 	} else if (rank > 7) {
 		extra := "/hq"
 	} else {
-		SendClientMessage(prefix . "Bei der Rang-Abfrage ist ein Fehler aufgetreten.")
+		SendInfo("Bei der Rang-Abfrage ist ein Fehler aufgetreten.")
 		extra := "/f HQ:"
 	}
 	
@@ -7808,7 +7899,7 @@ SendInput, {Enter}
 	} else if (rank > 7) {
 		extra := "/hq"
 	} else {
-		SendClientMessage(prefix . "Bei der Rang-Abfrage ist ein Fehler aufgetreten.")
+		SendInfo("Bei der Rang-Abfrage ist ein Fehler aufgetreten.")
 		extra := "/d HQ:"
 	}
 	
@@ -7849,7 +7940,7 @@ SendInput, {Enter}
 		
 		abholungChat := ""
 	} else {
-		SendClientMessage(prefix . "Fehler: Du hast keine Abholung angefordert.")
+		SendError("Du hast keine Abholung angefordert.")
 	}
 }
 return
@@ -7863,7 +7954,7 @@ return
 	}
 	
 	if (getFullName(hunting) == "") {
-		SendClientMessage(prefix . "Der gesuchte Spieler ist nicht online.")
+		SendInfo("Der gesuchte Spieler ist nicht online.")
 		return
 	}
 	
@@ -7875,7 +7966,7 @@ return
 	
 	Sleep, 200
 	
-	SendClientMessage(prefix . "Möchtest du den Spieler suchen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
+	SendInfo("Möchtest du den Spieler suchen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
 	
 	KeyWait, X, D, T10
 	
@@ -7899,7 +7990,7 @@ return
 	}
 	
 	if (getFullName(name) == "") {
-		SendClientMessage(prefix . "Fehler: Der Verbrecher ist nicht online.")
+		SendError("Der Verbrecher ist nicht online.")
 		return
 	}
 
@@ -7931,12 +8022,12 @@ SendInput, {Enter}
 	if (maumode) {
 		maumode := 0
 		
-		SendClientMessage(prefix . "Du hast den Maumau Modus " . cred . "deaktiviert" . cwhite . ".")
+		SendInfo("Du hast den Maumau Modus " . cred . "deaktiviert" . cwhite . ".")
 	} else {
 		maumode := 1
 	
-		SendClientMessage(prefix . "Du hast den Maumau Modus " . cgreen . "aktiviert" . cwhite . ".")
-		SendClientMessage(prefix . "/mhelp kannst du alles genau einsehen.")
+		SendInfo("Du hast den Maumau Modus " . cgreen . "aktiviert" . cwhite . ".")
+		SendInfo("/mhelp kannst du alles genau einsehen.")
 	}
 }
 return
@@ -7948,12 +8039,12 @@ SendInput, {Enter}
 	if (watermode) {
 		watermode := 0
 		
-		SendClientMessage(prefix . "Du hast den Wassermodus " . cred . "deaktiviert" . cwhite . ".")
+		SendInfo("Du hast den Wassermodus " . cred . "deaktiviert" . cwhite . ".")
 	} else {
 		watermode := 1
 		airmode := 0
 		
-		SendClientMessage(prefix . "Du hast den Wassermodus " . cgreen . "aktiviert" . cwhite . ".")
+		SendInfo("Du hast den Wassermodus " . cgreen . "aktiviert" . cwhite . ".")
 	}
 }
 return
@@ -7965,12 +8056,12 @@ SendInput, {Enter}
 	if (airmode) {
 		airmode := 0
 		
-		SendClientMessage(prefix . "Luftmodus " . cred . "deaktiviert" . cwhite . ".")
+		SendInfo("Luftmodus " . cred . "deaktiviert" . cwhite . ".")
 	} else {
 		airmode := 1
 		watermode := 0
 		
-		SendClientMessage(prefix . "Luftmodus " . cgreen . "aktiviert" . cwhite . ".")
+		SendInfo("Luftmodus " . cgreen . "aktiviert" . cwhite . ".")
 	}
 }
 return
@@ -7981,11 +8072,11 @@ SendInput, {Enter}
 	if (!admission) {
 		admission := 1
 		
-		SendClientMessage(prefix . "Du hast den Einweisungs-Modus " . cgreen . "aktiviert" . cwhite . ".")
+		SendInfo("Du hast den Einweisungs-Modus " . cgreen . "aktiviert" . cwhite . ".")
 	} else {
 		admission := 0
 	
-		SendClientMessage(prefix . "Du hast den Einweisungs-Modus " . cred . "deaktiviert" . cwhite . ".")
+		SendInfo("Du hast den Einweisungs-Modus " . cred . "deaktiviert" . cwhite . ".")
 	}
 }
 return
@@ -8021,20 +8112,20 @@ return
 :?:/fishtype::
 :?:/fishtyp::
 {
-	SendClientMessage(prefix . csecond . "1: {FFFFFF}geringste LBS/HP - " . csecond . "2: {FFFFFF}geringster Geldwert")
+	SendInfo(csecond . "1: {FFFFFF}geringste LBS/HP - " . csecond . "2: {FFFFFF}geringster Geldwert")
 	
 	fishType := PlayerInput("Typ: ")
 	
 	if (fishType == "1") {
 		fishMode := 0
 		
-		SendClientMessage(prefix . "Du wirfst nun den Fisch mit dem geringsten " . csecond . "LBS/HP-Wert {FFFFFF}weg.")
+		SendInfo("Du wirfst nun den Fisch mit dem geringsten " . csecond . "LBS/HP-Wert {FFFFFF}weg.")
 		
 		IniWrite, %fishMode%, ini/Settings.ini, settings, fishMode
 	} else if (fishType == "2") {
 		fishMode := 1
 		
-		SendClientMessage(prefix . "Du wirfst nun den Fisch mit dem geringsten " . csecond . "Geldwert {FFFFFF}weg.")
+		SendInfo("Du wirfst nun den Fisch mit dem geringsten " . csecond . "Geldwert {FFFFFF}weg.")
 		
 		IniWrite, %fishMode%, ini/Settings.ini, settings, fishMode
 	}
@@ -8055,7 +8146,7 @@ SendInput, {Enter}
 		sellFish()
 	} else {
 		IniRead, Fishmoney, ini/Stats.ini, Allgemein, Fishmoney, 0
-		SendClientMessage(prefix . "Du kannst deine Fische hier nicht verkaufen! (Gesamter Verdienst: $" . csecond . formatNumber(Fishmoney) . cwhite . ")")
+		SendInfo("Du kannst deine Fische hier nicht verkaufen! (Gesamter Verdienst: $" . csecond . formatNumber(Fishmoney) . cwhite . ")")
 	}
 }
 return
@@ -8088,7 +8179,7 @@ return
 	hp := checkCook()
 	
 	if (hp < 1) {
-		SendCLientMessage(prefix . "Du hast keine gekochten Fische bei dir.")
+		SendInfo("Du hast keine gekochten Fische bei dir.")
 	} else {
 		name := PlayerInput("/Name: ")
 		if (name == "" || GetFullName(name) == "") {
@@ -8115,7 +8206,7 @@ return
 {
 	IniRead, department, ini/Settings.ini, settings, department, %A_Space%
 	
-	SendClientMessage(prefix . "Deine aktuelle Abteilung: " . csecond . department)
+	SendInfo("Deine aktuelle Abteilung: " . csecond . department)
 	
 	dep := PlayerInput("Abteilung: ")
 	if (dep == "" || dep = " ") {
@@ -8123,13 +8214,13 @@ return
 	}
 	
 	if (dep == department) {
-		SendClientMessage(prefix . "Fehler: Diese Abteilung hast du bereits eingetragen.")
+		SendError("Diese Abteilung hast du bereits eingetragen.")
 		return
 	}
 	
 	IniWrite, %dep%, ini/Settings.ini, settings, department
 	
-	SendClientMessage(prefix . "Deine Abteilung wurde auf " . csecond . dep . cwhite . " geupdated.")
+	SendInfo("Deine Abteilung wurde auf " . csecond . dep . cwhite . " geupdated.")
 }
 return
 
@@ -8143,12 +8234,12 @@ return
 	}
 	
 	if (rank > 11 || rank < 1) {
-		SendClientMessage(prefix . "Fehler: Der Rang muss mindestens 1 und maximal 11 sein.")
+		SendError("Der Rang muss mindestens 1 und maximal 11 sein.")
 		return
 	}
 	
 	IniWrite, %rank%, ini/Settings.ini, settings, rank
-	SendClientMessage(prefix . "Dein Rang wurde auf " . csecond . rank . cwhite . " geupdated.")
+	SendInfo("Dein Rang wurde auf " . csecond . rank . cwhite . " geupdated.")
 }
 return
 
@@ -8200,12 +8291,12 @@ return
 SendInput, {Enter}
 {
 	if (!isPlayerAtLocal()) {
-		SendClientMessage(prefix . "Fehler: Du bist nicht in der Nähe einer Restaurant-Kette.")
+		SendError("Du bist nicht in der Nähe einer Restaurant-Kette.")
 		return
 	}
 	
 	if (IsPlayerInAnyVehicle()) {
-		SendClientMessage(prefix . "Fehler: Du darfst dich in keinem Fahrzeug befinden.")
+		SendError("Du darfst dich in keinem Fahrzeug befinden.")
 		return
 	}
 
@@ -8248,7 +8339,7 @@ return
 		
 		cdGoMessage := "Go Go Go!"
 		
-		SendClientMessage(prefix . "Du kannst den Countdown mit '" . csecond . stopAutomaticSystemsNoMods . cwhite . "' abbrechen.")
+		SendInfo("Du kannst den Countdown mit '" . csecond . stopAutomaticSystemsNoMods . cwhite . "' abbrechen.")
 		
 		SetTimer, CountdownTimer, 1000
 		
@@ -8444,7 +8535,7 @@ return
 		return
 	}
 	if (getFullName(name) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -8469,7 +8560,7 @@ SendInput, {Enter}
 		if (InStr(readChatLine(players), "Punkte")) {
 			players ++
 		} else {
-			SendClientMessage(prefix . "Spieler im Paintball: " . csecond . players)
+			SendInfo("Spieler im Paintball: " . csecond . players)
 			return
 		}
 	}
@@ -8481,7 +8572,7 @@ SendInput, {Enter}
 {
 	FormatTime, time,, dd.MM.yyyy HH:mm
 	
-	SendClientMessage(prefix . "Statistiken werden gespeichert, Datum: " . csecond . time)
+	SendInfo("Statistiken werden gespeichert, Datum: " . csecond . time)
 	
 	SendChat("/time")
 	
@@ -8500,7 +8591,7 @@ return
 :?:/uc::
 {	
 	if (!getPlayerInteriorId()) {
-		SendClientMessage(prefix . "Fehler: Du befindest dich in keinem Gebäude.")
+		SendError("Du befindest dich in keinem Gebäude.")
 		return
 	}		
 	
@@ -8512,7 +8603,7 @@ return
 SendInput, {Enter}
 {
 	if (!getPlayerInteriorId()) {
-		SendClientMessage(prefix . "Fehler: Du befindest dich in keinem Gebäude.")
+		SendError("Du befindest dich in keinem Gebäude.")
 		return
 	}	
 	
@@ -8571,12 +8662,12 @@ return
 	}
 	
 	if (sms_2 != "") {
-		SendClientMessage(prefix . "Letzte SMS (von " . csecond . sms_2 . cwhite . "):")
+		SendInfo("Letzte SMS (von " . csecond . sms_2 . cwhite . "):")
 		SendClientMessage(prefix . csecond . sms_1)
 		
 		SendInput, /sms %sms_3%{space}
 	} else {
-		SendClientMessage(prefix . "Fehler: Es wurde keine SMS gefunden.")
+		SendError("Es wurde keine SMS gefunden.")
 	}
 }
 return
@@ -8591,12 +8682,12 @@ return
 	}
 	
 	if (ad_2 != "" || ad_2 != getUserName()) {
-		SendClientMessage(prefix . "Letzte Werbung (von " . ad_2 . "):")
+		SendInfo("Letzte Werbung (von " . ad_2 . "):")
 		SendClientMessage(prefix . csecond . ad_1)
 		
 		SendInput, /sms %ad_3%{space}
 	} else {
-		SendClientMessage(prefix . "Fehler: Es wurde keine Werbung gefunden.")
+		SendError("Es wurde keine Werbung gefunden.")
 	}
 }
 return
@@ -8609,12 +8700,12 @@ return
 	}
 
 	if (getFullName(name) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
 	if (getFullName(name) == getUserName()) {
-		SendClientMessage(prefix . "Fehler: Du kannst dich selbst nicht anrufen.")
+		SendError("Du kannst dich selbst nicht anrufen.")
 		return
 	}
 
@@ -8623,10 +8714,10 @@ return
 	Sleep, 200
 
 	if (RegExMatch(readChatLine(0), "Name: (\S*), Ph: (\d*)", number_)) {
-		SendClientMessage(prefix . "Ausgewählter Spieler: " . csecond . number_1)
+		SendInfo("Ausgewählter Spieler: " . csecond . number_1)
 		SendChat("/call " . number_2)
 	} else {
-		SendClientMessage(prefix . "Fehler: Es konnte kein Spieler gefunden werden.")
+		SendError("Es konnte kein Spieler gefunden werden.")
 	}
 }
 return
@@ -8639,12 +8730,12 @@ return
 	}
 	
 	if (getFullName(name) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 
 	if (getFullName(name) == getUserName()) {
-		SendClientMessage(prefix . "Fehler: Du kannst dir selbst keine SMS senden.")
+		SendError("Du kannst dir selbst keine SMS senden.")
 		return
 	}
 
@@ -8653,10 +8744,10 @@ return
 	Sleep, 200
 
 	if (RegExMatch(readChatLine(0), "Name: (\S*), Ph: (\d*)", number_)) {
-		SendClientMessage(prefix . "Ausgewählter Spieler: " . csecond . number_1)
+		SendInfo("Ausgewählter Spieler: " . csecond . number_1)
 		SendChat("/" . number_2 . " Geh lieber offline, dein Car wird vom O-Amt abgeschleppt, gönne dennen nicht.")
 	} else {
-		SendClientMessage(prefix . "Fehler: Es konnte kein Spieler gefunden werden.")
+		SendError("Es konnte kein Spieler gefunden werden.")
 	}
 }
 return
@@ -8669,12 +8760,12 @@ return
 	}
 	
 	if (getFullName(name) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 
 	if (getFullName(name) == getUserName()) {
-		SendClientMessage(prefix . "Fehler: Du kannst dir selbst keine SMS senden.")
+		SendError("Du kannst dir selbst keine SMS senden.")
 		return
 	}
 
@@ -8683,11 +8774,11 @@ return
 	Sleep, 200
 
 	if (RegExMatch(readChatLine(0), "Name: (\S*), Ph: (\d*)", number_)) {
-		SendClientMessage(prefix . "Ausgewählter Spieler: " . csecond . number_1)
+		SendInfo("Ausgewählter Spieler: " . csecond . number_1)
 		
 		SendInput, t/sms %number_2%{space}
 	} else {
-		SendClientMessage(prefix . "Fehler: Es konnte kein Spieler gefunden werden.")
+		SendError("Es konnte kein Spieler gefunden werden.")
 	}
 }
 return
@@ -8725,7 +8816,7 @@ SendInput, {Enter}
 		
 		SendChat("Wie kann ich Ihnen helfen?")
 	} else {
-		SendClientMessage(prefix . "Niemand hat dich angerufen!")
+		SendInfo("Niemand hat dich angerufen!")
 	}
 }
 return
@@ -8777,7 +8868,7 @@ SendInput, {Enter}
 		
 		SendChat("/hangup")
 	} else {
-		SendClientMessage(prefix . "Niemand hat dich angerufen.")
+		SendInfo("Niemand hat dich angerufen.")
 	}
 }
 return
@@ -8824,7 +8915,7 @@ SendInput, {Enter}
 		
 		SendChat("/hangup")
 	} else {
-		SendClientMessage(prefix . "Niemand hat dich angerufen!")
+		SendInfo("Niemand hat dich angerufen!")
 	}
 }
 return
@@ -8854,7 +8945,7 @@ return
 SendInput, {Enter}
 {
 	SendChat("/gpsaus")
-	SendClientMessage(prefix . "Du hast den GPS Marker deaktiviert.")
+	SendInfo("Du hast den GPS Marker deaktiviert.")
 }
 return
 
@@ -8906,12 +8997,12 @@ return
 	}
 	
 	if (seconds is not number) {
-		SendClientMessage(prefix . "Fehler: Die Sekundenangabe muss eine Zahl sein.")
+		SendError("Die Sekundenangabe muss eine Zahl sein.")
 		return
 	}
 	
 	if (seconds < 60) {
-		SendClientMessage(prefix . "Fehler: Die Sekundenangabe muss mehr als 60 sein.")
+		SendError("Die Sekundenangabe muss mehr als 60 sein.")
 		return
 	}
 	
@@ -8946,16 +9037,16 @@ SendInput, {Enter}
 			
 		if (linkresult) {
 			SendClientMessage(prefix . cblue . "|________________________________________|")
-			SendClientMessage(prefix . "Es wurde ein Link abkopiert und gespeichert:")
+			SendInfo("Es wurde ein Link abkopiert und gespeichert:")
 			SendClientMessage(prefix . csecond . clipboard)
-			SendClientMessage(prefix . "Du kannst diesen nun überall einfügen.")
+			SendInfo("Du kannst diesen nun überall einfügen.")
 			SendClientMessage(prefix . cblue . "|________________________________________|")
 			return
 		}
 	}
 	
 	if (!linkresult) {
-		SendClientMessage(prefix . "Es wurde kein gültiger Link gefunden.")
+		SendInfo("Es wurde kein gültiger Link gefunden.")
 	}	
 }
 return
@@ -8967,7 +9058,7 @@ SendInput, {Enter}
 	FormatTime, zeit, %A_Now%,dd.MM.yy - HH.mm
 	FileCopy, %A_MyDocuments%\GTA San Andreas User Files\SAMP\chatlog.txt, %A_MyDocuments%\GTA San Andreas User Files\SAMP\ChatlogBackups\chatlog %zeit% Uhr.txt, 0
 	
-	SendClientMessage(prefix . "Es wurde ein Backup des aktuellen Chatlogs erstellt.")
+	SendInfo("Es wurde ein Backup des aktuellen Chatlogs erstellt.")
 }
 return
 
@@ -9017,24 +9108,24 @@ return
 {
 	x := PlayerInput("X: ")
 	if (x == "" || x == " " || x is not number) {
-		SendClientMessage(prefix . "Fehler: Du hast keine 'X' Koordinate angegeben.")
+		SendError("Du hast keine 'X' Koordinate angegeben.")
 		return
 	}
 	
 	y := PlayerInput("Y: ")
 	if (y == "" || y == " " || y is not number) {
-		SendClientMessage(prefix . "Fehler: Du hast keine 'Y' Koordinate angegeben.")
+		SendError("Du hast keine 'Y' Koordinate angegeben.")
 		return
 	}
 	
 	z := PlayerInput("Z: ")
 	if (z == "" || z == " " || z is not number) {
-		SendClientMessage(prefix . "Fehler: Du hast keine 'Z' Koordinate angegeben.")
+		SendError("Du hast keine 'Z' Koordinate angegeben.")
 		return
 	}	
 
 	if (isMarkerCreated()) {
-		SendClientMessage(prefix . "Möchtest du den Checkpoint überschreiben? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
+		SendInfo("Möchtest du den Checkpoint überschreiben? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
 		
 		KeyWait, X, D, T10
 		
@@ -9046,7 +9137,7 @@ return
 	if (setCheckpoint(x, y, z, 0.5)) {
 		return
 	} else {
-		SendClientMessage(prefix . "Der Checkpoint konnte nicht erstellt werden.")
+		SendInfo("Der Checkpoint konnte nicht erstellt werden.")
 	}
 }
 return
@@ -9055,7 +9146,7 @@ return
 SendInput, {Enter}
 {
 	getPlayerPos(posX, posY, posZ)
-	SendClientMessage(prefix . "X: " . csecond . posX . cwhite . ", Y: " . csecond . posY . cwhite . " Z: " . csecond . posZ)
+	SendInfo("X: " . csecond . posX . cwhite . ", Y: " . csecond . posY . cwhite . " Z: " . csecond . posZ)
 }
 return
 
@@ -9078,18 +9169,18 @@ acceptMainLabel:
 	}	
 	
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
 	ticketID := PlayerInput("Ticket-ID: ")
 	if (ticketID == "" || ticketID == " ") {
-		SendClientMessage(prefix . "Fehler: Du hast keine ID angegeben.")
+		SendError("Du hast keine ID angegeben.")
 		return
 	}
 	
 	if (ticketID is not number) {
-		SendClientMessage(prefix . "Fehler: Du musst eine gültige ID angeben.")
+		SendError("Du musst eine gültige ID angeben.")
 		return
 	}
 	
@@ -9104,7 +9195,7 @@ accept1Label:
 	}
 	
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9119,7 +9210,7 @@ accept2Label:
 	}
 	
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9134,7 +9225,7 @@ accept3Label:
 	}
 	
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9149,7 +9240,7 @@ accept4Label:
 	}
 	
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9164,7 +9255,7 @@ accept5Label:
 	}
 	
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9179,7 +9270,7 @@ accept6Label:
 	}
 	
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9194,7 +9285,7 @@ accept7Label:
 	}
 	
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9209,7 +9300,7 @@ accept8Label:
 	}
 	
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9224,7 +9315,7 @@ accept9Label:
 	}
 	
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9235,18 +9326,18 @@ return
 :?:/tt::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
 	ticketID := PlayerInput("Ticket-ID: ")
 	if (ticketID == "" || ticketID == " ") {
-		SendClientMessage(prefix . "Fehler: Du hast keine ID angegeben.")
+		SendError("Du hast keine ID angegeben.")
 		return
 	}
 	
 	if (ticketID is not number) {
-		SendClientMessage(prefix . "Fehler: Du musst eine gültige ID angeben.")
+		SendError("Du musst eine gültige ID angeben.")
 		return
 	}
 	
@@ -9257,32 +9348,32 @@ return
 :?:/gt::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
 	ticketID := PlayerInput("Ticket-ID: ")
 	if (ticketID == "" || ticketID == " ") {
-		SendClientMessage(prefix . "Fehler: Du hast keine ID angegeben.")
+		SendError("Du hast keine ID angegeben.")
 		return
 	}
 	
 	if (ticketID is not number) {
-		SendClientMessage(prefix . "Fehler: Du musst eine gültige ID angeben.")
+		SendError("Du musst eine gültige ID angeben.")
 		return
 	}
 	
 	reason := PlayerInput("Grund: ")
 	if (reason == "" || reason == " ") {
-		SendClientMessage(prefix . "Fehler: Du hast keinen Grund angegeben.")
+		SendError("Du hast keinen Grund angegeben.")
 		return
 	}
 	
-	SendClientMessage(prefix . "Mögliche Empfänger: (Sup)porter, (Mod)erator, Admin, (Head) Admin, (Proj)ektleiter, (Community) Helfer")
+	SendInfo("Mögliche Empfänger: (Sup)porter, (Mod)erator, Admin, (Head) Admin, (Proj)ektleiter, (Community) Helfer")
 	
 	toWhomInput := PlayerInput("An: ")
 	if (toWhomInput == "" || toWhomInput == " ") {
-		SendClientMessage(prefix . "Fehler: Du hast keinen Empfänger angegeben.")
+		SendError("Du hast keinen Empfänger angegeben.")
 		return
 	}
 	
@@ -9304,7 +9395,7 @@ return
 		} else if (InStr(toWhomInput, "Community")) {
 			toWhom := "Communityhelfer"
 		} else {
-			SendClientMessage(prefix . "Unbekannter Empfänger: " . csecond . toWhomInput)
+			SendInfo("Unbekannter Empfänger: " . csecond . toWhomInput)
 			return
 		}
 		
@@ -9330,7 +9421,7 @@ return
 		toWhom := getFullName(toWhomInput)
 		
 		if (toWhom == "") {
-			SendClientMessage(prefix . "Unbekannter Spieler: " . csecond . toWhomInput)
+			SendInfo("Unbekannter Spieler: " . csecond . toWhomInput)
 		} else {
 			SendChat("/aw " . ticketID . " Ich werde dich nun an " . toWhom . " weiterleiten.")
 			SendChat("/aw " . ticketID . " Bitte gedulde dich, bis " . toWhom . " dein Ticket annimmt.")
@@ -9353,12 +9444,12 @@ return
 	
 	ticketID := PlayerInput("Ticket-ID: ")
 	if (ticketID == "" || ticketID == " ") {
-		SendClientMessage(prefix . "Fehler: Du hast keine ID angegeben.")
+		SendError("Du hast keine ID angegeben.")
 		return
 	}
 	
 	if (ticketID is not number) {
-		SendClientMessage(prefix . "Fehler: Du musst eine gültige ID angeben.")
+		SendError("Du musst eine gültige ID angeben.")
 		return
 	}
 	
@@ -9369,18 +9460,18 @@ return
 :?:/fragen::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
 	ticketID := PlayerInput("Ticket-ID: ")
 	if (ticketID == "" || ticketID == " ") {
-		SendClientMessage(prefix . "Fehler: Du hast keine ID angegeben.")
+		SendError("Du hast keine ID angegeben.")
 		return
 	}
 	
 	if (ticketID is not number) {
-		SendClientMessage(prefix . "Fehler: Du musst eine gültige ID angeben.")
+		SendError("Du musst eine gültige ID angeben.")
 		return
 	}
 	
@@ -9391,18 +9482,18 @@ return
 :?:/tafk::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
 	ticketID := PlayerInput("Ticket-ID: ")
 	if (ticketID == "" || ticketID == " ") {
-		SendClientMessage(prefix . "Fehler: Du hast keine ID angegeben.")
+		SendError("Du hast keine ID angegeben.")
 		return
 	}
 	
 	if (ticketID is not number) {
-		SendClientMessage(prefix . "Fehler: Du musst eine gültige ID angeben.")
+		SendError("Du musst eine gültige ID angeben.")
 		return
 	}
 	
@@ -9417,18 +9508,18 @@ return
 :?:/wh::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
 	ticketID := PlayerInput("Ticket-ID: ")
 	if (ticketID == "" || ticketID == " ") {
-		SendClientMessage(prefix . "Fehler: Du hast keine ID angegeben.")
+		SendError("Du hast keine ID angegeben.")
 		return
 	}
 	
 	if (ticketID is not number) {
-		SendClientMessage(prefix . "Fehler: Du musst eine gültige ID angeben.")
+		SendError("Du musst eine gültige ID angeben.")
 		return
 	}
 	
@@ -9439,18 +9530,18 @@ return
 :?:/grund::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
 	ticketID := PlayerInput("Ticket-ID: ")
 	if (ticketID == "" || ticketID == " ") {
-		SendClientMessage(prefix . "Fehler: Du hast keine ID angegeben.")
+		SendError("Du hast keine ID angegeben.")
 		return
 	}
 	
 	if (ticketID is not number) {
-		SendClientMessage(prefix . "Fehler: Du musst eine gültige ID angeben.")
+		SendError("Du musst eine gültige ID angeben.")
 		return
 	}
 	
@@ -9461,18 +9552,18 @@ return
 :?:/ubbw::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
 	ticketID := PlayerInput("Ticket-ID: ")
 	if (ticketID == "" || ticketID == " ") {
-		SendClientMessage(prefix . "Fehler: Du hast keine ID angegeben.")
+		SendError("Du hast keine ID angegeben.")
 		return
 	}
 	
 	if (ticketID is not number) {
-		SendClientMessage(prefix . "Fehler: Du musst eine gültige ID angeben.")
+		SendError("Du musst eine gültige ID angeben.")
 		return
 	}
 	
@@ -9489,18 +9580,18 @@ return
 :?:/autow::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
 	ticketID := PlayerInput("Ticket-ID: ")
 	if (ticketID == "" || ticketID == " ") {
-		SendClientMessage(prefix . "Fehler: Du hast keine ID angegeben.")
+		SendError("Du hast keine ID angegeben.")
 		return
 	}
 	
 	if (ticketID is not number) {
-		SendClientMessage(prefix . "Fehler: Du musst eine gültige ID angeben.")
+		SendError("Du musst eine gültige ID angeben.")
 		return
 	}
 	
@@ -9511,18 +9602,18 @@ return
 :?:/cop::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
 	ticketID := PlayerInput("Ticket-ID: ")
 	if (ticketID == "" || ticketID == " ") {
-		SendClientMessage(prefix . "Fehler: Du hast keine ID angegeben.")
+		SendError("Du hast keine ID angegeben.")
 		return
 	}
 	
 	if (ticketID is not number) {
-		SendClientMessage(prefix . "Fehler: Du musst eine gültige ID angeben.")
+		SendError("Du musst eine gültige ID angeben.")
 		return
 	}
 	
@@ -9533,7 +9624,7 @@ return
 :?:/sdm::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9543,7 +9634,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 		
@@ -9554,7 +9645,7 @@ return
 :?:/2sdm::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9564,7 +9655,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -9575,7 +9666,7 @@ return
 :?:/3sdm::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9585,7 +9676,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -9598,7 +9689,7 @@ return
 :?:/unreal::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9608,7 +9699,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -9619,7 +9710,7 @@ return
 :?:/buguse::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9629,7 +9720,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -9641,7 +9732,7 @@ return
 :?:/intflucht::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9651,7 +9742,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -9662,7 +9753,7 @@ return
 :?:/offline::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9672,7 +9763,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -9683,7 +9774,7 @@ return
 :?:/carsurf::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9693,7 +9784,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -9704,7 +9795,7 @@ return
 :?:/jobst::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9714,7 +9805,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -9725,7 +9816,7 @@ return
 :?:/eventst::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9735,7 +9826,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -9746,7 +9837,7 @@ return
 :?:/anfahren::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9756,7 +9847,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -9767,7 +9858,7 @@ return
 :?:/baserape::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9777,7 +9868,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -9788,7 +9879,7 @@ return
 :?:/gfst::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9798,7 +9889,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -9809,7 +9900,7 @@ return
 :?:/anti::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9819,7 +9910,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -9830,7 +9921,7 @@ return
 :?:/escflucht::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9840,7 +9931,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -9851,7 +9942,7 @@ return
 :?:/rotor::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9861,7 +9952,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -9872,7 +9963,7 @@ return
 :?:/geklaert::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9882,7 +9973,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -9893,7 +9984,7 @@ return
 :?:/keinrw::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9903,7 +9994,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -9914,7 +10005,7 @@ return
 :?:/unbeteiligt::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9924,7 +10015,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -9935,7 +10026,7 @@ return
 :?:/escgf::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9945,7 +10036,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -9956,7 +10047,7 @@ return
 :?:/escpb::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9966,7 +10057,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -9977,7 +10068,7 @@ return
 :?:/esccp::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -9987,7 +10078,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -9998,7 +10089,7 @@ return
 :?:/escbeamte::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -10008,7 +10099,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -10019,7 +10110,7 @@ return
 :?:/escarrest::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -10029,7 +10120,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -10040,7 +10131,7 @@ return
 :?:/timebug::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -10050,7 +10141,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -10061,7 +10152,7 @@ return
 :?:/abwerbe::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -10071,7 +10162,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -10087,7 +10178,7 @@ return
 :?:/lbel::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}		
 	
@@ -10097,7 +10188,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 
@@ -10108,7 +10199,7 @@ return
 :?:/mbel::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}		
 	
@@ -10118,7 +10209,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -10129,7 +10220,7 @@ return
 :?:/sbel::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}		
 	
@@ -10139,7 +10230,7 @@ return
 	}
 
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -10151,7 +10242,7 @@ return
 :?:/umgang::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}		
 	
@@ -10161,7 +10252,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -10172,7 +10263,7 @@ return
 :?:/aabuse::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}		
 	
@@ -10182,7 +10273,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -10193,7 +10284,7 @@ return
 :?:/adabuse::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}		
 	
@@ -10203,7 +10294,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -10214,7 +10305,7 @@ return
 :?:/supabuse::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}		
 	
@@ -10224,7 +10315,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -10235,7 +10326,7 @@ return
 :?:/spam::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}		
 	
@@ -10245,7 +10336,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -10256,7 +10347,7 @@ return
 :?:/caps::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}		
 	
@@ -10266,7 +10357,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -10277,7 +10368,7 @@ return
 :?:/prov::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}		
 	
@@ -10287,7 +10378,7 @@ return
 	}
 	
 	if (getFullName(ID) == "") {
-		SendClientMessage(prefix . "Fehler: Dieser Spieler ist nicht online.")
+		SendError("Dieser Spieler ist nicht online.")
 		return
 	}
 	
@@ -10298,7 +10389,7 @@ return
 :?:/meldungen::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}		
 	
@@ -10314,7 +10405,7 @@ return
 		
 		SetTimer, HackerFinder, Off
 		
-		SendClientMessage(prefix . "Du hast den Hackerfinder " . cred . "deaktiviert" . cwhite . ".")
+		SendInfo("Du hast den Hackerfinder " . cred . "deaktiviert" . cwhite . ".")
 	} else {
 		level := PlayerInput("Level: ")
 		
@@ -10326,7 +10417,7 @@ return
 		hackerLevel := level
 		hackerID := 0
 		
-		SendClientMessage(prefix . "Spieler mit Level: " . csecond . level)
+		SendInfo("Spieler mit Level: " . csecond . level)
 				
 		SetTimer, HackerFinder, 1
 	}
@@ -10336,7 +10427,7 @@ return
 :?:/hacker2::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}	
 	
@@ -10345,7 +10436,7 @@ return
 	
 	Loop {
 		if (A_Index > 375) {
-			SendClientMessage(prefix . "Spieler mit Level 1 online: " . csecond . players)
+			SendInfo("Spieler mit Level 1 online: " . csecond . players)
 			
 			Sleep, 50
 			SendInput, {ESC}
@@ -10377,7 +10468,7 @@ return
 :?:/arac::
 {
 	if (!admin) {
-		SendClientMessage(prefix . "Fehler: Du bist kein Team-Mitglied.")
+		SendError("Du bist kein Team-Mitglied.")
 		return
 	}
 	
@@ -10403,11 +10494,11 @@ return
 	}
 	
 	if (tmp_lvl is not number) {
-		SendClientMessage(prefix . "Fehler: Der angegebene Wert ist ungültig.")
+		SendError("Der angegebene Wert ist ungültig.")
 		return
 	}
 	
-	SendClientMessage(prefix . csecond . "Enter drücken:" . cwhite . " Globaler Chat | " . csecond . "ACM eintragen:" . cwhite . " Eigene Anzeige")
+	SendInfo(csecond . "Enter drücken:" . cwhite . " Globaler Chat | " . csecond . "ACM eintragen:" . cwhite . " Eigene Anzeige")
 	
 	tmp_chat := PlayerInput("Chat oder Ticket-ID: ")
 	if (tmp_chat == "" || tmp_chat == " ") {
@@ -10422,14 +10513,14 @@ return
 	
 	if (admin && tmp_chat != "acm") {
 		if (tmp_chat == "acm") {
-			SendClientMessage(prefix . "|---------------------------------------------|")
+			SendInfo("|---------------------------------------------|")
 		} else {
 			SendChat("/" . tmp_chat . " |---------------------------------------------|")
 		}
 	}
 	
 	if (tmp_chat == "acm") {
-		SendClientMessage(prefix . "Informationen zum Level: " . csecond . formatNumber(tmp_lvl) . cwhite . ".")
+		SendInfo("Informationen zum Level: " . csecond . formatNumber(tmp_lvl) . cwhite . ".")
 	} else {
 		SendChat("/" . tmp_chat . " Informationen zum Level " . formatNumber(tmp_lvl) . ".")
 	}
@@ -10438,7 +10529,7 @@ return
 		sleep, 400
 	
 	if (tmp_chat == "acm") {	
-		SendClientMessage(prefix . "Spielstunden mit Premium: " . csecond . formatNumber(round(tmp / 2, 0)) . cwhite . ".")
+		SendInfo("Spielstunden mit Premium: " . csecond . formatNumber(round(tmp / 2, 0)) . cwhite . ".")
 	} else {
 		SendChat("/" . tmp_chat . " Spielstunden mit Premium: " . formatNumber(Round(tmp / 2, 0)) . ".")
 	}
@@ -10447,7 +10538,7 @@ return
 		sleep, 400
 	
 	if (tmp_chat == "acm") {	
-		SendClientMessage(prefix . "Spielstunden ohne Premium: " . csecond . formatNumber(tmp) . cwhite . ".")
+		SendInfo("Spielstunden ohne Premium: " . csecond . formatNumber(tmp) . cwhite . ".")
 	} else {
 		SendChat("/" . tmp_chat . " Spielstunden ohne Premium: " . formatNumber(tmp) . ".")
 	}
@@ -10456,14 +10547,14 @@ return
 		sleep, 400
 	
 	if (tmp_chat == "acm") {	
-		SendClientMessage(prefix . "Benötigte Respektpunkte zum nächsten Level: " . csecond . formatNumber(8 + (tmp_level - 1) * 4) . cwhite . ".")
+		SendInfo("Benötigte Respektpunkte zum nächsten Level: " . csecond . formatNumber(8 + (tmp_level - 1) * 4) . cwhite . ".")
 	} else {
 		SendChat("/" . tmp_chat . " Benötigte Respektpunkte zum nächsten Level: " . formatNumber(8 + (tmp_lvl - 1) * 4) . ".")
 	}
 	
 	if (admin && tmp_chat != "acm") {
 		if (tmp_chat == "acm") {
-			SendClientMessage(prefix . "|---------------------------------------------|")
+			SendInfo("|---------------------------------------------|")
 		} else {
 			SendChat("/" . tmp_chat . " |---------------------------------------------|")
 		}
@@ -10549,7 +10640,7 @@ HackerFinder:
 			
 			SetTimer, HackerFinder, Off
 			
-			SendClientMessage(prefix . "Der Hackerfinder wurde " . cred . "deaktiviert" . cwhite . ".")
+			SendInfo("Der Hackerfinder wurde " . cred . "deaktiviert" . cwhite . ".")
 			return
 		}
 	}
@@ -10591,7 +10682,7 @@ startOverlay:
 		if (WinActive("GTA:SA:MP")) {
 			startOverlay := true
 		
-			SendClientMessage(prefix . "Das Overlay wurde " . cGreen . "aktiviert" . cWhite . ".")
+			SendInfo("Das Overlay wurde " . cGreen . "aktiviert" . cWhite . ".")
 			SetTimer, createOverlay, -1
 			SetTimer, startOverlay, off
 		} 
@@ -10806,8 +10897,8 @@ return
 SyncTimer:
 {	
 	if (autoUse) {
-		SendClientMessage(prefix . "Das Synchroniseren von Fischen, Paket, Drogen und Lagerfeuer hat begonnen!")
-		SendClientMessage(prefix . "Drücke bitte in den nächsten 4 Sekunden keine Keys und schreibe nichts im Chat!")
+		SendInfo("Das Synchroniseren von Fischen, Paket, Drogen und Lagerfeuer hat begonnen!")
+		SendInfo("Drücke bitte in den nächsten 4 Sekunden keine Keys und schreibe nichts im Chat!")
 		
 		checkCook()
 		checkFish()
@@ -10822,7 +10913,7 @@ SyncTimer:
 		getCampfire(0)
 		getCanister(0)
 		
-		SendClientMessage(prefix . "Das Synchronisieren ist " . cgreen . "abgeschlossen" . cwhite . ".")
+		SendInfo("Das Synchronisieren ist " . cgreen . "abgeschlossen" . cwhite . ".")
 		SetTimer, SyncTimer, 600000
 	} else {
 		SetTimer, SyncTimer, off
@@ -10898,14 +10989,14 @@ SecondTimer:
 		fishcooldown --
 		
 		if (fishcooldown == 600 || fishcooldown == 300 || fishcooldown == 120 || fishcooldown == 60) {
-			SendClientMessage(prefix . "Du kannst in " . cSecond . formatTime(fishcooldown) . cwhite . " wieder angeln.")
+			SendInfo("Du kannst in " . cSecond . formatTime(fishcooldown) . cwhite . " wieder angeln.")
 		} else if (fishcooldown == 0) {
 			if (!WinActive("GTA:SA:MP")) {
 				MsgBox, 64, Fischen, Du kannst nun wieder fischen
 			}
 		
 			SoundBeep
-			SendClientMessage(prefix . "Du kannst nun wieder angeln.")
+			SendInfo("Du kannst nun wieder angeln.")
 		}		
 		
 		iniWrite, %fishcooldown%, ini/Settings.ini, Cooldown, fishcooldown
@@ -10915,10 +11006,10 @@ SecondTimer:
 		pakcooldown --
 		
 		if (pakcooldown == 300 || pakcooldown == 120 || pakcooldown == 60) {
-			SendClientMessage(prefix . "Du kannst in " . cSecond . formatTime(pakcooldown) . cwhite . " wieder ein Erste-Hilfe-Paket nutzen.")
+			SendInfo("Du kannst in " . cSecond . formatTime(pakcooldown) . cwhite . " wieder ein Erste-Hilfe-Paket nutzen.")
 		} else if (pakcooldown == 0) {
 			SoundBeep 
-			SendClientMessage(prefix . "Du kannst nun wieder ein Erste-Hilfe-Paket nutzen.")
+			SendInfo("Du kannst nun wieder ein Erste-Hilfe-Paket nutzen.")
 		}
 		
 		iniWrite, %pakcooldown%, ini/Settings.ini, Cooldown, pakcooldown
@@ -10928,10 +11019,10 @@ SecondTimer:
 		healcooldown --
 		
 		if (healcooldown == 30 || healcooldown == 10) {
-			SendClientMessage(prefix . "Du kannst dich in " . cSecond . formatTime(healcooldown) . cwhite . " wieder heilen.")
+			SendInfo("Du kannst dich in " . cSecond . formatTime(healcooldown) . cwhite . " wieder heilen.")
 		} else if (healcooldown == 0) {
 			SoundBeep
-			SendClientMessage(prefix . "Du kannst dich nun wieder heilen.")
+			SendInfo("Du kannst dich nun wieder heilen.")
 		}
 	}
 	
@@ -10939,10 +11030,10 @@ SecondTimer:
 		drugcooldown --
 		
 		if (drugcooldown == 15 || drugcooldown == 5) {
-			SendClientMessage(prefix . "Du kannst in " . cSecond . formatTime(drugcooldown) . cwhite . " wieder Drogen konsumieren.")
+			SendInfo("Du kannst in " . cSecond . formatTime(drugcooldown) . cwhite . " wieder Drogen konsumieren.")
 		} else if (drugcooldown == 0) {
 			SoundBeep 
-			SendClientMessage(prefix . "Du kannst nun wieder Drogen konsumieren.")
+			SendInfo("Du kannst nun wieder Drogen konsumieren.")
 		}
 	}
 
@@ -10950,9 +11041,9 @@ SecondTimer:
 		admincooldown -- 
 		
 		if (admincooldown == 15 || admincooldown == 5) {
-			SendClientMessage(prefix . "Du kannst in " . cSecond . formatTime(admincooldown) . cWhite . " wieder im Admin-Chat schreiben.")
+			SendInfo("Du kannst in " . cSecond . formatTime(admincooldown) . cWhite . " wieder im Admin-Chat schreiben.")
 		} else if (admincooldown == 0) {
-			SendClientMessage(prefix . "Du kannst nun wieder im Admin-Chat schreiben.")
+			SendInfo("Du kannst nun wieder im Admin-Chat schreiben.")
 		}
 	}
 	
@@ -10960,7 +11051,7 @@ SecondTimer:
 		ooccooldown -- 
 		
 		if (ooccooldown == 0) {
-			SendClientMessage(prefix . "Du kannst nun wieder im OOC-Chat schreiben.")
+			SendInfo("Du kannst nun wieder im OOC-Chat schreiben.")
 		}
 	}	
 	
@@ -11108,8 +11199,8 @@ TaskCheckTimer:
 				taskSubjectID := getPlayerIdByName(task["subject"])
 				
 				if (taskSubjectID != -1) {
-					SendClientMessage(prefix . "Spieler mit Task ist online: " . csecond . task["subject"] . cwhite . " (ID: " . csecond . taskSubjectID . cwhite . ")")
-					SendClientMessage(prefix . "Task (ID " . csecond . "" . task["id"] . cwhite . "): " . csecond . task["task"])
+					SendInfo("Spieler mit Task ist online: " . csecond . task["subject"] . cwhite . " (ID: " . csecond . taskSubjectID . cwhite . ")")
+					SendInfo("Task (ID " . csecond . "" . task["id"] . cwhite . "): " . csecond . task["task"])
 				}
 			
 				task["online"] := true
@@ -11209,7 +11300,7 @@ CloseZollTimer:
 {
 	if (closeZoll != "") {
 		if (closeZoll > 0 && closeZoll < 14) {
-			SendClientMessage(prefix . "Möchtest du Zoll " . csecond . closeZoll . cwhite . " schließen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
+			SendInfo("Möchtest du Zoll " . csecond . closeZoll . cwhite . " schließen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
 				
 			KeyWait, X, D, T10
 				
@@ -11227,7 +11318,7 @@ OpenZollTimer:
 {
 	if (openZoll != "") {
 		if (openZoll > 0 && openZoll < 14) {
-			SendClientMessage(prefix . "Möchtest du Zoll " . csecond . openZoll . cwhite . " öffnen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
+			SendInfo("Möchtest du Zoll " . csecond . openZoll . cwhite . " öffnen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
 				
 			KeyWait, X, D, T10
 				
@@ -11243,7 +11334,7 @@ return
 
 RefillTimer: 
 {
-	SendClientMessage(prefix . "Möchtest du einen Kanister nutzen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
+	SendInfo("Möchtest du einen Kanister nutzen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
 
 	KeyWait, X, D, T10
 	
@@ -11267,7 +11358,7 @@ RequestTimer:
 						SendChat("/l Tut mir leid " . requestName . ", jedoch sind nur Tickets bis zu 4 Wanteds, und nicht bis " . label_3 . " möglich.")
 					}
 				} else {
-					SendClientMessage(prefix . "Möchtest du " . csecond . requestName . cwhite . " ein Ticket geben? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
+					SendInfo("Möchtest du " . csecond . requestName . cwhite . " ein Ticket geben? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
 				
 					KeyWait, X, D, T10
 					
@@ -11403,14 +11494,14 @@ TankTimer:
 				if (tank_1 <= 5 && oldTank != Ceil(tank_1)) {
 					SoundBeep
 					
-					SendClientMessage(prefix . cSecond . "WARNUNG: Dein Tank ist fast leer, es befinde" . (tank_1 == 1 ? "t" : "n") . " sich nur noch " . tank_1 . " Liter darin.")
+					SendInfo(csecond . "WARNUNG: Dein Tank ist fast leer, es befinde" . (tank_1 == 1 ? "t" : "n") . " sich nur noch " . tank_1 . " Liter darin.")
 					oldTank := Ceil(tank_1)
 					break
 				}
 			} else if (RegExMatch(o, "Tank:  Leer")) {
 				SoundBeep
 				
-				SendClientMessage(prefix . "WARNUNG: Dein Tank ist leer, du kannst mit '" . cSecond . "X" . cwhite . "' einen Kanister nutzen.")
+				SendInfo("WARNUNG: Dein Tank ist leer, du kannst mit '" . cSecond . "X" . cwhite . "' einen Kanister nutzen.")
 				
 				KeyWait, X, D, T10
 				
@@ -11461,13 +11552,13 @@ handleChatMessage(message, index, arr) {
 			huso ++
 			IniWrite, % huso, ini/stats.ini, Stats, huso
 			
-			SendClientMessage(prefix . "Huso-Counter: " . cSecond . formatNumber(huso))
+			SendInfo("Huso-Counter: " . cSecond . formatNumber(huso))
 		}
 	} else if (RegExMatch(message, "^Leerfahrt$")) {
 		start := -1
 		busLine := -1
 		
-		SendClientMessage(prefix . "Du hast deine Linie abgebrochen.")	
+		SendInfo("Du hast deine Linie abgebrochen.")	
 	} else if (RegExMatch(message, "^Nächste Haltestelle: (.+)$", chat_)) {
 		if (chat_1 == "Busbahnhof Süd" || chat_1 == "Busbahnhof Ost" || chat_1 == "San Fierro Hauptbahnhof" || chat_1 == "Las Venturas Busbahnhof" || chat_1 == "Foster Valley FZ A" || chat_1 == "Foster Valley FZ B") {
 			if (start == -1) {
@@ -11479,11 +11570,11 @@ handleChatMessage(message, index, arr) {
 				if (tempLine != 0) {
 					busLine := tempLine
 					
-					SendClientMessage(prefix . "Du startest Linie " . csecond . busLine . cwhite . ".")
+					SendInfo("Du startest Linie " . csecond . busLine . cwhite . ".")
 				} else {
 					busLine := -1
 					
-					SendClientMessage(prefix . "Deine Linie konnte nicht korrekt erkannt werden, sie wird vorerst ignoriert.")
+					SendInfo("Deine Linie konnte nicht korrekt erkannt werden, sie wird vorerst ignoriert.")
 				}
 			}
 		} else {
@@ -11493,7 +11584,7 @@ handleChatMessage(message, index, arr) {
 				if (tempLine != 0) {
 					busLine := tempLine
 					
-					SendClientMessage(prefix . "Deine Linie wurde soeben gesetzt: Linie " . csecond . busLine)
+					SendInfo("Deine Linie wurde soeben gesetzt: Linie " . csecond . busLine)
 				}
 			}
 		}	
@@ -11516,8 +11607,8 @@ handleChatMessage(message, index, arr) {
 			end := getUnixTimestamp(A_Now)
 			diff := (end - start)
 			
-			SendClientMessage(prefix . "Du hast Linie " . busLine . " für $" . csecond . formatNumber(message_1) . cwhite . " beendet und " . csecond . message_2 . cwhite . " EXP erhalten. Zeit: " . csecond . formatTime(diff))
-			SendClientMessage(prefix . "Du bist bereits " . csecond . formatNumber(busRounds) . cwhite . " Runden gefahren und hast $" . csecond . formatNumber(busMoney) . cwhite . " verdient.")
+			SendInfo("Du hast Linie " . busLine . " für $" . csecond . formatNumber(message_1) . cwhite . " beendet und " . csecond . message_2 . cwhite . " EXP erhalten. Zeit: " . csecond . formatTime(diff))
+			SendInfo("Du bist bereits " . csecond . formatNumber(busRounds) . cwhite . " Runden gefahren und hast $" . csecond . formatNumber(busMoney) . cwhite . " verdient.")
 
 			Sleep, 100
 			SendChat("/j Ich habe Linie " . busLine . " für " . formatNumber(message_1) . "$ beendet und " . message_2 . " EXP erhalten. Zeit: " . formatTime(diff))
@@ -11559,7 +11650,7 @@ handleChatMessage(message, index, arr) {
 			IniWrite, %arrestLimitUnix%, ini/Settings.ini, UnixTime, arrestLimitUnix
 		
 			SendChat("/f HQ: Guten Tag Leute! Arrest-Limit: " . allSeconds . " Sekunden!")
-			; SendClientMessage(prefix . "Arrest-Limit-Daten wurden angepasst.")
+			; SendInfo("Arrest-Limit-Daten wurden angepasst.")
 		} else if (RegExMatch(message_1, "^noch (\d+) Stunden und (\d+) Minuten$", msg_)) {
 			hourSeconds := (msg_1 * 3600)
 			minuteSeconds := (msg_2 * 60)
@@ -11570,7 +11661,7 @@ handleChatMessage(message, index, arr) {
 			IniWrite, %arrestLimitUnix%, ini/Settings.ini, UnixTime, arrestLimitUnix
 			
 			SendChat("/f HQ: Guten Tag Leute! Arrest-Limit: " . allSeconds . " Sekunden!")
-			; SendClientMessage(prefix . "Arrest-Limit-Daten wurden angepasst.")
+			; SendInfo("Arrest-Limit-Daten wurden angepasst.")
 		} else if (RegExMatch(message_1, "^noch (\d+) Minuten$", msg_)) {
 			minuteSeconds := (msg_1 * 60)
 			allSeconds := (minuteSeconds)
@@ -11579,14 +11670,14 @@ handleChatMessage(message, index, arr) {
 			IniWrite, %arrestLimitUnix%, ini/Settings.ini, UnixTime, arrestLimitUnix
 			
 			SendChat("/f HQ: Guten Tag! Arrest-Limit: " . allSeconds . " Sekunden!")
-			; SendClientMessage(prefix . "Arrest-Limit-Daten wurden angepasst.")
+			; SendInfo("Arrest-Limit-Daten wurden angepasst.")
 		}
 	} else if (RegExMatch(message, "^\*\*\(\( (.+) (\S+): HQ: Guten Tag! Arrest-Limit: (\d+) Sekunden! \)\)\*\*$", message_)) {
 		if (message_2 != getUserName()) {
 			arrestLimitUnix := getUnixTimestamp(A_Now) + message_3
 			IniWrite, %arrestLimitUnix%, ini/Settings.ini, UnixTime, arrestLimitUnix
 			
-			; SendClientMessage(prefix . "Arrest-Limit-Daten wurden angepasst.")
+			; SendInfo("Arrest-Limit-Daten wurden angepasst.")
 		}
 	} else if (RegExMatch(message, "^\* Spieler \[(\d+)\](\S+): (.*)$", message_)) {
 		if (getId() == message_1 && message_2 == getUserName() && !admin) {
@@ -11607,7 +11698,7 @@ handleChatMessage(message, index, arr) {
 	} else if (RegExMatch(message, "^Paintball: (\S+) hat die Arena betreten\.$", message_)) {
 		if (message_1 == getUserName()) {
 			isPaintball := true 
-			SendClientMessage(prefix . "Der Paintball-Modus wurde " . cgreen . "angeschaltet" . cwhite . ".")
+			SendInfo("Der Paintball-Modus wurde " . cgreen . "angeschaltet" . cwhite . ".")
 		}
 	} else if (RegExMatch(message, "^Du hast bereits einen Spritkanister !$", message_)) {
 		getCanister(0)
@@ -11646,7 +11737,7 @@ handleChatMessage(message, index, arr) {
 		getDrugs(0)
 	} else if (RegExMatch(message, "^\* Du hast (.*)g für (.*)$ von (\S+) gekauft\.$", message_)) {
 		getDrugs(0)
-	} else if (RegExMatch(message, "^\[ AIRDROP \] (\S+) hat den Airdrop abgegeben und (\d+)g Drogen erhalten\.$", message_)) {
+	} else if (RegExMatch(message, "^\[ AIRDROP \] (\S+) hat den Airdrop abgegeben und (.*)\.$", message_)) {
 		if (message_1 == getUserName()) {
 			getDrugs(0)	
 		}
@@ -11689,56 +11780,56 @@ handleChatMessage(message, index, arr) {
 		trashs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trash&value=1")
 		iniWrite, %trashs%, ini/Stats.ini, Mülltonnen, trashs
 		
-		SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(trashs) . cwhite . " Mülltonnen durchwühlt.")
+		SendInfo("Du hast bereits " . cSecond . formatNumber(trashs) . cwhite . " Mülltonnen durchwühlt.")
 	} else if (RegExMatch(message, "^Du (.*) in der Mülltonne gefunden.$", message_)) {
 		if (RegExMatch(message_1, "^hast nichts$", msg_)) {
 			nothing := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashNothing&value=1")
 			iniWrite, %nothing%, ini/Stats.ini, Mülltonnen, nothing
 			
-			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(nothing) . cwhite . " nichts in Mülltonnen gefunden.")
+			SendInfo("Du hast bereits " . cSecond . formatNumber(nothing) . cwhite . " nichts in Mülltonnen gefunden.")
 		} else if (RegExMatch(message_1, "^hast ein Lagerfeuer$", msg_)) {
 			campfire:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashCampfire&value=1")
 			iniWrite, %campfire%, ini/Stats.ini, Mülltonnen, campfire
 			
-			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(campfire) . cwhite . " Lagerfeuer in Mülltonnen gefunden.")
+			SendInfo("Du hast bereits " . cSecond . formatNumber(campfire) . cwhite . " Lagerfeuer in Mülltonnen gefunden.")
 			getCampfire(0)
 		} else if (RegExMatch(message_1, "^hast (.*)\$$", msg_)) {
 			money := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashMoney&value=" . numberFormat(msg_1))
 			iniWrite, %money%, ini/Stats.ini, Mülltonnen, money
 			
-			SendClientMessage(prefix . "Du hast bereits $" . cSecond . formatNumber(money) . cwhite . " in Mülltonnen gefunden.")
+			SendInfo("Du hast bereits $" . cSecond . formatNumber(money) . cwhite . " in Mülltonnen gefunden.")
 		} else if (RegExMatch(message_1, "^hast (\d+) Stunden (\S+)$", msg_)) {
 			if (RegExMatch(msg_2, "VIP")) {
 				vip := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashVIP&value=" . numberFormat(msg_1))
 				iniWrite, %vip%, ini/Stats.ini, Mülltonnen, vip
-				SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(vip) . cwhite . " Stunden VIP in Mülltonnen gefunden.")
+				SendInfo("Du hast bereits " . cSecond . formatNumber(vip) . cwhite . " Stunden VIP in Mülltonnen gefunden.")
 			} else if (RegExMatch(msg_2, "Premium")) {
 				prem := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashPremium&value=" . numberFormat(msg_1))
 				iniWrite, %prem%, ini/Stats.ini, Mülltonnen, prem
-				SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(prem) . cwhite . " Stunden Premium in Mülltonnen gefunden.")
+				SendInfo("Du hast bereits " . cSecond . formatNumber(prem) . cwhite . " Stunden Premium in Mülltonnen gefunden.")
 			}
 		} else if (RegExMatch(message_1, "^hast (\d+) Respektpunkte$", msg_)) {
 			respect:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashRespect&value=" . numberFormat(msg_1))
 			iniWrite, %respect%, ini/Stats.ini, Mülltonnen, respect
 			
-			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(respect) . cwhite . " Respektpunkte in Mülltonnen gefunden.")
+			SendInfo("Du hast bereits " . cSecond . formatNumber(respect) . cwhite . " Respektpunkte in Mülltonnen gefunden.")
 		} else if (RegExMatch(message_1, "^hast (\d+)g Marihuana$", msg_)) {
 			drugs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashDrugs&value=" . numberFormat(msg_1))
 			iniWrite, %drugs%, ini/Stats.ini, Mülltonnen, drugs
 			
-			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(drugs) . cwhite . "g Drogen in Mülltonnen gefunden.")
+			SendInfo("Du hast bereits " . cSecond . formatNumber(drugs) . cwhite . "g Drogen in Mülltonnen gefunden.")
 			
 			getDrugs(0)
 		} else if (RegExMatch(message_1, "hast (\d+) Materialien$", msg_)) {
 			mats := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashMats&value=" . numberFormat(msg_1))
 			iniWrite, %mats%, ini/Stats.ini, Mülltonnen, mats
 			
-			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(mats) . cwhite . " Materialien in Mülltonnen gefunden.")
+			SendInfo("Du hast bereits " . cSecond . formatNumber(mats) . cwhite . " Materialien in Mülltonnen gefunden.")
 		} else if (RegExMatch(message_1, "^hast eine Schlagwaffe \((.*)\)$", msg_)) {
 			weaps := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashWeapon&value=1")
 			iniWrite, %weaps%, ini/Stats.ini, Mülltonnen, weaps
 			
-			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(weaps) . cwhite . " Waffen in Mülltonnen gefunden.")
+			SendInfo("Du hast bereits " . cSecond . formatNumber(weaps) . cwhite . " Waffen in Mülltonnen gefunden.")
 		}
 	} else if (RegExMatch(message, "^Der Spieler befindet sich in Gebäudekomplex (.*)$", message_)) {
 		if (getOldKomplex != message_1) {
@@ -11813,11 +11904,11 @@ handleChatMessage(message, index, arr) {
 			if (InStr(message, "abgelegt")) {
 				isZivil := 1
 				
-				SendClientMessage(prefix . "Du bist nun Zivil.")
+				SendInfo("Du bist nun Zivil.")
 			} else if (RegExMatch(message, "angelegt")) {
 				isZivil := 0
 			
-				SendClientMessage(prefix . "Du bist nun im Dienst.")
+				SendInfo("Du bist nun im Dienst.")
 			}
 		}
 	} else if (RegExMatch(message, "^Du bist nun wieder im Dienst!$", message_)) {
@@ -11948,7 +12039,7 @@ handleChatMessage(message, index, arr) {
 		if (antiSpam) {
 			blockChatInput()
 			
-			SendClientMessage(prefix . "Das Antispam System wurde " . cgreen . "aktiviert" . cwhite . ".")
+			SendInfo("Das Antispam System wurde " . cgreen . "aktiviert" . cwhite . ".")
 			
 			SetTimer, SpamTimer, -1500
 		}
@@ -11972,7 +12063,7 @@ handleChatMessage(message, index, arr) {
 			
 			pbKillStreak := 0
 			
-			SendClientMessage(prefix . cOrange . "Paintball:" . cWhite . " Tode: " . csecond . formatNumber(pbdeaths) . cwhite . " | Kills: " . csecond . formatNumber(pbkills) . cwhite . " | K/D: " . csecond . round(pbkills/pbdeaths, 3))
+			SendInfo(cOrange . "Paintball:" . cWhite . " Tode: " . csecond . formatNumber(pbdeaths) . cwhite . " | Kills: " . csecond . formatNumber(pbkills) . cwhite . " | K/D: " . csecond . round(pbkills/pbdeaths, 3))
 			
 			if (pbKillStreak > 0 && paintInfo)  {
 				SendChat("/l Meine Killstreak war: " . pbKillStreak)
@@ -11987,7 +12078,7 @@ handleChatMessage(message, index, arr) {
 			IniRead, pbdeaths, ini/Stats.ini, stats, pbdeaths, 0		
 			IniRead, pbHighestKillStreak, ini/Stats.ini, ini/Stats.ini, pbHighestKillStreak, 0
 			
-			SendClientMessage(prefix . cOrange . "Paintball:" . cWhite . " Kills: " . csecond . formatNumber(pbkills) . cwhite . " | Tode: " . csecond . formatNumber(pbDeaths) . cwhite . " | K/D: " . csecond . round(pbkills/pbdeaths, 3))
+			SendInfo(cOrange . "Paintball:" . cWhite . " Kills: " . csecond . formatNumber(pbkills) . cwhite . " | Tode: " . csecond . formatNumber(pbDeaths) . cwhite . " | K/D: " . csecond . round(pbkills/pbdeaths, 3))
 			
 			pbKillStreak ++
 			
@@ -11998,7 +12089,7 @@ handleChatMessage(message, index, arr) {
 				if (paintInfo) {
 					SendChat("/l Meine neue beste Killstreak: " . pbKillStreak)
 				} else {
-					SendClientMessage(prefix . "Neuer Killstreak-Rekord: " . csecond . pbHighestKillStreak)
+					SendInfo("Neuer Killstreak-Rekord: " . csecond . pbHighestKillStreak)
 				}
 			} else {
 				if (paintInfo) {
@@ -12041,20 +12132,20 @@ handleChatMessage(message, index, arr) {
 		if (IsPayday > 0) {		
 			Sleep, 100
 			
-			SendClientMessage(prefix . "Dein Gehaltscheck beläuft sich auf $" . cGreen . formatNumber(money) . cwhite . ".")
+			SendInfo("Dein Gehaltscheck beläuft sich auf $" . cGreen . formatNumber(money) . cwhite . ".")
 			IniWrite, 0, ini/Stats.ini, stats, paydayMoney
 		}
 	} else if (RegExMatch(message, "^> (\S+) beobachtet (\S+)\.$", message_)) {
 		if (!tv) {
 			tv := true
 		
-			SendClientMessage(prefix . "Beobachtungsmodus " . cgreen . "aktiviert" . cwhite . ".")
+			SendInfo("Beobachtungsmodus " . cgreen . "aktiviert" . cwhite . ".")
 		}
 	} else if (RegExMatch(message, "^> (\S+) hat die Beobachtung beendet\.$")) {
 		if (tv) {
 			tv := false
 			
-			SendClientMessage(prefix . "Beobachtungsmodus " . cred . "deaktiviert" . cwhite . ".")
+			SendInfo("Beobachtungsmodus " . cred . "deaktiviert" . cwhite . ".")
 		}
 	} else if (RegExMatch(message, "^Du hast dich ausgerüstet, es wurden (.*) Materialien benötigt\. \(Verbleibend: (.*) Materialien\)$", line0_)) {
 		equipMats:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=equipMats&value=" . numberFormat(line0_1))
@@ -12064,13 +12155,13 @@ handleChatMessage(message, index, arr) {
 		IniWrite, %DailyMats%, ini/Stats.ini, stats, %A_DD%_%A_MM%_%A_YYYY%_Mats
 		
 		if (DailyMats < 3000) {
-			SendClientMessage(prefix . cgrey . "Du hast heute bereits " . formatNumber(DailyMats) . " Materialien verbraucht.")
+			SendInfo(cgrey . "Du hast heute bereits " . formatNumber(DailyMats) . " Materialien verbraucht.")
 		} else if (DailyMats > 3000 && DailyMats < 5000) {
-			SendClientMessage(prefix . cyellow . "Info: Du hast heute bereits " . formatNumber(DailyMats) . " Materialien verbraucht.")
+			SendInfo(cyellow . "Info: Du hast heute bereits " . formatNumber(DailyMats) . " Materialien verbraucht.")
 		} else if (DailyMats > 5000 && DailyMats < 10000) {
-			SendClientMessage(prefix . corange . "Achtung: Du hast heute bereits " . formatNumber(DailyMats) . " Materialien verbraucht.")
+			SendInfo(corange . "Achtung: Du hast heute bereits " . formatNumber(DailyMats) . " Materialien verbraucht.")
 		} else if (DailyMats > 10000) {
-			SendClientMessage(prefix . cred . "WARNUNG: Du hast heute bereits " . formatNumber(DailyMats) . " Materialien verbraucht.")
+			SendInfo(cred . "WARNUNG: Du hast heute bereits " . formatNumber(DailyMats) . " Materialien verbraucht.")
 		}
 		
 		hasEquip := 1
@@ -12079,7 +12170,7 @@ handleChatMessage(message, index, arr) {
 			roadblocks := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=roadblock&value=1")
 			IniWrite, %roadblocks%, ini/Stats.ini, Allgemein, Roadblocks
 			
-			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(roadblocks) . cwhite . " Straßensperren aufgebaut.")
+			SendInfo("Du hast bereits " . csecond . formatNumber(roadblocks) . cwhite . " Straßensperren aufgebaut.")
 		}
 	} else if (RegExMatch(message, "^HQ: (.+) (\S+) hat (\S+) (\d+) (\S+) aus der Akte entfernt\.$", line0_)) {
 		if (line0_2 == getUserName()) {
@@ -12087,12 +12178,12 @@ handleChatMessage(message, index, arr) {
 				Pointsclear := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=pclear&value=" . numberFormat(line0_4))
 				IniWrite, %Pointsclear%, ini/Stats.ini, Vergaben, Pointsclear
 				
-				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Pointsclear) . cwhite . " Strafpunkte gelöscht.")
+				SendInfo("Du hast bereits " . csecond . formatNumber(Pointsclear) . cwhite . " Strafpunkte gelöscht.")
 			} else if (line0_5 == "Wanteds") {
 				Wantedsclear := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=wclear&value=" . numberFormat(line0_4))
 				IniWrite, %Wantedsclear%, ini/Stats.ini, Vergaben, Wantedsclear
 				
-				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Wantedsclear) . cwhite . " Wanteds gelöscht.")
+				SendInfo("Du hast bereits " . csecond . formatNumber(Wantedsclear) . cwhite . " Wanteds gelöscht.")
 			}
 		}
 	} else if (RegExMatch(message, "^\* Du hast (\S+) ein Ticket für (.*)\$ gegeben, Grund: (.+)$", line0_)) {
@@ -12106,7 +12197,7 @@ handleChatMessage(message, index, arr) {
 		Ticketrequests := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=tickets&value=1")
 		IniWrite, %Ticketrequests%, ini/Stats.ini, Tickets, Ticketrequests
 		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Ticketrequests) . cwhite . " Tickets ausgestellt.")
+		SendInfo("Du hast bereits " . csecond . formatNumber(Ticketrequests) . cwhite . " Tickets ausgestellt.")
 		
 		ticket := []
 		ticket["name"] := line0_1
@@ -12147,7 +12238,7 @@ handleChatMessage(message, index, arr) {
 		Tickets := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=tickets_accepted&value=1")
 		IniWrite, %Tickets%, ini/Stats.ini, Tickets, Tickets
 		
-		SendClientMessage(prefix . "Es wurden bereits " . csecond . formatNumber(Tickets) . cwhite . " Tickets von dir angenommen.")
+		SendInfo("Es wurden bereits " . csecond . formatNumber(Tickets) . cwhite . " Tickets von dir angenommen.")
 		
 		ticketMoney := numberFormat(line0_2)
 		ticketMoney := floor(ticketMoney * taxes)
@@ -12166,20 +12257,20 @@ handleChatMessage(message, index, arr) {
 			fstakes := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=fstakes&value=1")
 			IniWrite, %fstakes%, ini/Stats.ini, Scheine, Flugschein
 			
-			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(fstakes) . cwhite . " Flugscheine entzogen.")
-			SendClientMessage(prefix . "Der Schaden durch Flugscheine beläuft sich auf $" . csecond . formatNumber(fstakes * 12000) . cwhite . ".")
+			SendInfo("Du hast bereits " . csecond . formatNumber(fstakes) . cwhite . " Flugscheine entzogen.")
+			SendInfo("Der Schaden durch Flugscheine beläuft sich auf $" . csecond . formatNumber(fstakes * 12000) . cwhite . ".")
 		} else if (message_2 == "Bootschein") {
 			Bootschein := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=bstakes&value=1")
 			IniWrite, %Bootschein%, ini/Stats.ini, Scheine, Bootschein
 			
-			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Bootschein) . cwhite . " Bootscheine entzogen.")
-			SendClientMessage(prefix . "Der Schaden durch Bootscheine beläuft sich auf $" . csecond . formatNumber(Bootschein * 6000) . cwhite . ".")
+			SendInfo("Du hast bereits " . csecond . formatNumber(Bootschein) . cwhite . " Bootscheine entzogen.")
+			SendInfo("Der Schaden durch Bootscheine beläuft sich auf $" . csecond . formatNumber(Bootschein * 6000) . cwhite . ".")
 		} else if (message_2 == "Waffenschein") {
 			Waffenschein := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=wstakes&value=1")
 			IniWrite, %Waffenschein%, ini/Stats.ini, Scheine,  Waffenschein
 			
-			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Waffenschein) . cwhite . " Waffenscheine entzogen.")
-			SendClientMessage(prefix . "Der Schaden durch Waffenscheine beläuft sich auf $" . csecond . formatNumber(Waffenschein * 36000) . cwhite . ".")
+			SendInfo("Du hast bereits " . csecond . formatNumber(Waffenschein) . cwhite . " Waffenscheine entzogen.")
+			SendInfo("Der Schaden durch Waffenscheine beläuft sich auf $" . csecond . formatNumber(Waffenschein * 36000) . cwhite . ".")
 		}
 	} else if (RegExMatch(message, "^\* (\S+) nimmt Geld aus seiner Tasche und gibt es " . getUsername() . "\.$", line0_)) {
 		if (RegExMatch(arr[index - 1], "^Du hast (.*)\$ von (\S+)\((\d+)\) erhalten\.$", line1_)) {
@@ -12214,8 +12305,8 @@ handleChatMessage(message, index, arr) {
 				IniWrite, %arrests%, ini/Stats.ini, Verhaftungen, Arrests				
 				IniWrite, %Money%, ini/Stats.ini, Verhaftungen, Money
 				
-				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Arrests) . cwhite . " Verbrecher eingesperrt.")
-				SendClientMessage(prefix . "Du hast bereits $" . csecond . formatNumber(Money) . cwhite . " durch Verhaftungen verdient.")
+				SendInfo("Du hast bereits " . csecond . formatNumber(Arrests) . cwhite . " Verbrecher eingesperrt.")
+				SendInfo("Du hast bereits $" . csecond . formatNumber(Money) . cwhite . " durch Verhaftungen verdient.")
 			}
 		}
 	} else if (RegExMatch(message, "^\* Du hast (\S+) seine (\d+)g Drogen weggenommen\.$", line0_)) {
@@ -12228,7 +12319,7 @@ handleChatMessage(message, index, arr) {
 		drugs:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=drugs&value=" . numberFormat(line0_2))
 		IniWrite, %drugs%, ini/Stats.ini, Kontrollen, Drugs
 		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(drugs) . cwhite . "g Drogen weggenommen.")
+		SendInfo("Du hast bereits " . csecond . formatNumber(drugs) . cwhite . "g Drogen weggenommen.")
 	} else if (RegExMatch(message, "^\* Du hast (\S+) seine (\d+) Samen weggenommen\.$", line0_)) {
 		for index, value in checkingPlayers {
 			if (line0_1 == value) {
@@ -12240,7 +12331,7 @@ handleChatMessage(message, index, arr) {
 		Seeds += numberFormat(line0_2)
 		IniWrite, %seeds%, ini/Stats.ini, Kontrollen, Seeds
 		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(seeds) . cwhite . " Samen weggenommen.")
+		SendInfo("Du hast bereits " . csecond . formatNumber(seeds) . cwhite . " Samen weggenommen.")
 	} else if (RegExMatch(message, "^\* Du hast (\S+) seine (.*) Materialien weggenommen\.$", line0_)) {
 		for index, value in checkingPlayers {
 			if (line0_1 == value) {
@@ -12251,7 +12342,7 @@ handleChatMessage(message, index, arr) {
 		Mats:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=mats&value=" . numberFormat(line0_2))
 		IniWrite, %Mats%, ini/Stats.ini, Kontrollen, Mats
 		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Mats) . cwhite . " Materialien weggenommen.")
+		SendInfo("Du hast bereits " . csecond . formatNumber(Mats) . cwhite . " Materialien weggenommen.")
 	} else if (RegExMatch(message, "^\* Du hast (\S+) seine (\d+) Materialpakete weggenommen\.$", line0_)) {
 		for index, value in checkingPlayers {
 			if (line0_1 == value) {
@@ -12262,7 +12353,7 @@ handleChatMessage(message, index, arr) {
 		Matpackets := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=matpackets&value=" . numberFormat(line0_2))
 		IniWrite, %Matpackets%, ini/Stats.ini, Kontrollen, Matpackets
 		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Matpackets) . cwhite . " Materialpakete weggenommen.")
+		SendInfo("Du hast bereits " . csecond . formatNumber(Matpackets) . cwhite . " Materialpakete weggenommen.")
 	} else if (RegExMatch(message, "^\* Du hast (\S+) seine (\d+) Haftbomben weggenommen\.$", line0_)) {
 		for index, value in checkingPlayers {
 			if (line0_1 == value) {
@@ -12273,18 +12364,18 @@ handleChatMessage(message, index, arr) {
 		Matbombds := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=matBombds&value=" . numberFormat(line0_2))
 		IniWrite, %Matbombs%, ini/Stats.ini, Kontrollen, Matbombs
 		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Matbombs) . cwhite . " Haftbomben weggenommen.")
+		SendInfo("Du hast bereits " . csecond . formatNumber(Matbombs) . cwhite . " Haftbomben weggenommen.")
 	} else if (RegExMatch(message, "^Du hast (\d+) (.+) aus dem Kofferraum konfisziert\.$", message_)) {
 		if (message_2 == "Materialien") {
 			Mats := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=mats&value=" . numberFormat(line0_1))
 			IniWrite, %Mats%, ini/Stats.ini, Kontrollen, Mats
 			
-			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Mats) . cwhite . " Materialien weggenommen.")
+			SendInfo("Du hast bereits " . csecond . formatNumber(Mats) . cwhite . " Materialien weggenommen.")
 		} else if (message_2 == "Gramm Drogen") {
 			drugs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=drugs&value=" . numberFormat(line0_1))
 			IniWrite, %drugs%, ini/Stats.ini, Kontrollen, Drugs
 		
-			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(drugs) . cwhite . "g Drogen weggenommen.")
+			SendInfo("Du hast bereits " . csecond . formatNumber(drugs) . cwhite . "g Drogen weggenommen.")
 		}
 	} else if (RegExMatch(message, "^\* (.*) schießt mit seinen Elektroschocker auf (\S+) und setzt ihn unter Strom\.$", message_)) {
 		if (RegExMatch(message, "^Agent (\d+)$", agent_)) {
@@ -12295,7 +12386,7 @@ handleChatMessage(message, index, arr) {
 			tazer:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=tazer&value=1")
 			IniWrite, %tazer%, ini/Stats.ini, Allgemein, Tazer
 		
-			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(tazer) . cwhite . " Spieler getazert.")
+			SendInfo("Du hast bereits " . csecond . formatNumber(tazer) . cwhite . " Spieler getazert.")
 			
 			for index, grabName in grabList {
 				if (grabName == message_2) {
@@ -12370,8 +12461,8 @@ handleChatMessage(message, index, arr) {
 			IniWrite, %govfills%, ini/Stats.ini, Allgemein, govfills
 			IniWrite, %govfillprice%, ini/Stats.ini, Allgemein, govfillprice
 			
-			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(govfills) . cwhite . " Liter getankt.")
-			SendClientMessage(prefix . "Die Tankkosten belaufen sich auf $" . csecond . formatNumber(govfillprice) . cwhite . ".")		
+			SendInfo("Du hast bereits " . csecond . formatNumber(govfills) . cwhite . " Liter getankt.")
+			SendInfo("Die Tankkosten belaufen sich auf $" . csecond . formatNumber(govfillprice) . cwhite . ".")		
 		}
 	} else if (RegExMatch(message, "^HQ: (\S+) wurde getötet, Haftzeit: (\S+) Minuten, Geldstrafe: (.*)\$$", line0_)) {
 		if (RegExMatch(arr[index - 1], "^HQ: Alle Einheiten, (.*) (\S+) hat den Auftrag ausgeführt\.$", line1_)) {
@@ -12383,7 +12474,7 @@ handleChatMessage(message, index, arr) {
 				Crimekills := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=suspect_kills&value=1")
 				IniWrite, %Crimekills%, ini/Stats.ini, Verhaftungen, Crimekills
 				
-				SendClientMessage(prefix . "Dies war dein " . csecond . formatNumber(Crimekills) . cwhite . " getöteter Verbrecher.")
+				SendInfo("Dies war dein " . csecond . formatNumber(Crimekills) . cwhite . " getöteter Verbrecher.")
 			}
 			
 			indexRemove := -1
@@ -12438,7 +12529,7 @@ handleChatMessage(message, index, arr) {
 							
 							IniWrite, %arrests%, ini/Stats.ini, Verhaftungen, Arrests
 							
-							SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(arrests) . cwhite . " Verbrecher eingesperrt.")
+							SendInfo("Du hast bereits " . csecond . formatNumber(arrests) . cwhite . " Verbrecher eingesperrt.")
 							
 							SetTimer, PartnerMoneyTimer, 1
 						}
@@ -12448,7 +12539,7 @@ handleChatMessage(message, index, arr) {
 						deathArrests := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=darrests&value=1")
 						IniWrite, %deathArrests%, ini/Stats.ini, Verhaftungen, Deatharrests
 						
-						SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(deathArrests) . cwhite . " Verbrecher nach dem Tod eingesperrt.")
+						SendInfo("Du hast bereits " . csecond . formatNumber(deathArrests) . cwhite . " Verbrecher nach dem Tod eingesperrt.")
 						
 						SetTimer, PartnerMoneyTimer, 1
 					}
@@ -12459,7 +12550,7 @@ handleChatMessage(message, index, arr) {
 						deathPrison := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=dprison&value=1")
 						IniWrite, %deathPrison%, ini/Stats.ini, Verhaftungen, deathprison
 						
-						SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(deathPrison) . cwhite . " Verbrecher nach dem Tod ins Prison gesteckt.")
+						SendInfo("Du hast bereits " . csecond . formatNumber(deathPrison) . cwhite . " Verbrecher nach dem Tod ins Prison gesteckt.")
 					}
 				}
 			}
@@ -12488,7 +12579,7 @@ handleChatMessage(message, index, arr) {
 					IniWrite, %offlinePrison%, ini/Stats.ini, Verhaftungen, Offlineprison
 					
 					Sleep, 100
-					SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(offlinePrison) . cwhite . " Verbrecher offline ins Prison gesteckt.")
+					SendInfo("Du hast bereits " . csecond . formatNumber(offlinePrison) . cwhite . " Verbrecher offline ins Prison gesteckt.")
 				} else {
 					arrestWanteds := line0_1 / 3
 					arrestMoney := arrestWanteds * 750
@@ -12517,7 +12608,7 @@ handleChatMessage(message, index, arr) {
 					
 					IniWrite, %offlineArrests%, ini/Stats.ini, Verhaftungen, offlinearrests
 					
-					SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(offlineArrests) . cwhite . " Verbrecher offline eingesperrt.")
+					SendInfo("Du hast bereits " . csecond . formatNumber(offlineArrests) . cwhite . " Verbrecher offline eingesperrt.")
 					
 					SetTimer, PartnerMoneyTimer, 1
 				}
@@ -12570,7 +12661,7 @@ handleChatMessage(message, index, arr) {
 			bankrobs ++
 			IniWrite, % bankrobs, ini/stats.ini, Stats, bankrobs
 	
-			SendClientMessage(prefix . "Du hast bereits " . cSecond . formatNumber(bankrobs) . cWhite . " Banküberfälle aufgehalten.") ; #BAUM
+			SendInfo("Du hast bereits " . cSecond . formatNumber(bankrobs) . cWhite . " Banküberfälle aufgehalten.") ; #BAUM
 		} else {
 			SendChat("/d HQ: Gute Arbeit, " . message_1 . "!")
 		}
@@ -12592,7 +12683,7 @@ handleChatMessage(message, index, arr) {
 		plants ++
 		IniWrite, %plants%, ini/Stats.ini, Marihuana, Plants
 		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(plants) . cwhite . " Marihuana-Pflanzen zerstört.")
+		SendInfo("Du hast bereits " . csecond . formatNumber(plants) . cwhite . " Marihuana-Pflanzen zerstört.")
 		
 		adrGTA2 := getModuleBaseAddress("gta_sa.exe", hGTA)
 		cText := readString(hGTA, adrGTA2 + 0x7AAD43, 512)
@@ -12613,7 +12704,7 @@ handleChatMessage(message, index, arr) {
 				outbreak ++
 				iniWrite, % outbreak, ini/Stats.ini, Stats, outbreak
 				
-				SendClientMessage(prefix . "Es wurde ein Ausbruch (" . cSecond . "Fall " . outbreak . cwhite . ") gemeldet.")
+				SendInfo("Es wurde ein Ausbruch (" . cSecond . "Fall " . outbreak . cwhite . ") gemeldet.")
 
 				outbreakInfo := []
 				outbreakInfo["time"] := A_Hour . ":" . A_Min
@@ -12701,11 +12792,11 @@ handleChatMessage(message, index, arr) {
 			IniWrite, %Radarcontrols%, ini/Stats.ini, Kontrollen, Radarcontrols
 			
 			Sleep, 100
-			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Radarcontrols) . cwhite . " Fahrzeuge geblitzt.")
+			SendInfo("Du hast bereits " . csecond . formatNumber(Radarcontrols) . cwhite . " Fahrzeuge geblitzt.")
 			
 			if (kmh == 0) {
 				kmh := 80
-				SendClientMessage(prefix . "Setze die erlaubte Geschwindigkeit mit " . cSecond . "/setkmh")
+				SendInfo("Setze die erlaubte Geschwindigkeit mit " . cSecond . "/setkmh")
 			}
 			
 			if (laserInfo) {
@@ -12900,7 +12991,7 @@ KillTimer:
 				dkd := round(dkills/ddeaths, 2)
 				mkd := round(mkills/mdeaths, 2)
 	
-				SendClientMessage(prefix . "DKD: " . cSecond . kd . cWhite . " - MKD: " . cSecond . mkd . cWhite . " - KD: " . cSecond . kd)
+				SendInfo("DKD: " . cSecond . kd . cWhite . " - MKD: " . cSecond . mkd . cWhite . " - KD: " . cSecond . kd)
 			
 				if (bk) {
 					if (getFullName(killName)) {
@@ -12979,7 +13070,7 @@ KillTimer:
 					mkd := mkills . ".00"
 				}
 	
-				SendClientMessage(prefix . "DKD: " . cSecond . kd . cWhite . " - MKD: " . cSecond . mkd . cWhite . " - KD: " . cSecond . kd)				
+				SendInfo("DKD: " . cSecond . kd . cWhite . " - MKD: " . cSecond . mkd . cWhite . " - KD: " . cSecond . kd)				
 			}
 		}
 	}
@@ -12995,15 +13086,15 @@ MainTimer:
 			if (!firstStart) {
 				firstStart := true 
 				
-				SendClientMessage(prefix . "Keybinder (Version " . csecond . version . cwhite . ") wurde gestartet!")
-				SendClientMessage(prefix . "Willkommen, " . csecond . username . cwhite . "! Fraktion: " . getFractionName() . ", Rang: " . rank)
+				SendInfo("Keybinder (Version " . csecond . version . cwhite . ") wurde gestartet!")
+				SendInfo("Willkommen, " . csecond . username . cwhite . "! Fraktion: " . getFractionName() . ", Rang: " . rank)
 			}
 			
 			if (spotifytrack != oldSpotifyTrack) {
 				oldSpotifyTrack := spotifytrack
 
 				if (spotifyPrivacy) {
-					SendClientMessage(prefix . "Neuer Spotify-Track: " . cgreen . spotifytrack)
+					SendInfo("Neuer Spotify-Track: " . cgreen . spotifytrack)
 				}
 
 				if (spotifyPublic) {
@@ -13019,7 +13110,7 @@ MainTimer:
 				if (!isInVehicle) {
 					isInVehicle := true
 					
-					if (overlay && startOverlay) {
+					if (overlay && startOverlay && getVehicleType() != 6) {
 						imageDestroy(ov_Canister)
 						ov_Info()
 					}	
@@ -13028,7 +13119,7 @@ MainTimer:
 				if (isInVehicle) {
 					isInVehicle := false
 					
-					if (overlay && startOverlay) {
+					if (overlay && startOverlay && getVehicleType() != 6) {
 						imageDestroy(ov_Canister)
 						ov_Info()
 					}
@@ -13063,7 +13154,7 @@ MainTimer:
 								afkColor := cred
 							}
 
-							SendClientMessage(prefix . afkColor . "AFK-Zeit: " . formatTime(IsAFKEnd - IsAFKStart))
+							SendInfo(afkColor . "AFK-Zeit: " . formatTime(IsAFKEnd - IsAFKStart))
 
 							IsAFKStart := 0
 							IsAFKEnd := 0
@@ -13081,9 +13172,9 @@ MainTimer:
 					if (!tv) {
 						if (damage > 5 && !isPaintball ) {
 							if (!gotPoisened) {
-								SendClientMessage(prefix . "Du hast soeben (" . csecond . "-" . damage . cwhite . " HP) verloren (" . cRed getDamageWeapon(damage) . cwhite . "), Aktuelle HP: " . cGreen . (getPlayerHealth() + getPlayerArmor()))
+								SendInfo("Du hast soeben (" . csecond . "-" . damage . cwhite . " HP) verloren (" . cRed getDamageWeapon(damage) . cwhite . "), Aktuelle HP: " . cGreen . (getPlayerHealth() + getPlayerArmor()))
 							} else {
-								SendClientMessage(prefix . "Du hast soeben (" . csecond . "-" . damage . cwhite . " HP) verloren (" . cRed "Giftspritze" . cwhite . "),  Aktuelle HP: " . cGreen . (getPlayerHealth() + getPlayerArmor()))
+								SendInfo("Du hast soeben (" . csecond . "-" . damage . cwhite . " HP) verloren (" . cRed "Giftspritze" . cwhite . "),  Aktuelle HP: " . cGreen . (getPlayerHealth() + getPlayerArmor()))
 								gotPoisened := false 
 							}
 							
@@ -13095,7 +13186,7 @@ MainTimer:
 			
 			if (isPlayerAtGasStation() && autoFill) {
 				if (fillTimeout_) {
-					if (isPlayerInAnyVehicle() && isPlayerDriver()) {
+					if (isPlayerInAnyVehicle() && isPlayerDriver() && getVehicleType() != 6) {
 						if (isPlayerAtGasStation() == 2) {
 							if (getVehicleSpeed() >= 25) {
 								if (getVehicleHealth() < 900) {
@@ -13105,7 +13196,7 @@ MainTimer:
 						}
 							
 						if (getVehicleSpeed() <= 25) {
-							SendClientMessage(prefix . "Möchtest du dein Fahrzeug betanken? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
+							SendInfo("Möchtest du dein Fahrzeug betanken? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
 
 							KeyWait, X, D, T10
 
@@ -13122,7 +13213,7 @@ MainTimer:
 
 				if (canisterTimeout_) {
 					if (!isPlayerInAnyVehicle()) {
-						SendClientMessage(prefix . "Möchtest du dir einen Kanister kaufen? Du kanst mit '" . csecond . "X" . cwhite . "' bestätigen!")
+						SendInfo("Möchtest du dir einen Kanister kaufen? Du kanst mit '" . csecond . "X" . cwhite . "' bestätigen!")
 
 						KeyWait, X, D, T10
 
@@ -13137,7 +13228,7 @@ MainTimer:
 				}
 			} else if (isPlayerAtMaut() && autoCustoms) {
 				if (mautTimeout_) {
-					SendClientMessage(prefix . "Möchtest du den Zoll öffnen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
+					SendInfo("Möchtest du den Zoll öffnen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
 
 					KeyWait, X, D, T10
 
@@ -13152,7 +13243,7 @@ MainTimer:
 			} else if (isPlayerAtHeal() && autoHeal) {
 				if (healTimeout_) {
 					if (getPlayerHealth() < 100 || getPlayerArmor() < 100) {
-						SendClientMessage(prefix . "Möchtest du dich heilen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
+						SendInfo("Möchtest du dich heilen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
 
 						KeyWait, X, D, T10
 
@@ -13167,7 +13258,7 @@ MainTimer:
 				}
 			} else if (isPlayerAtCookPoint() && autoCook) {
 				if (cookTimeout_) {
-					SendClientMessage(prefix . "Möchtest du deine Fische kochen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
+					SendInfo("Möchtest du deine Fische kochen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
 
 					KeyWait, X, D, T10
 
@@ -13181,7 +13272,7 @@ MainTimer:
 				}
 			} else if (isPlayerAtLocal() && autoLocal) {
 				if (localTimeout_) {
-					SendClientMessage(prefix . "Möchtest du die Kette einnehmen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
+					SendInfo("Möchtest du die Kette einnehmen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
 
 					KeyWait, X, D, T10
 
@@ -13196,7 +13287,7 @@ MainTimer:
 			} else if (isPlayerAtEquip() && autoEquip) {
 				if (!hasEquip) {
 					if (equipTimeout_) {
-						SendClientMessage(prefix . "Möchtest du dich ausrüsten? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
+						SendInfo("Möchtest du dich ausrüsten? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
 						
 						KeyWait, X, D, T10
 						
@@ -13224,7 +13315,7 @@ MainTimer:
 				} else {
 					if (healTimeout_) {
 						if (getPlayerHealth() < 100 || getPlayerArmor() < 100) {
-							SendClientMessage(prefix . "Möchtest du dich heilen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
+							SendInfo("Möchtest du dich heilen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
 							
 							KeyWait, X, D, T10
 							
@@ -13240,7 +13331,7 @@ MainTimer:
 				}
 			} else if (isPlayerAtJailGate() && autoGate) {
 				if (jailgateTimeout_) {
-					SendClientMessage(prefix . "Möchtest du ins Staatsgefängnis? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
+					SendInfo("Möchtest du ins Staatsgefängnis? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
 					
 					KeyWait, X, D, T10
 						
@@ -13254,7 +13345,7 @@ MainTimer:
 				}
 			} else if (isPlayerAtPDGate() && autoGate) {
 				if (gateTimeout_) {
-					SendClientMessage(prefix . "Möchtest du das Tor öffnen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
+					SendInfo("Möchtest du das Tor öffnen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
 					
 					KeyWait, X, D, T10
 						
@@ -13268,7 +13359,7 @@ MainTimer:
 				}
 			} else if (isPlayerAtFishPoint() && autoFish) {
 				if (fishTimeout_) {
-					SendClientMessage(prefix . "Möchtest du fischen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
+					SendInfo("Möchtest du fischen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
 						
 					KeyWait, X, D, T10
 					
@@ -13282,7 +13373,7 @@ MainTimer:
 				}
 			} else if (isPlayerInRangeOfPoint(6.0265, -30.8849, 1003.5494, 5.0) && autoFish) {
 				if (fishSellTimeout_) {
-					SendClientMessage(prefix . "Möchtest du deine Fische verkaufen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
+					SendInfo("Möchtest du deine Fische verkaufen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
 					
 					KeyWait, X, D, T10
 					
@@ -13306,27 +13397,7 @@ MainTimer:
 						if (RegExMatch(o.TEXT, "^Mülltonne\nVerwende \/search zum durchsuchen\.$", mull_)) {
 							if (getDistanceBetween(o.XPOS, o.YPOS, o.ZPOS, getCoordinates()[1], getCoordinates()[2], getCoordinates()[3], 2.5)) {
 								if (garbageTimeout_) {
-									if (getUserName() == "jacob.tremblay") {
-										IfNotExist, Trashcans.txt 
-										{
-											FileAppend, , Trashcans.txt
-										}
-										
-										Loop, Read, Trashcans.txt 
-										{
-											if (RegExMatch(A_LoopReadLine, "^\(Trash (.+), X: (.*), Y: (.*), Z: (.*)\)$", trash_)) {
-												if (trash_1 == getPlayerZone() && trash_2 == o.XPOS && trash_3 == o.YPOS && trash_4 == o.ZPOS) {
-													break
-												} else {
-													fileEdit := "(Trash " . getPlayerZone() . ", X: " . o.XPOS . ", Y: " . o.YPOS . ", Z: " . o.ZPOS . ")`n"
-													SendClientMessage(fileEdit)
-													FileAppend, %fileEdit%, Trashcans.txt
-												}
-											}
-										}
-									}	
-									
-									SendClientMessage(prefix . "Möchtest du die Mülltonne durchsuchen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
+									SendInfo("Möchtest du die Mülltonne durchsuchen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
 									
 									KeyWait, X, D, T10
 									
@@ -13391,7 +13462,7 @@ WantedTimer:
 				colorW2 := 0xFF4000FF
 			}
 			
-			SendClientMessage(prefix . colorW . "Verdächtiger " . label_2 . " (ID: " . getPlayerIdByName(label_2) . ") mit " . label_3 . " Wanteds gesichtet!")
+			SendInfo(colorW . "Verdächtiger " . label_2 . " (ID: " . getPlayerIdByName(label_2) . ") mit " . label_3 . " Wanteds gesichtet!")
 
 			wantedAlarm := []
 			wantedAlarm["name"] := label_2
@@ -13408,7 +13479,7 @@ return
 SpamTimer:
 {		
 	unBlockChatInput()
-	SendClientMessage(prefix . "Das Antispam System wurde " . cred . "deaktiviert" . cwhite . ".")
+	SendInfo("Das Antispam System wurde " . cred . "deaktiviert" . cwhite . ".")
 	
 	SetTimer, SpamTimer, off
 }
@@ -13417,7 +13488,7 @@ return
 TargetTimer:
 {
 	if (target != "" && targetid != -1) {
-		SendClientMessage(prefix . "Möchtest du den Spieler suchen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
+		SendInfo("Möchtest du den Spieler suchen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
 	
 		KeyWait, X, D, T10
 	
@@ -13437,7 +13508,7 @@ return
 WantedIATimer:
 {
 	if (wantedIA != -1 && wantedIAReason != "" && wantedContracter != -1) {
-		SendClientMessage(prefix . "Möchtest du dem Spieler Wanteds geben? Du kannst mit '" . cSecond . "X" . cwhite . "' bestätigen.")
+		SendInfo("Möchtest du dem Spieler Wanteds geben? Du kannst mit '" . cSecond . "X" . cwhite . "' bestätigen.")
 		
 		KeyWait, X, D, T10
 		
@@ -13493,7 +13564,7 @@ return
 HelloTimer:
 {
 	if (loginName != -1) {
-		SendClientMessage(prefix . "Möchtest du " . csecond . loginName . cwhite . " begrüßen? Du kannst mit '" . cSecond . "X" . cwhite . "' bestätigen.")
+		SendInfo("Möchtest du " . csecond . loginName . cwhite . " begrüßen? Du kannst mit '" . cSecond . "X" . cwhite . "' bestätigen.")
 		
 		KeyWait, X, D, T10
 		
@@ -13521,7 +13592,7 @@ return
 
 PaketTimer:
 {
-	SendClientMessage(prefix . csecond . medicName . cwhite . " bietet dir ein Paket an, drücke '" . csecond . "X" . cwhite . "' zum Annehmen.")
+	SendInfo(csecond . medicName . cwhite . " bietet dir ein Paket an, drücke '" . csecond . "X" . cwhite . "' zum Annehmen.")
 	
 	KeyWait, X, D, T10
 	
@@ -13557,7 +13628,7 @@ return
 
 ShotAllowedCar:
 {
-	SendClientMessage(prefix . "Du darfst nun das Fahrzeug beschießen, sofern der Verbrecher flüchtet.")
+	SendInfo("Du darfst nun das Fahrzeug beschießen, sofern der Verbrecher flüchtet.")
 	
 	SetTimer, ShotAllowedCar, off
 }
@@ -13565,7 +13636,7 @@ return
 
 ShotAllowedBike:
 {
-	SendClientMessage(prefix . "Du darfst nun das Zweirad beschießen, sofern der Verbrecher flüchtet.")
+	SendInfo("Du darfst nun das Zweirad beschießen, sofern der Verbrecher flüchtet.")
 
 	SetTimer, ShotAllowedBike, off
 }
@@ -13573,7 +13644,7 @@ return
 
 TazerAllowed:
 {
-	SendClientMessage(prefix . "Du darfst den Verbrecher nun Tazern oder Handschellen anlegen. " . csecond . "(Ausnahme: Kampfsituation)")
+	SendInfo("Du darfst den Verbrecher nun Tazern oder Handschellen anlegen. " . csecond . "(Ausnahme: Kampfsituation)")
 	
 	SetTimer, TazerAllowed, off
 }
@@ -13585,7 +13656,7 @@ UncuffTimer:
 		if (IsPlayerInAnyVehicle()) {
 			if (IsPlayerDriver()) {
 				if (getVehicleHealth() < 250) {
-					SendClientMessage(prefix . "Möchtest du alle Personen im Fahrzeug entcuffen? Drücke '" . csecond . "X" . cwhite . "' zum Bestätigen.")
+					SendInfo("Möchtest du alle Personen im Fahrzeug entcuffen? Drücke '" . csecond . "X" . cwhite . "' zum Bestätigen.")
 					
 					KeyWait, X, D, T5
 					
@@ -13627,7 +13698,7 @@ LottoTimer:
 					SendChat("/lotto " . lottoNumber)
 				}					
 			} else {
-				SendClientMessage(prefix . "Möchtest du dir ein Lottoticket kaufen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
+				SendInfo("Möchtest du dir ein Lottoticket kaufen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
 				
 				oldHour := A_Hour
 				
@@ -13717,7 +13788,7 @@ CountdownTimer:
 		
 		if (cdGoMessage == "Letzte Warnung!") {
 			Sleep, 3000
-			SendClientMessage(prefix . "Freigabe erhalten.")
+			SendInfo("Freigabe erhalten.")
 		}
 		
 		return
@@ -13842,7 +13913,7 @@ findInfo(name) {
 	playerID := getPlayerIdByName(player)
 	playerScore := getPlayerScoreById(playerID)
 	
-	SendClientMessage(prefix . "Die Suche nach " . player . " (ID: " . playerID . ") wurde gestartet.")
+	SendInfo("Die Suche nach " . player . " (ID: " . playerID . ") wurde gestartet.")
 	Sleep, 200
 	
 	SendChat("/mdc " . player)
@@ -13954,7 +14025,7 @@ saveTicket(name) {
 			str_ticketID := gestickets
 		}
 		
-		SendClientMessage(prefix . "Tickets bearbeitet: " . cSecond . formatNumber(gestickets) . cwhite . " | Heute: " . cSecond . daytickets . cwhite . " | Monat: " . cSecond . formatNumber(monthtickets))
+		SendInfo("Tickets bearbeitet: " . cSecond . formatNumber(gestickets) . cwhite . " | Heute: " . cSecond . daytickets . cwhite . " | Monat: " . cSecond . formatNumber(monthtickets))
 	}
 }
 return
@@ -13983,7 +14054,7 @@ stopFinding(key = 0) {
 		playerToShowTo := ""
 		
 		if (key) {
-			SendClientMessage(prefix . "Das automatische Suchen wurde beendet.")
+			SendInfo("Das automatische Suchen wurde beendet.")
 		}
 	}
 }
@@ -14137,7 +14208,7 @@ sendLine(line, local := false) {
 			sendLine(line_2, local)
 	} else {
 		if (local) {
-			SendClientMessage(prefix . line)
+			SendInfo(line)
 		} else {
 			SendChat(line)
 		}
@@ -14175,18 +14246,18 @@ giveWanteds(suspect, reason, amount) {
     try {
         data := JSON.Load(result)
     } catch {
-        SendClientMessage(prefix . "Fehler: Es ist ein Scriptinterner Fehler aufgetreten.")
+        SendError("Es ist ein Scriptinterner Fehler aufgetreten.")
         return false
     }
     
     if (data["error"] != "") {
-        SendClientMessage(prefix . "Fehler: " . data["error"])
+        SendError("" . data["error"])
     } else {
         if (!data["registered"]) {
-			SendClientMessage(prefix . "" . cSecond . "~~~ ~~~ ~~~ " . cWhite . "Sperre" . cSecond . " ~~~ ~~~ ~~~")
-			SendClientMessage(cSecond . suspect . colorWhite . " hat bereits Wanteds aus diesem Grund erhalten.")
-			SendClientMessage(prefix . "Ausgestellt von " . data["lastoffical"] . " um " . data["time"] . " Uhr.")
-			SendClientMessage(prefix . "Möchtest du die Wanteds vergeben? Du kannst mit '" . cSecond . "X" . cWhite . "' bestätigen.")			
+			SendInfo("" . cSecond . "~~~ ~~~ ~~~ " . cWhite . "Sperre" . cSecond . " ~~~ ~~~ ~~~")
+			SendInfo(cSecond . suspect . colorWhite . " hat bereits Wanteds aus diesem Grund erhalten.")
+			SendInfo("Ausgestellt von " . data["lastoffical"] . " um " . data["time"] . " Uhr.")
+			SendInfo("Möchtest du die Wanteds vergeben? Du kannst mit '" . cSecond . "X" . cWhite . "' bestätigen.")			
             
             KeyWait, X, D, T10
             
@@ -14211,7 +14282,7 @@ giveWanteds(suspect, reason, amount) {
 		wanteds := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=wanteds&value=" . numberFormat(amount))
 		IniWrite, %wanteds%, ini/Stats.ini, Vergaben, Wanteds
 		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(wanteds) . cwhite . " Wanteds vergeben.")
+		SendInfo("Du hast bereits " . csecond . formatNumber(wanteds) . cwhite . " Wanteds vergeben.")
 		return true
 	}
 	
@@ -14229,18 +14300,18 @@ givePoints(suspect, reason, amount, extra := "") {
     try {
         data := JSON.Load(result)
     } catch {
-        SendClientMessage(prefix . "Fehler: Es ist ein Scriptinterner Fehler aufgetreten.")
+        SendError("Es ist ein Scriptinterner Fehler aufgetreten.")
         return false
     }
     
     if (data["error"] != "") {
-        SendClientMessage(prefix . "Fehler: " . data["error"])
+        SendError("" . data["error"])
     } else {
 		 if (!data["registered"]) {
-			SendClientMessage(prefix . "" . cSecond . "~~~ ~~~ ~~~ " . cWhite . "Sperre" . cSecond . " ~~~ ~~~ ~~~")
-			SendClientMessage(cSecond . suspect . colorWhite . " hat bereits Punkte aus diesem Grund erhalten.")
-			SendClientMessage(prefix . "Ausgestellt von " . data["lastoffical"] . " um " . data["time"] . " Uhr.")
-			SendClientMessage(prefix . "Möchtest du die Punkte vergeben? Du kannst mit '" . cSecond . "X" . cWhite . "' bestätigen.")					
+			SendInfo("" . cSecond . "~~~ ~~~ ~~~ " . cWhite . "Sperre" . cSecond . " ~~~ ~~~ ~~~")
+			SendInfo(cSecond . suspect . colorWhite . " hat bereits Punkte aus diesem Grund erhalten.")
+			SendInfo("Ausgestellt von " . data["lastoffical"] . " um " . data["time"] . " Uhr.")
+			SendInfo("Möchtest du die Punkte vergeben? Du kannst mit '" . cSecond . "X" . cWhite . "' bestätigen.")					
 			
             KeyWait, X, D, T10
             
@@ -14262,7 +14333,7 @@ givePoints(suspect, reason, amount, extra := "") {
 		points := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=points&value=" . numberFormat(amount))
 		IniWrite, %points%, ini/Stats.ini, Vergaben, Points
 		
-		SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(points) . cwhite . " Punkte vergeben.")
+		SendInfo("Du hast bereits " . csecond . formatNumber(points) . cwhite . " Punkte vergeben.")
 		return true
 	}
 	return false
@@ -14286,7 +14357,7 @@ giveTicket(player, money, reason) {
 		currentMoney := 10000
 		currentTicketMoney -= 10000
 		
-		SendClientMessage(prefix . "Für das nächste Ticket, Verwende: " . cSecond . "/nt")
+		SendInfo("Für das nächste Ticket, Verwende: " . cSecond . "/nt")
 	} else {
 		currentMoney := currentTicketMoney
 		currentTicketMoney := 0
@@ -14315,14 +14386,14 @@ payPartnerMoney(money, stat) {
 	
 	if (stat == "arrest_money") {
 		IniWrite, %statMoney%, ini/Stats.ini, Verhaftungen, Money
-		SendClientMessage(prefix . "Du hast bereits $" . csecond . formatNumber(statMoney) . cwhite . " durch Verhaftungen verdient.")
+		SendInfo("Du hast bereits $" . csecond . formatNumber(statMoney) . cwhite . " durch Verhaftungen verdient.")
 	} else if (stat == "ticket_money") {
 		IniWrite, %statMoney%, ini/Stats.ini, Tickets, Money
-		SendClientMessage(prefix . "Du hast bereits $" . csecond . formatNumber(statMoney) . cwhite . " durch Tickets verdient.")
+		SendInfo("Du hast bereits $" . csecond . formatNumber(statMoney) . cwhite . " durch Tickets verdient.")
 	} 
 	/*else if (stat == "plants_money") {
 		IniWrite, %statMoney%, ini/Stats.ini, Marihuana, Money
-		SendClientMessage(prefix . "Du hast bereits $" . csecond . formatNumber(statMoney) . cwhite . " durch Marihuana-Pflanzen verdient.")
+		SendInfo("Du hast bereits $" . csecond . formatNumber(statMoney) . cwhite . " durch Marihuana-Pflanzen verdient.")
 	}	
 	*/
 	
@@ -14337,7 +14408,7 @@ payPartnerMoney(money, stat) {
 			if (getDistanceToPoint(getCoordinates()[1], getCoordinates()[2], getCoordinates()[3], pedCoord[1], pedCoord[2], pedCoord[3]) <= 5.0) {
 				SendChat("/pay " . value . " " . partnerStake)
 			} else {
-				SendClientMessage(prefix . cSecond . getFullName(value) . cWhite . " ist nicht in der Nähe, du musst ihm $" . cSecond . formatNumber(partnerStake) . cWhite . " geben.")
+				SendInfo(cSecond . getFullName(value) . cWhite . " ist nicht in der Nähe, du musst ihm $" . cSecond . formatNumber(partnerStake) . cWhite . " geben.")
 			}
 		} else {
 			indexRemove := index
@@ -14371,7 +14442,7 @@ cookFish() {
 				Sleep, 650
 			}	
 		} else {
-			SendClientMessage(prefix . "Du kannst hier nicht kochen.")
+			SendInfo("Du kannst hier nicht kochen.")
 		}
 	}
 	
@@ -14403,8 +14474,8 @@ sellFish() {
 	Fishmoney:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=fish_money&value=" . numberFormat(sellFishMoney))
 	IniWrite, %Fishmoney%, ini/Stats.ini, Allgemein, Fishmoney
 	
-	SendClientMessage(prefix . "Du hast für deine Fische $" . csecond . formatNumber(sellFishMoney) . cwhite . " erhalten.")
-	SendClientMessage(prefix . "Gesamt hast du bereits $" . csecond . formatNumber(fishmoney) . cwhite . " durch Fische verdient.")
+	SendInfo("Du hast für deine Fische $" . csecond . formatNumber(sellFishMoney) . cwhite . " erhalten.")
+	SendInfo("Gesamt hast du bereits $" . csecond . formatNumber(fishmoney) . cwhite . " durch Fische verdient.")
 }
 
 startFish() {
@@ -14446,7 +14517,7 @@ startFish() {
 						fishValue := fishing_2
 					}
 					
-					SendClientMessage(prefix . csecond . fishNumber . cwhite . ": " . fishing_1 . " LBS: " . csecond . fishing_2 . cwhite . " | Preis: $" . csecond . formatNumber(currentFishMoney) . cwhite . " | HP: " . csecond . currentFishHealth)
+					SendInfo(csecond . fishNumber . cwhite . ": " . fishing_1 . " LBS: " . csecond . fishing_2 . cwhite . " | Preis: $" . csecond . formatNumber(currentFishMoney) . cwhite . " | HP: " . csecond . currentFishHealth)
 					
 					aFishMoney += numberFormat(currentFishMoney)
 					aFishHP += fishing_2
@@ -14460,7 +14531,7 @@ startFish() {
 					}
 				} else if (RegExMatch(fishing, "Du kannst nur 5 Fische bei dir tragen.")) {
 					if (cheapestFish == -1) {
-						SendClientMessage(prefix . "Du musst deine Fische erst verkaufen!")
+						SendInfo("Du musst deine Fische erst verkaufen!")
 						break
 					}
 					
@@ -14474,15 +14545,15 @@ startFish() {
 					Sleep, 200
 					
 					if (fishMode)  {
-						SendClientMessage(prefix . cscond . cheapestFishName . cWhite . ": " . cheapestFish . cwhite . " im Wert von $" . csecond . formatNumber(cheapestFishValue) . cwhite . " weggeworfen")
+						SendInfo(cscond . cheapestFishName . cWhite . ": " . cheapestFish . cwhite . " im Wert von $" . csecond . formatNumber(cheapestFishValue) . cwhite . " weggeworfen")
 					} else {
-						SendClientMessage(prefix . cscond . cheapestFishName . cWhite . ": " . cheapestFish . cwhite . " mit " . csecond . formatNumber(cheapestFishValue) . cwhite . " LBS weggeworfen")
+						SendInfo(cscond . cheapestFishName . cWhite . ": " . cheapestFish . cwhite . " mit " . csecond . formatNumber(cheapestFishValue) . cwhite . " LBS weggeworfen")
 					}
 					
 					thrownAway := true
 				} else if (RegExMatch(fishing, "Du bist an keinem Angelplatz \(Big Wheel Rods\) oder an einem Fischerboot!")) {
 					if (attempt == 3) {
-						SendClientMessage(prefix . "Du kannst hier nicht angeln!")
+						SendInfo("Du kannst hier nicht angeln!")
 						break
 					}
 					
@@ -14498,19 +14569,19 @@ startFish() {
 						SendChat("/me holt seine Angelrute ein.")
 						break
 					} else {
-						SendClientMessage(prefix . "Du kannst noch nicht angeln.")
+						SendInfo("Du kannst noch nicht angeln.")
 						break
 					}
 				}
 			}
 		} else {
-			SendClientMessage(prefix . "Du kannst noch nicht fischen! (Gesperrt: " . csecond . formatTime(fishcooldown) . cwhite . ")")
+			SendInfo("Du kannst noch nicht fischen! (Gesperrt: " . csecond . formatTime(fishcooldown) . cwhite . ")")
 		}
 	} else {
 		if (fishcooldown) {
-			SendClientMessage(prefix . "Du kannst noch nicht fischen! (Gesperrt: " . csecond . formatTime(fishcooldown) . cwhite . ")")
+			SendInfo("Du kannst noch nicht fischen! (Gesperrt: " . csecond . formatTime(fishcooldown) . cwhite . ")")
 		} else {
-			SendClientMessage(prefix . "Du kannst fischen!")
+			SendInfo("Du kannst fischen!")
 		}
 	}
 	
@@ -14604,17 +14675,17 @@ check(name) {
 				if (drugsFound) {
 					drugs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=drugs&value=" . numberFormat(drugsFound))
 					IniWrite, %drugs%, ini/Stats.ini, Kontrollen, Drugs
-					SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(drugs) . "g " . cwhite . "Drogen weggenommen.")
+					SendInfo("Du hast bereits " . csecond . formatNumber(drugs) . "g " . cwhite . "Drogen weggenommen.")
 				}
 			} else {
-				SendClientMessage(prefix . "Der Spieler hat unter 10g, biete ihn mit " . csecond . "/tdd" . cwhite . " ein Ticket an.")
+				SendInfo("Der Spieler hat unter 10g, biete ihn mit " . csecond . "/tdd" . cwhite . " ein Ticket an.")
 			}
 			
 			if (seedsFound) {
 				IniRead, seeds, ini/Stats.ini, Kontrollen, seeds, 0
 				seeds += seedsFound		
 				IniWrite, %seeds%, ini/Stats.ini, Kontrollen, Seeds
-				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(seeds) . cwhite . " Samen weggenommen.")
+				SendInfo("Du hast bereits " . csecond . formatNumber(seeds) . cwhite . " Samen weggenommen.")
 			}
 		}
 		
@@ -14628,19 +14699,19 @@ check(name) {
 			if (matsFound) {
 				mats:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=mats&value=" . numberFormat(matsFound))
 				IniWrite, %mats%, ini/Stats.ini, Kontrollen, Mats
-				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(mats) . cwhite . " Materialien weggenommen.")
+				SendInfo("Du hast bereits " . csecond . formatNumber(mats) . cwhite . " Materialien weggenommen.")
 			}	
 			
 			if (packetsFound) {
 				matpackets := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=matpackets&value=" . numberFormat(packetsFound))
 				IniWrite, %matpackets%, ini/Stats.ini, Kontrollen, Matpackets
-				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(matpackets) . cwhite . " Materialpakete weggenommen.")
+				SendInfo("Du hast bereits " . csecond . formatNumber(matpackets) . cwhite . " Materialpakete weggenommen.")
 			} 
 			
 			if (bombsFound) {
 				matbombs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=matBombs&value=1")
 				IniWrite, %matbombs%, ini/Stats.ini, Kontrollen, Matbombs
-				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(matbombs) . cwhite . " Haftbomben weggenommen.")
+				SendInfo("Du hast bereits " . csecond . formatNumber(matbombs) . cwhite . " Haftbomben weggenommen.")
 			}
 		}
 	}
@@ -14676,15 +14747,15 @@ readCarInfos() { ; Anpassen
 		city := getPlayerCity()
 		
 		if (id == -1) {
-			SendClientMessage(csecond . "Besitzer: " . cwhite . owner1)
-			SendClientMessage(csecond . "Letzter Fahrer: " . cwhite . driver1)
-			SendClientMessage(csecond . "Stadt: " . cwhite . city . csecond . " Bezirk: " . cwhite . zone)
+			SendInfo(csecond . "Besitzer: " . cwhite . owner1)
+			SendInfo(csecond . "Letzter Fahrer: " . cwhite . driver1)
+			SendInfo(csecond . "Stadt: " . cwhite . city . csecond . " Bezirk: " . cwhite . zone)
 		} else {
 			lvl := getPlayerScoreById(id)
 			
-			SendClientMessage(csecond . "Besitzer: " . cwhite . owner1 . csecond . " ID: " . cwhite . id . csecond . " Level: " . cwhite . lvl)
-			SendClientMessage(csecond . "Letzter Fahrer: " . cwhite . driver1)
-			SendClientMessage(csecond . "Stadt: " . cwhite . city . csecond . " Bezirk: " . cwhite . zone)
+			SendInfo(csecond . "Besitzer: " . cwhite . owner1 . csecond . " ID: " . cwhite . id . csecond . " Level: " . cwhite . lvl)
+			SendInfo(csecond . "Letzter Fahrer: " . cwhite . driver1)
+			SendInfo(csecond . "Stadt: " . cwhite . city . csecond . " Bezirk: " . cwhite . zone)
 		}
 		
 		SendChat("/time")
@@ -14713,7 +14784,7 @@ useMegaphone(type) {
 	global
 	
 	if (admission && IsPlayerInRangeOfPoint(1535.7749, -1677.9380, 5.8906, 500.0)) {
-		SendClientMessage(prefix . "Du kannst während einer Einweisung das Megafon nicht verwenden.")
+		SendInfo("Du kannst während einer Einweisung das Megafon nicht verwenden.")
 		return
 	}
 	
@@ -14762,7 +14833,7 @@ useMegaphone(type) {
 		playerToFindName := getFullName(playerToFind)
 	
 		if (playerToFindName == "" || playerToFind == "") {
-			SendClientMessage(prefix . "Fehler: Du suchst aktuell niemanden.")
+			SendError("Du suchst aktuell niemanden.")
 		} else {
 			IniRead, department, ini/Settings.ini, settings, department, %A_Space%
 			SendChat("/m << " . playerToFindName . ", bleiben Sie SOFORT stehen! >>")
@@ -14897,24 +14968,24 @@ gk(id, store := "", showGK := false) {
     result := URLDownloadToVar(baseURL . "api/newgk.php?gk=" . id)
     
     if (result == "ERROR_CONNECTION") {
-        SendClientMessage(prefix . "Fehler bei der Verbindung zum Server.")
+        SendInfo("Fehler bei der Verbindung zum Server.")
     } else if (result == "ERROR_BAD_LINK") {
-        SendClientMessage(prefix . "Fehlerhafte Parameterübergabe.")
+        SendInfo("Fehlerhafte Parameterübergabe.")
     } else if (result == "ERROR_ACCESS_DENIED") {
-        SendClientMessage(prefix . "Zugriff verweigert, das Passwort ist falsch.")
+        SendInfo("Zugriff verweigert, das Passwort ist falsch.")
     } else if (result == "ERROR_WRONG_FORMAT") {
-        SendClientMessage(prefix . "Fehlerhaftes Format.")
+        SendInfo("Fehlerhaftes Format.")
     } else if (result == "ERROR_NOT_FOUND") {
-        SendClientMessage(prefix . "Der Komplex wurde nicht in der Datenbank gefunden.")
+        SendInfo("Der Komplex wurde nicht in der Datenbank gefunden.")
     } else {
         if (store == "") {
-            SendClientMessage(prefix . "Gebäudekomplex " . cSecond . id . cwhite . ":")
+            SendInfo("Gebäudekomplex " . cSecond . id . cwhite . ":")
         }
         
         try {
             data := JSON.Load(result)
         } catch {
-            SendClientMessage(prefix . "Es ist ein unbekannter Fehler aufgetreten.")
+            SendInfo("Es ist ein unbekannter Fehler aufgetreten.")
             return
         }
         
@@ -14961,7 +15032,7 @@ gk(id, store := "", showGK := false) {
                     continue
                 }
                 
-                SendClientMessage(prefix . "GK " . id . ": (ID: " . entry["type"] . "." . entry["id"] . ") " . color . name . location)
+                SendInfo("GK " . id . ": (ID: " . entry["type"] . "." . entry["id"] . ") " . color . name . location)
                 
                 if (showGK) {
                     Sleep, 50
@@ -14969,7 +15040,7 @@ gk(id, store := "", showGK := false) {
                     showGK(entry["type"] . "." . entry["id"], true)
                 }
             } else {
-                SendClientMessage(prefix . "[" . entry["type"] . "." . entry["id"] . "] " . color . name . location)
+                SendInfo("[" . entry["type"] . "." . entry["id"] . "] " . color . name . location)
             }
         }
     }
@@ -14982,25 +15053,25 @@ showGK(gk, ignoreExisting := false) {
         result := UrlDownloadToVar(baseURL . "api/newgk.php?id=" . gk)
         
         if (result == "ERROR_CONNECTION") {
-            SendClientMessage(prefix . "Fehler bei der Verbindung zum Server.")
+            SendInfo("Fehler bei der Verbindung zum Server.")
         } else if (result == "ERROR_BAD_LINK") {
-            SendClientMessage(prefix . "Fehlerhafte Parameterübergabe.")
+            SendInfo("Fehlerhafte Parameterübergabe.")
         } else if (result == "ERROR_ACCESS_DENIED") {
-            SendClientMessage(prefix . "Zugriff verweigert, das Passwort ist falsch.")
+            SendInfo("Zugriff verweigert, das Passwort ist falsch.")
         } else if (result == "ERROR_WRONG_FORMAT") {
-            SendClientMessage(prefix . "Fehlerhaftes Format.")
+            SendInfo("Fehlerhaftes Format.")
         } else if (result == "ERROR_NOT_FOUND") {
-            SendClientMessage(prefix . "Der Komplex wurde nicht in der Datenbank gefunden.")
+            SendInfo("Der Komplex wurde nicht in der Datenbank gefunden.")
         } else {
             try {
                 data := JSON.Load(result)
             } catch {
-                SendClientMessage(prefix . "Es ist ein unbekannter Fehler aufgetreten.")
+                SendInfo("Es ist ein unbekannter Fehler aufgetreten.")
                 return
             }
             
             if (IsMarkerCreated() && !ignoreExisting) {
-                SendClientMessage(prefix . "Du kannst mit '" . cSecond . "X" . cwhite . "' bestätigen, wenn du den CP neu setzen willst.")
+                SendInfo("Du kannst mit '" . cSecond . "X" . cwhite . "' bestätigen, wenn du den CP neu setzen willst.")
                 
                 KeyWait, X, D, T10
                 
@@ -15015,13 +15086,13 @@ showGK(gk, ignoreExisting := false) {
                 zPos := 20
             
             if (setCheckpoint(data["x"], data["y"], zPos, 5)) {
-                SendClientMessage(prefix . "Der Checkpoint zum GK mit der ID " . csecond . gk . cwhite . " wurde erfolgreich gesetzt!")
+                SendInfo("Der Checkpoint zum GK mit der ID " . csecond . gk . cwhite . " wurde erfolgreich gesetzt!")
             } else {
-                SendClientMessage(prefix . "Beim Setzen des Checkpoints ist ein Fehler aufgetreten!")
+                SendInfo("Beim Setzen des Checkpoints ist ein Fehler aufgetreten!")
             }
         }
     } else {
-        SendClientMessage(prefix . "Die ID wurde falsch formatiert. Beispiel: " . csecond . "public.12")
+        SendInfo("Die ID wurde falsch formatiert. Beispiel: " . csecond . "public.12")
     }
 }
 
@@ -15059,7 +15130,7 @@ checkFish() {
 		fishes -= 1
 	}	
 	
-	SendClientMessage(prefix . "Gesamt HP: " . cSecond . formatNumber(allFishHP) . cwhite . " HP | Gesamt Wert: $" . cSecond . formatNumber(allFishMoney))
+	SendInfo("Gesamt HP: " . cSecond . formatNumber(allFishHP) . cwhite . " HP | Gesamt Wert: $" . cSecond . formatNumber(allFishMoney))
 	
 	if (overlay && startOverlay) {
 		imageDestroy(ov_Fish)
@@ -15102,7 +15173,7 @@ checkCook() {
 		fishes -= 1
 	}	
 	
-	SendClientMessage(prefix . "Gesamt HP: " . cSecond . formatNumber(allHP) . cwhite . " HP.")
+	SendInfo("Gesamt HP: " . cSecond . formatNumber(allHP) . cwhite . " HP.")
 	
 	if (overlay && startOverlay) {
 		imageDestroy(ov_Fish)
@@ -15130,7 +15201,7 @@ addLocalToStats() {
 				Restaurants := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=restaurants&value=1")
 				IniWrite, %Restaurants%, ini/Stats.ini, Übernahmen, Restaurants
 			
-				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(Restaurants) . cwhite . " Restaurants übernommen.")
+				SendInfo("Du hast bereits " . csecond . formatNumber(Restaurants) . cwhite . " Restaurants übernommen.")
 				
 				oldLocalTime := 180
 				oldLocal := output1_1
@@ -15154,7 +15225,7 @@ addControlsToStats(frisk_name) {
 				controls := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=controls&value=1")
 				IniWrite, %controls%, ini/Stats.ini, Kontrollen, controls
 		
-				SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(controls) . cwhite . " Kontrollen durchgeführt.")
+				SendInfo("Du hast bereits " . csecond . formatNumber(controls) . cwhite . " Kontrollen durchgeführt.")
 
 				oldFriskTime := 180 
 				oldFrisk := frisk_name
@@ -15174,13 +15245,13 @@ updateKD() {
 	if (Kills != getKill()) {
 		Kills := getKill()
 		iniWrite, %Kills%, ini/Stats.ini, Stats, Kills
-		SendClientMessage(Prefix . "Deine Kills wurden auf " . cSecond . formatNumber(Kills) . cwhite . " aktuallisiert.")
+		SendInfo("Deine Kills wurden auf " . cSecond . formatNumber(Kills) . cwhite . " aktuallisiert.")
 	}
 	
 	if (Deaths != getDeath()) {
 		Deaths := getDeath() 
 		iniWrite, %Deaths%, ini/Stats.ini, Stats, Deaths
-		SendCLientMessage(prefix . "Deine Toden wurden auf " . cSecond . formatNumber(Deaths) . cwhite . " aktuallisiert.")
+		SendInfo("Deine Toden wurden auf " . cSecond . formatNumber(Deaths) . cwhite . " aktuallisiert.")
 	}
 }
 
@@ -15217,7 +15288,7 @@ getDrugs(setted = 0) {
 		IniWrite, % drugs_2, ini/Settings.ini, Items, drugs
 		
 		if (setted) {
-			SendClientMessage(prefix . "Du hast nun " . cSecond . drugs_2 . cwhite . "g Drogen bei dir.")
+			SendInfo("Du hast nun " . cSecond . drugs_2 . cwhite . "g Drogen bei dir.")
 		}
 		
 		return deaths_2
@@ -15235,7 +15306,7 @@ getFirstAid(setted = 0) {
 		IniWrite, 1, ini/Settings.ini, Items, firstaid
 		
 		if (setted) {
-			SendClientMessage(prefix . "Du hast nun ein Erste-Hilfe-Paket bei dir.")
+			SendInfo("Du hast nun ein Erste-Hilfe-Paket bei dir.")
 		}
 		
 		if (overlay && startOverlay) {
@@ -15248,7 +15319,7 @@ getFirstAid(setted = 0) {
 		IniWrite, 0, ini/Settings.ini, Items, firstaid
 	
 		if (setted) {
-			SendClientMessage(prefix . "Du hast nun kein Erste-Hilfe-Paket mehr bei dir.")
+			SendInfo("Du hast nun kein Erste-Hilfe-Paket mehr bei dir.")
 		}	
 		
 		if (overlay && startOverlay) {
@@ -15268,7 +15339,7 @@ getCanister(setted = 0) {
 		IniWrite, 1, ini/Settings.ini, Items, canister
 		
 		if (setted) {
-			SendClientMessage(prefix . "Du hast nun einen Kanister bei dir..")
+			SendInfo("Du hast nun einen Kanister bei dir..")
 		}
 		
 		if (isPlayerInAnyVehicle()) { 
@@ -15283,7 +15354,7 @@ getCanister(setted = 0) {
 		IniWrite, 0, ini/Settings.ini, Items, canister
 	
 		if (setted) {
-			SendClientMessage(prefix . "Du hast nun keinen Kanister mehr bei dir.")
+			SendInfo("Du hast nun keinen Kanister mehr bei dir.")
 		}	
 		
 		if (isPlayerInAnyVehicle()) {
@@ -15306,7 +15377,7 @@ getCampfire(setted = 0) {
 			iniWrite, % out_2, ini/Settings.ini, Items, campfire
 		
 			if (setted) {
-				SendClientMessage(prefix . "Du hast nun " . out_2 . " Lagefeuer bei dir.")
+				SendInfo("Du hast nun " . out_2 . " Lagefeuer bei dir.")
 			}
 			
 			return 1
@@ -15314,7 +15385,7 @@ getCampfire(setted = 0) {
 			iniWrite, 0, ini/Settings.ini, Items, campfire
 		
 			if (setted) {
-				SendClientMessage(prefix . "Du hast nun keine Lagefeuer bei dir.")
+				SendInfo("Du hast nun keine Lagefeuer bei dir.")
 			}
 			
 			return 0
@@ -15323,7 +15394,7 @@ getCampfire(setted = 0) {
 		iniWrite, 0, ini/Settings.ini, Items, campfire
 	
 		if (setted) {
-			SendClientMessage(prefix . "Du hast nun keine Lagefeuer bei dir.")
+			SendInfo("Du hast nun keine Lagefeuer bei dir.")
 		}
 		
 		return 0
@@ -15347,9 +15418,9 @@ healPlayer() {
 	global healcooldown
 	
 	if (getPlayerHealth() >= 100 && getPlayerArmor() >= 100) {
-		SendClientMessage(prefix . "Fehler: Du kannst dich nicht mit voller HP/AM heilen.")
+		SendError("Du kannst dich nicht mit voller HP/AM heilen.")
 	} else if (healcooldown) {
-		SendClientMessage(prefix . "Du kannst dich erst in " . cSecond . formatTime(healcooldown) . cWhite . " wieder heilen.")
+		SendInfo("Du kannst dich erst in " . cSecond . formatTime(healcooldown) . cWhite . " wieder heilen.")
 	} else {
 		SendChat("/heal")
 		Sleep, 200
@@ -15362,11 +15433,11 @@ usePaket() {
 	global pakcooldown
 	
 	if (getPlayerArmor() > 30) {
-		SendClientMessage(prefix . "Fehler: Du kannst mit mehr als 30 AM kein Erste-Hilfe-Paket verwenden.")
+		SendError("Du kannst mit mehr als 30 AM kein Erste-Hilfe-Paket verwenden.")
 	} else if (75 < getPlayerHealth()) {
-		SendClientMessage(prefix . "Fehler: Du kannst erst unter 75 HP ein Erste-Hilfe-Paket nehmen, du hast " . getPlayerHealth() . " HP.")
+		SendError("Du kannst erst unter 75 HP ein Erste-Hilfe-Paket nehmen, du hast " . getPlayerHealth() . " HP.")
 	} else if (pakcooldown) {
-		SendClientMessage(prefix . "Du kannst erst in " . cSecond . formatTime(pakcooldown) . cWhite . " wieder ein Erste-Hilfe-Paket nutzen.")
+		SendInfo("Du kannst erst in " . cSecond . formatTime(pakcooldown) . cWhite . " wieder ein Erste-Hilfe-Paket nutzen.")
 	} else {
 		SendChat("/erstehilfe")
 	}
@@ -15376,11 +15447,11 @@ useDrugs() {
 	global drugcooldown
 	
 	if (getPlayerArmor()) {
-		SendClientMessage(prefix . "Fehler: Du kannst mit Armor keine Drogen nehmen.")
+		SendError("Du kannst mit Armor keine Drogen nehmen.")
 	} else if (94 < getPlayerHealth()) {
-		SendClientMessage(prefix . "Fehler: Du kannst erst unter 94 HP Drogen nehmen, du hast " . getPlayerHealth() . " HP.")
+		SendError("Du kannst erst unter 94 HP Drogen nehmen, du hast " . getPlayerHealth() . " HP.")
 	} else if (drugcooldown) {
-		SendClientMessage(prefix . "Du kannst erst in " . cSecond . formatTime(drugcooldown) . cwhite . " Sekunden wieder Drogen nutzen.")
+		SendInfo("Du kannst erst in " . cSecond . formatTime(drugcooldown) . cwhite . " Sekunden wieder Drogen nutzen.")
 	} else {
 		SendChat("/usedrugs")	
 	}
@@ -15452,7 +15523,7 @@ getTaxes() {
 		taxes := (100 - chat_1) / 100
 		
 		IniWrite, %taxes%, ini/Settings.ini, settings, taxes
-		SendClientMessage(prefix . "Der Steuersatz (Steuerklasse " . cSecond . "4" . cwhite . ") wurde auf " . cSecond . chat_1 . cwhite . " Prozent gesetzt.")
+		SendInfo("Der Steuersatz (Steuerklasse " . cSecond . "4" . cwhite . ") wurde auf " . cSecond . chat_1 . cwhite . " Prozent gesetzt.")
 		return 1
 	}
 	
@@ -15799,11 +15870,11 @@ sendToHotkey(text, check = 0) {
 			}
 
 			if (check == 1) {
-				SendClientMessage(Prefix . Value)
+				SendInfo(Value)
 			} else {
 				if (InStr(Value, "[LOCAL]")) {
 					StringReplace, Value, Value, [LOCAL],, All
-					SendClientMessage(Prefix . Value)
+					SendInfo(Value)
 				} else {
 					if (InStr(Value,"[ENTER]")) {
 						StringReplace, Value, Value, [ENTER], , All
@@ -15822,11 +15893,11 @@ sendToHotkey(text, check = 0) {
 		}
 
 		if (check == 1) {
-			SendClientMessage(Prefix . Value)
+			SendInfo(Value)
 		} else {
 			if (InStr(String,"[LOCAL]")) {
 				StringReplace, String, String, [LOCAL],, All
-				SendClientMessage(Prefix . String)
+				SendInfo(String)
 			} else {
 				if (InStr(String,"[ENTER]")) {
 					StringReplace, String, String, [ENTER], , All
@@ -16141,11 +16212,11 @@ checkTrunk() {
 			Sleep, 200
 			
 			if (InStr(readChatLine(0) . readChatLine(1), "Fehler:")) {
-				SendClientMessage(prefix . "Fehler: Versuche es erneut.")
+				SendError("Versuche es erneut.")
 				return
 			}
 		} else {
-			SendClientMessage(prefix . "Fehler: Versuche es erneut.")
+			SendError("Versuche es erneut.")
 			return
 		}
 	}
@@ -16154,57 +16225,57 @@ checkTrunk() {
 		if (RegExMatch(getDialogText(), "Drogen: (\d+)\nMaterialien: (\d+)\nDeagle: (\d+)\nShotgun: (\d+)\nMP5: (\d+)\nAK47: (\d+)\nM4: (\d+)\nRifle: (\d+)\nSniper: (\d+)", dialog_)) {
 			foundSomething := 0
 			
-			SendClientMessage(prefix . "Gegenstände aus dem Fahrzeug " . csecond . result_1 . cWhite . "(" . csecond . result_2 . cwhite . "):")
+			SendInfo("Gegenstände aus dem Fahrzeug " . csecond . result_1 . cWhite . "(" . csecond . result_2 . cwhite . "):")
 			
 			if (dialog_1 > 0) {
-				SendClientMessage(prefix . "Du hast {CC0000}" . dialog_1 . "g Drogen " . cWhite . "gefunden.")
+				SendInfo("Du hast {CC0000}" . dialog_1 . "g Drogen " . cWhite . "gefunden.")
 				drugsfound := 1
 				foundSomething := 1
 			}
 			
 			if (dialog_2 > 0) {
-				SendClientMessage(prefix . "Du hast {CC0000}" . dialog_2 . " Materialien " . cWhite . "gefunden.")
+				SendInfo("Du hast {CC0000}" . dialog_2 . " Materialien " . cWhite . "gefunden.")
 				matsfound := 1
 				foundSomething := 1
 			}
 			
 			if (dialog_3 > 0) {
-				SendClientMessage(prefix . "Du hast " . dialog_3 . " Schuss Deagle " . cWhite . "gefunden.")
+				SendInfo("Du hast " . dialog_3 . " Schuss Deagle " . cWhite . "gefunden.")
 				foundSomething := 1
 			}
 			
 			if (dialog_4 > 0) {
-				SendClientMessage(prefix . "Du hast " . dialog_4 . " Schuss Shotgun " . cWhite . "gefunden.")
+				SendInfo("Du hast " . dialog_4 . " Schuss Shotgun " . cWhite . "gefunden.")
 				foundSomething := 1
 			}
 			
 			if (dialog_5 > 0) {
-				SendClientMessage(prefix . "Du hast " . dialog_5 . " Schuss MP5 " . cWhite . "gefunden.")
+				SendInfo("Du hast " . dialog_5 . " Schuss MP5 " . cWhite . "gefunden.")
 				foundSomething := 1
 			}
 			
 			if (dialog_6 > 0) {
-				SendClientMessage(prefix . "Du hast " . dialog_6 . " Schuss AK-47 " . cWhite . "gefunden.")
+				SendInfo("Du hast " . dialog_6 . " Schuss AK-47 " . cWhite . "gefunden.")
 				foundSomething := 1
 			}
 			
 			if (dialog_7 > 0) {
-				SendClientMessage(prefix . "Du hast " . dialog_7 . " Schuss M4 " . cWhite . "gefunden.")
+				SendInfo("Du hast " . dialog_7 . " Schuss M4 " . cWhite . "gefunden.")
 				foundSomething := 1
 			}
 			
 			if (dialog_8 > 0) {
-				SendClientMessage(prefix . "Du hast " . dialog_8 . " Schuss Rifle " . cWhite . "gefunden.")
+				SendInfo("Du hast " . dialog_8 . " Schuss Rifle " . cWhite . "gefunden.")
 				foundSomething := 1
 			}
 			
 			if (dialog_9 > 0) {
-				SendClientMessage(prefix . "Du hast " . dialog_9 . " Schuss Sniper " . cWhite . "gefunden.")
+				SendInfo("Du hast " . dialog_9 . " Schuss Sniper " . cWhite . "gefunden.")
 				foundSomething := 1
 			}
 			
 			if (!foundSomething) {
-				SendClientMessage(prefix . "Du hast nichts gefunden.")
+				SendInfo("Du hast nichts gefunden.")
 			} else if (dialog_1 > 0 || dialog_2 > 0) {
 				SendChat("/trunk check")
 			}
@@ -16212,12 +16283,12 @@ checkTrunk() {
 			trunkControls := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trunkControls&value=1")
 			IniWrite, %trunkcontrols%, ini/Stats.ini, Kontrollen, Trunkcontrols
 			
-			SendClientMessage(prefix . "Du hast bereits " . csecond . formatNumber(trunkcontrols) . cWhite . " Kofferäume durchsucht.")
+			SendInfo("Du hast bereits " . csecond . formatNumber(trunkcontrols) . cWhite . " Kofferäume durchsucht.")
 			
 			Sleep, 200
 			
 			if (matsfound && drugsfound) {
-				SendClientMessage(prefix . "Es wurden Drogen & Materialien gefunden. Du kansnt Sie mit '" . cSecond . "X" . cwhite . "' konfiszieren.")
+				SendInfo("Es wurden Drogen & Materialien gefunden. Du kansnt Sie mit '" . cSecond . "X" . cwhite . "' konfiszieren.")
 				
 				KeyWait, X, D, T10
 				if (!ErrorLevel && !isInChat()) {
@@ -16228,14 +16299,14 @@ checkTrunk() {
 					SendChat("/trunk clear drugs")
 				}
 			} else if (matsfound && !drugsfound) {
-				SendClientMessage(prefix . "Es wurden Materialien gefunden. Du kansnt Sie mit '" . cSecond . "X" . cwhite . "' konfiszieren.")
+				SendInfo("Es wurden Materialien gefunden. Du kansnt Sie mit '" . cSecond . "X" . cwhite . "' konfiszieren.")
 			
 				KeyWait, X, D, T10
 				if (!ErrorLevel && !isInChat()) {
 					SendChat("/trunk clear mats")
 				}
 			} else if (!matsfound && drugsfound) {
-				SendClientMessage(prefix . "Es wurden Drogen gefunden. Du kansnt Sie mit '" . cSecond . "X" . cwhite . "' konfiszieren.")
+				SendInfo("Es wurden Drogen gefunden. Du kansnt Sie mit '" . cSecond . "X" . cwhite . "' konfiszieren.")
 			
 				KeyWait, X, D, T10
 				if (!ErrorLevel && !isInChat()) {
@@ -16247,7 +16318,7 @@ checkTrunk() {
 		}				
 	}
 		
-	SendClientMessage(prefix . "Der Kofferraum konnte nicht durchsucht werden.")
+	SendInfo("Der Kofferraum konnte nicht durchsucht werden.")
 	return 0
 }
 
@@ -16317,17 +16388,17 @@ shareKD(chat := "f") {
 
 ov_Spotify(create := 1) {
 	global
-
+		
 	if (create) {		
 		ov_spotify := textCreate("Arial", 9, true, false, spotifyXPos, spotifyYPos, 0xFFFFFFFF, "", true, true)
 	} else {
-		TextDestroy(ov_spotify)
+		textDestroy(ov_spotify)
 	}
 }
 
 ov_Ping(create := 1) { 
 	global
-	
+			
 	if (create) {
 		ov_Ping := textCreate("Arial", 7, true, false, pingXPos, pingYPos, 0xFFFFFFFF, "", true, true)
 	} else {
@@ -16347,7 +16418,7 @@ ov_Alert(create := 1) {
 
 ov_Cooldown(create := 1) {
 	global
-	
+		
 	if (create) {
 		if (cooldownBoxOv) {
 			ov_CooldownBox := boxCreate(cooldownBoxX, cooldownBoxY, 150, 125, 0xAA000000, true)
@@ -16364,7 +16435,7 @@ ov_Cooldown(create := 1) {
 
 ov_Info(create := 1) {
 	global	
-	
+
 	if (create) {
 		if (infoOv) {
 			IniRead, mobilePhone, ini/Settings.ini, Items, mobilePhone, 0
@@ -16388,6 +16459,11 @@ ov_Info(create := 1) {
 					imageDestroy(ov_Canister)
 				}
 			}
+			
+			if (campfire) {
+				ov_Campfire := imageCreate("images\Overlay\campfire.png", infoCampfireX, infoCampfireY, 0, true, true) 
+				ov_CampfireText := textCreate("Arial", 9, true, false, infoCampfireX + 9, infoCampfireY + 10, 0xFFFFFFFF, campfire, true, true)
+			}			
 			
 			hasCookedFish := 0
 			
@@ -16424,7 +16500,9 @@ ov_Info(create := 1) {
 		imageDestroy(ov_Phone)
 		imageDestroy(ov_Firstaid)
 		imageDestroy(ov_Canister)
+		imageDestroy(ov_Campfire)
 		
+		textDestroy(ov_CampfireText)
 		textDestroy(ov_FishText)
 		textDestroy(ov_UncookedFishText)		
 	}
@@ -16477,6 +16555,11 @@ ov_UpdatePosition(id) {
 			textSetPos(ov_UncookedFishText, infoFishUncookedX + 8, infoFishUncookedY + 8)
 			imageSetPos(ov_UncookedFish, infoFishUncookedX, infoFishUncookedY)
 		}
+	} else if (ovMoveMode == 10) {
+		if (infoOv) {
+			textSetPos(ov_CampfireText, infoCampfireX + 9, infoCampfireY + 10)
+			imageSetPos(ov_Campfire, infoCampfireX, infoCampfireY)
+		}
 	}
 }
 
@@ -16490,9 +16573,11 @@ destroyOverlay() {
 	imageDestroy(ov_Canister)
 	imageDestroy(ov_Fish)
 	imageDestroy(ov_UncookedFish)
+	imageDestroy(ov_Campfire)
 
 	boxDestroy(ov_CooldownBox)
 	
+	textDestroy(ov_CampfireText)
 	textDestroy(ov_FishText)
 	textDestroy(ov_UncookedFishText)
 	textDestroy(ov_Cooldown)
@@ -16503,3 +16588,22 @@ destroyOverlay() {
 	
 	destroyAllVisual()
 }
+
+SendInfo(message) {
+	global
+	
+	SendClientMessage(prefix . message)
+}
+
+SendError(message) {
+	global
+	
+	SendClientMessage(prefix . cRed . "Fehler: " . message)
+}
+
+/*
+- /resetovpos eingefügt, womit man seine Overlaypositionen resetten kann.
+- Die Overlay-files werden nun gedownloadet.
+- Auf einem Fahrrad kann man kein /fill mehr eingeben. Ebenfalls wird das automatische Tanksystem dabei ingoriert.
+- Möglicher Fix beim /relog crash (?)
+*/
