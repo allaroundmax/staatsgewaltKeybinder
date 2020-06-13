@@ -41,7 +41,7 @@ IfNotExist, bin/overlay.dll
 global projectName 			:= "Staatsgewalt"
 global fullProjectName 		:= "Staatsgewalt"
 
-global version 				:= "4.1.9"
+global version 				:= "4.2.0"
 global keybinderStart 		:= 0
 global rank					:= 0
 global userFraction			:= 1
@@ -369,6 +369,9 @@ Start:
 	IniRead, infoCampfireX, ini/settings.ini, overlay, infoCampfireX, 223
 	IniRead, infoCampfireY, ini/settings.ini, overlay, infoCampfireY, 558
 	
+	IniRead, infoDrugsX, ini/settings.ini, overlay, infoDrugsX, 253
+	IniRead, infoDrugsY, ini/settings.ini, overlay, infoDrugsY, 558	
+	
 	IniRead, infoFishCookedX, ini/settings.ini, overlay, infoFishCookedX, 765
 	IniRead, infoFishCookedY, ini/settings.ini, overlay, infoFishCookedY, 350	
 	IniRead, infoFishUncookedX, ini/settings.ini, overlay, infoFishUncookedX, 765
@@ -496,12 +499,6 @@ Start:
 	defaultHotkeysArray["zivic"]						:= "~!X"
 	defaultHotkeysArray["jobexecute"]					:= "~!j"
 	defaultHotkeysArray["pause"] 						:= "~Pause"
-	
-	defaultHotkeysArray["wanted"]						:= "~ö"
-	defaultHotkeysArray["wantedLS"]						:= "~!1"
-	defaultHotkeysArray["wantedSF"]						:= "~!2"
-	defaultHotkeysArray["wantedLV"]						:= "~!3"
-	defaultHotkeysArray["wantedInt"]					:= "~!4"
 	
 	if (admin) {
 		defaultHotkeysArray["accept1"] 					:= "~+Numpad1"
@@ -1447,11 +1444,11 @@ HotkeysGUI:
 	Gui, Hotkeys: Add, Text, x10 y120 w170 h20 , /wanted LV
 	Gui, Hotkeys: Add, Text, x10 y150 w170 h20 , /wanted INT
 	
-	Gui, Hotkeys: Add, Edit, x190 y30 w120 h20 vwanted gSaveHotkeyLabel, %wantedNoMods%
-	Gui, Hotkeys: Add, Edit, x190 y60 w120 h20 vwantedLS gSaveHotkeyLabel, %wantedLSNoMods%
-	Gui, Hotkeys: Add, Edit, x190 y90 w120 h20 vwantedSF gSaveHotkeyLabel, %wantedSFNoMods%
-	Gui, Hotkeys: Add, Edit, x190 y120 w120 h20 vwantedLV gSaveHotkeyLabel, %wantedLVNoMods%
-	Gui, Hotkeys: Add, Edit, x190 y150 w120 h20 vwantedInt gSaveHotkeyLabel, %wantedIntNoMods%
+	Gui, Hotkeys: Add, Edit, x190 y30 w120 h20 +ReadOnly, LWin
+	Gui, Hotkeys: Add, Edit, x190 y60 w120 h20 +ReadOnly, LWin + 1
+	Gui, Hotkeys: Add, Edit, x190 y90 w120 h20 +ReadOnly, LWin + 2
+	Gui, Hotkeys: Add, Edit, x190 y120 w120 h20 +ReadOnly, LWin + 3
+	Gui, Hotkeys: Add, Edit, x190 y150 w120 h20 +ReadOnly, LWin + 4
 	
 	Gui, Hotkeys: Tab, Seite 5
 
@@ -2083,6 +2080,7 @@ HelpGUI:
 /sb -> Sachbeschdägigung geben (wtd)
 /entf -> Entführung geben (wtd)
 /coop -> Optimale Wanteds zum clearen anzeigen
+/wafk -> Spieler mit Wanteds AFK melden
 
 /rz /razzia -> Razzia ankündigen (/m)
 /weiter -> Alle Personen WEITERFAHREN (/m)
@@ -2098,6 +2096,7 @@ HelpGUI:
 /tuch -> Möchten Sie ein Taschentuch?
 /runter -> Runter von dem Fahrzeug!
 
+/hat -> Hat jemand bereits xxx gefangen?
 /wo -> Wo befindet ihr euch, was ist das Problem? (/d)
 /nbk -> Wird Verstärkung weiterhin gefordert? (/d)
 /ver -> Habe verstanden! (/d)
@@ -2325,6 +2324,8 @@ return
 			infoFishUncookedY -= 1
 		} else if (ovMoveMode == 10) {
 			infoCampfireY -= 1
+		} else if (ovMoveMode == 11) {
+			infoDrugsY -= 1
 		}
 		
 		ov_UpdatePosition(ovMoveMode)
@@ -2356,6 +2357,8 @@ return
 			infoFishUncookedY += 1
 		} else if (ovMoveMode == 10) {
 			infoCampfireY += 1
+		} else if (ovMoveMode == 11) {
+			infoDrugsY += 1
 		}
 		
 		ov_UpdatePosition(ovMoveMode)
@@ -2387,6 +2390,8 @@ return
 			infoFishUncookedX -= 1
 		} else if (ovMoveMode == 10) {
 			infoCampfireX -= 1
+		} else if (ovMoveMode == 11) {
+			infoDrugsX -= 1
 		}
 		
 		ov_UpdatePosition(ovMoveMode)
@@ -2418,6 +2423,8 @@ return
 			infoFishUncookedX += 1
 		} else if (ovMoveMode == 10) {
 			infoCampfireX += 1
+		} else if (ovMoveMode == 11) {
+			infoDrugsX += 1
 		}
 		
 		ov_UpdatePosition(ovMoveMode)
@@ -2733,7 +2740,7 @@ openDoorLabel:
 }
 return
 
-wantedLabel:
+LWin::
 {
 	if (isBlocked()) {
 		return
@@ -2743,7 +2750,7 @@ wantedLabel:
 }
 return
 
-wantedLSLabel:
+LWin & 1::
 {
 	if (isBlocked()) {
 		return
@@ -2753,7 +2760,7 @@ wantedLSLabel:
 }
 return
 
-wantedSFLabel:
+LWin & 2::
 {
 	if (isBlocked()) {
 		return
@@ -2763,7 +2770,7 @@ wantedSFLabel:
 }
 return
 
-wantedLVLabel:
+LWin & 3::
 {
 	if (isBlocked()) {
 		return
@@ -2773,7 +2780,7 @@ wantedLVLabel:
 }
 return
 
-wantedIntLabeL:
+LWin & 4::
 {
 	if (isBlocked()) {
 		return
@@ -4981,6 +4988,66 @@ pauseLabel:
 	}
 return
 
+
+:?:/stats::
+{
+	SendChat("/stats")
+	
+	Sleep, 200
+	
+	if (RegExMatch(getDialogText(), "(.*)Drogen: (\d+)g(.*)", drugs_)) {
+		IniWrite, % drugs_2, ini/settings.ini, Items, drugs
+		
+		if (drugs_2 == 0) {
+			if (overlay && startOverlay) {
+				imageDestroy(ov_Drugs)
+				textDestroy(ov_DrugsText)
+			}	
+		}
+	} else {
+		SendError("Beim Auslesen der Drogen ist ein Fehler aufgetreten.")
+	}
+	
+	if (InStr(getDialogText(), "Erste-Hilfe-Paket")) {
+		IniWrite, 1, ini/settings.ini, Items, firstaid
+	} else {
+		IniWrite, 0, ini/settings.ini, Items, firstaid
+	
+		if (overlay && startOverlay) {
+			imageDestroy(ov_Firstaid)
+		}		
+	}
+	
+	if (InStr(getDialogText(), "Benzin Kanister")) {
+		IniWrite, 1, ini/settings.ini, Items, canister
+	} else {
+		IniWrite, 0, ini/settings.ini, Items, canister
+	
+		if (overlay && startOverlay) {
+			imageDestroy(ov_Canister)
+		}		
+	}
+	
+	if (InStr(getDialogText(), "Lagerfeuer")) {	
+		if (RegExMatch(getDialogText(), "(.*)Lagerfeuer \((\d+)\)(.*)", campfire_)) {
+			iniWrite, % campfire_2, ini/settings.ini, Items, campfire
+		}
+	} else {
+		iniWrite, 0, ini/settings.ini, Items, campfire
+	
+		if (overlay && startOverlay) {
+			imageDestroy(ov_Campfire)
+			textDestroy(ov_CampfireText)
+		}		
+	}
+	
+	if (overlay && startOverlay) {
+		ov_Info(0)
+		ov_Info()
+	}
+}
+return
+
 :?:/ov::
 :?:/overlay::
 SendInput, {Enter}
@@ -5220,6 +5287,12 @@ return
 		
 		ovMoveMode := 0
 		SendInfo("Die Position des Lagerfeuers wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")		
+	} else if (ovMoveMode == 11) {
+		IniWrite, % infoDrugsX, ini/settings.ini, overlay, infoDrugsX
+		IniWrite, % infoDrugsY, ini/settings.ini, overlay, infoDrugsY
+		
+		ovMoveMode := 0
+		SendInfo("Die Position der Drogen wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")	
 	} else {
 		SendInfo("Der Overlay-Move Modus ist nicht aktiviert.")
 		return
@@ -5329,27 +5402,28 @@ return
 		return
 	}
 	
-	IniWrite, 3, settings.ini, Overlay, spotifyXPos
-	IniWrite, 586, settings.ini, Overlay, spotifyYPos
-	IniWrite, 645, settings.ini, Overlay, cooldownXPos
-	IniWrite, 474, settings.ini, Overlay, cooldownYPos
-	IniWrite, 640, settings.ini, Overlay, cooldownBoxX
-	IniWrite, 470, settings.ini, Overlay, cooldownBoxY
-	IniWrite, 695, settings.ini, Overlay, pingXPos
-	IniWrite, 75, settings.ini, Overlay, pingYPos
-	IniWrite, 26, settings.ini, overlay, infoPhoneX
-	IniWrite, 460, settings.ini, overlay, infoPhoneY
-	IniWrite, 193, settings.ini, overlay, infoFirstaidX
-	IniWrite, 556, settings.ini, overlay, infoFirstaidY
-	IniWrite, 296, settings.ini, overlay, infoCanisterX
-	IniWrite, 518, settings.ini, overlay, infoCanisterY
-	IniWrite, 223, settings.ini, overlay, infoCampfireX
-	IniWrite, 558, settings.ini, overlay, infoCampfireY
-	IniWrite, 765, settings.ini, overlay, infoFishCookedX
-	IniWrite, 350, settings.ini, overlay, infoFishCookedY
-	IniWrite, 765, settings.ini, overlay, infoFishUncookedX
-	IniWrite, 385, settings.ini, overlay, infoFishUncookedY
-
+	IniWrite, 3, ini/settings.ini, Overlay, spotifyXPos
+	IniWrite, 586, ini/settings.ini, Overlay, spotifyYPos
+	IniWrite, 645, ini/settings.ini, Overlay, cooldownXPos
+	IniWrite, 474, ini/settings.ini, Overlay, cooldownYPos
+	IniWrite, 640, ini/settings.ini, Overlay, cooldownBoxX
+	IniWrite, 470, ini/settings.ini, Overlay, cooldownBoxY
+	IniWrite, 695, ini/settings.ini, Overlay, pingXPos
+	IniWrite, 75, ini/settings.ini, Overlay, pingYPos
+	IniWrite, 26, ini/settings.ini, overlay, infoPhoneX
+	IniWrite, 460, ini/settings.ini, overlay, infoPhoneY
+	IniWrite, 193, ini/settings.ini, overlay, infoFirstaidX
+	IniWrite, 556, ini/settings.ini, overlay, infoFirstaidY
+	IniWrite, 296, ini/settings.ini, overlay, infoCanisterX
+	IniWrite, 518, ini/settings.ini, overlay, infoCanisterY
+	IniWrite, 223, ini/settings.ini, overlay, infoCampfireX
+	IniWrite, 558, ini/settings.ini, overlay, infoCampfireY
+	IniWrite, 253, ini/settings.ini, overlay, infoDrugsX
+	IniWrite, 558, ini/settings.ini, overlay, infoDrugsY
+	IniWrite, 765, ini/settings.ini, overlay, infoFishCookedX
+	IniWrite, 350, ini/settings.ini, overlay, infoFishCookedY
+	IniWrite, 765, ini/settings.ini, overlay, infoFishUncookedX
+	IniWrite, 385, ini/settings.ini, overlay, infoFishUncookedY
 			
 	destroyOverlay()
 	SetTimer, loadOverlay, off
@@ -5931,6 +6005,24 @@ return
 selectLine(21)
 return
 
+:?:/wafk::
+{
+	playerID := PlayerInput("Spieler: ")
+	if (playerID == "" || playerID == " ") {
+		return
+	} else if (getFullName(playerID) == "") {
+		SendError("Der Spieler ist nicht online.")
+		return
+	} else if (getFullName(playerID) == getUserName()) {
+		SendError("Du kannst dich nicht selbst melden.")
+		return
+	}
+	
+	playerName := getFullName(playerID)
+	
+	SendChat("/a " . playerName . " (ID: " . getPlayerIdByName(playerName) . ") AFK mit Wanteds vor Beamten im Interior! Bitte kicken!")
+}
+return
 
 :?:/tasks::
 {
@@ -7784,14 +7876,26 @@ SendInput, {Enter}
 	SendChat("/d HQ: Wird Verstärkung weiterhin gefordert?")
 }
 return
-/*
+
 :?:/hat::
 {	
 	playerID := PlayerInput("Verbrecher: ")
-	if (playerID
+	if (playerID == "" || playerID == " ") {
+		return
+	} else if (getFUllName(playerID) == "") {
+		SendError("Der Spieler ist nicht online.")
+		return
+	} else if (getFullName(playerID) == getUserName()) {
+		SendError("Du kannst dich nicht selbst melden.")
+		return
+	}
+	
+	playerName := getFullName(playerID)
+	
+	SendChat("/d HQ: Hat bereits jemand " . playerName . " (ID: " . getPlayerIdByName(playerName) . ") gefangen? Ich verfolge ihn!")
 }
 return
-*/
+
 :?:/einsatz::
 {	
 	SendInfo(csecond . "Info: {FFFFFF}Trage die Zeit in 'Minuten' ein, anschließend wird die Uhrzeit berechnet.")
@@ -8974,13 +9078,13 @@ SendInput, {Enter}
 	Sleep, 200
 
 	if (InStr(readChatLine(0) . readChatLine(1) . readChatLine(2), "Du hast bereits ein Erste-Hilfe-Paket")) {
-		getFirstAid(0)
+		getItems()
 		
 		if (paketInfo) {
 			SendChat("/l Vielen Dank " . medicName . ", doch ich habe bereits ein Paket!")
 		}
 	} else if (RegExMatch(readChatLine(0) . readChatLine(1) . readChatLine(2), "\* Du hast für \$(\d+) ein Erste-Hilfe-Paket von (\S+) gekauft\.", chat_)) {
-		getFirstAid(0)
+		getItems()
 	
 		if (paketInfo) {
 			SendChat("/l Vielen Dank " . chat_2 . " für das Erste-Hilfe-Paket!")
@@ -10909,27 +11013,21 @@ return
 
 SyncTimer:
 {	
-	if (autoUse) {
+	if (WinExist("GTA:SA:MP") && WinActive("GTA:SA:MP") && !isPlayerInMenu()) {
 		SendInfo("Das Synchroniseren von Fischen, Paket, Drogen und Lagerfeuer hat begonnen!")
-		SendInfo("Drücke bitte in den nächsten 4 Sekunden keine Keys und schreibe nichts im Chat!")
+		SendInfo("Drücke bitte nach den nächsten 2 Sekunden keine Keys und schreibe nichts im Chat!")
+		
+		Sleep, 2000
 		
 		checkCook()
 		checkFish()
 		
 		Sleep, 1000
 		
-		getFirstAid(0)
-		getDrugs(0)
+		getItems()
 		
-		Sleep, 1000
-		
-		getCampfire(0)
-		getCanister(0)
-		
-		SendInfo("Das Synchronisieren ist " . cgreen . "abgeschlossen" . cwhite . ".")
+		SendClientMessage(prefix . "Das Synchronisieren ist " . cgreen . "abgeschlossen" . cwhite . ".")
 		SetTimer, SyncTimer, 600000
-	} else {
-		SetTimer, SyncTimer, off
 	}
 }
 return
@@ -11714,54 +11812,54 @@ handleChatMessage(message, index, arr) {
 			SendInfo("Der Paintball-Modus wurde " . cgreen . "angeschaltet" . cwhite . ".")
 		}
 	} else if (RegExMatch(message, "^Du hast bereits einen Spritkanister !$", message_)) {
-		getCanister(0)
+		getItems()
 	} else if (RegExMatch(message, "^\* (\S+) nimmt seinen Kanister und füllt das Fahrzeug auf\.$", message_)) {
 		if (message_1 == getUserName()) {
-			getCanister(0)
+			getItems()
 		}
 	} else if (RegExMatch(message, "^Du hast ein Kanister gekauft und kannst ihn mit \/fillcar verwenden\. Kosten: \$(\d+)$", message_)) {
-		getCanister(0)
+		getItems()
 	} else if (RegExMatch(message, "^Du hast eine infizierte Spritze gefunden und dich gestochen\.$", message_)) {
 		gotPoisened := true
 	} else if (RegExMatch(message, "^Du hast ein Lagerfeuer gesetzt, dieses brennt ca\. 40 Sekunden\.$", message_)) {
-		getCampfire(0)
+		getItems()
 	} else if (RegExMatch(message, "^Du hast dir ein Lagerfeuer gekauft\.$", message_)) {
-		getCampfire(0)
+		getItems()
 	} else if (RegExMatch(message, "^Du hast ein Erstehilfe-Paket erworben \(-(\d+)\$\)\.$")) {
-		getFirstAid(0)
+		getItems()
 	} else if (RegExMatch(message, "^Du besitzt kein Erste-Hilfe-Paket\.$", message_)) {
-		getFirstAid(0)
+		getItems()
  	} else if (RegExMatch(message, "^Du hast ein Erstehilfe-Paket erworben \(-(.*)$\).$", message_)) {
-		getFirstAid(0)
+		getItems()
 	} else if (RegExMatch(message, "^Du hast ein Erste-Hilfe-Paket im Müll gefunden\.$", message_)) {
-		getFirstAid(0)
+		getItems()
  	} else if (RegExMatch(message, "\* Du hast für \$(.*) ein Erste-Hilfe-Paket von (\S+) gekauft\.$", message_)) {
-		getFirstAid(0)
+		getItems()
 	} else if (RegExMatch(message, "^\* " . getUserName() . " benutzt ein Erste-Hilfe-Paket und versorgt die Wunden\.$", message_)) {
 		IniWrite, 600, ini/Settings.ini, Cooldown, pakcooldown
 	
-		getFirstAid(0)
+		getItems()
 	} else if (RegExMatch(message, "^\* " . getUserName() . " hat Drogen konsumiert.$", message_)) {
-		getDrugs(0)
+		getItems()
 		drugcooldown := 30
 	} else if (RegExMatch(message, "^(.*)g Drogen aus den Safe geholt\.$", message_)) {
-		getDrugs(0)
+		getItems()
 	} else if (RegExMatch(message, "^(.*)g wurden in den Safe gelegt\.$", message_)) {
-		getDrugs(0)
+		getItems()
 	} else if (RegExMatch(messfage, "^\* (\S+) hat deine (.*)g für (.*)\$ gekauft\.$", message_)) {
-		getDrugs(0)
+		getItems()
 	} else if (RegExMatch(message, "^\* Du hast (.*)g für (.*)$ von (\S+) gekauft\.$", message_)) {
-		getDrugs(0)
+		getItems()
 	} else if (RegExMatch(message, "^\[ AIRDROP \] (\S+) hat den Airdrop abgegeben und (.*)\.$", message_)) {
 		if (message_1 == getUserName()) {
-			getDrugs(0)	
+			getItems()	
 		}
 	} else if (RegExMatch(message, "^Du hast (.*)g Drogen ausgelagert\.$", message_)) {
-		getDrugs(0)
+		getItems()
 	} else if (RegExMatch(message, "^Du hast (.*)g Drogen eingelagert\.$", message_)) {
-		getDrugs(0)
+		getItems()
 	} else if (RegExMatch(message, "^Du hast (.*)g Drogen für (.*)\$ erworben\.$", message_)) {
-		getDrugs(0)
+		getItems()
 	} else if (RegExMatch(message, "^Du bist nun im SWAT-Dienst als Agent (\d+)\.$", message_)) {
 		IniRead, mobilePhone, ini/Settings.ini, items, mobilePhone, 0	
 		if (mobilePhone) {
@@ -11807,7 +11905,7 @@ handleChatMessage(message, index, arr) {
 			iniWrite, %campfire%, ini/Stats.ini, Mülltonnen, campfire
 			
 			SendInfo("Du hast bereits " . cSecond . formatNumber(campfire) . cwhite . " Lagerfeuer in Mülltonnen gefunden.")
-			getCampfire(0)
+			getItems()
 		} else if (RegExMatch(message_1, "^hast (.*)\$$", msg_)) {
 			money := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashMoney&value=" . numberFormat(msg_1))
 			iniWrite, %money%, ini/Stats.ini, Mülltonnen, money
@@ -11834,7 +11932,7 @@ handleChatMessage(message, index, arr) {
 			
 			SendInfo("Du hast bereits " . cSecond . formatNumber(drugs) . cwhite . "g Drogen in Mülltonnen gefunden.")
 			
-			getDrugs(0)
+			getItems()
 		} else if (RegExMatch(message_1, "hast (\d+) Materialien$", msg_)) {
 			mats := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashMats&value=" . numberFormat(msg_1))
 			iniWrite, %mats%, ini/Stats.ini, Mülltonnen, mats
@@ -15273,128 +15371,63 @@ getDeath() {
 		return -1
 	}
 }
-
-getDrugs(setted = 0) {
+getItems() {
 	global
 	
 	forceStats()
-
+	
 	if (RegExMatch(getDialogText(), "(.*)Drogen: (\d+)g(.*)", drugs_)) {
 		IniWrite, % drugs_2, ini/Settings.ini, Items, drugs
 		
-		if (setted) {
-			SendInfo("Du hast nun " . cSecond . drugs_2 . cwhite . "g Drogen bei dir.")
+		if (drugs_2 == 0) {
+			if (overlay && startOverlay) {
+				imageDestroy(ov_Drugs)
+				textDestroy(ov_DrugsText)
+			}	
 		}
-		
-		return deaths_2
 	} else {
-		return -1
+		SendError("Beim Auslesen der Drogen ist ein Fehler aufgetreten.")
 	}
-}
-
-getFirstAid(setted = 0) {
-	global
-	
-	forceStats() 
 	
 	if (InStr(getDialogText(), "Erste-Hilfe-Paket")) {
 		IniWrite, 1, ini/Settings.ini, Items, firstaid
-		
-		if (setted) {
-			SendInfo("Du hast nun ein Erste-Hilfe-Paket bei dir.")
-		}
-		
-		if (overlay && startOverlay) {
-			ov_Info(0)
-			ov_Info()
-		}			
-		
-		return 1
 	} else {
 		IniWrite, 0, ini/Settings.ini, Items, firstaid
 	
-		if (setted) {
-			SendInfo("Du hast nun kein Erste-Hilfe-Paket mehr bei dir.")
-		}	
-		
 		if (overlay && startOverlay) {
 			imageDestroy(ov_Firstaid)
-		}			
-		
-		return 0
+		}		
 	}
-}
-
-getCanister(setted = 0) {
-	global
-	
-	forceStats() 
 	
 	if (InStr(getDialogText(), "Benzin Kanister")) {
 		IniWrite, 1, ini/Settings.ini, Items, canister
-		
-		if (setted) {
-			SendInfo("Du hast nun einen Kanister bei dir..")
-		}
-		
-		if (isPlayerInAnyVehicle()) { 
-			if (overlay && startOverlay) {
-				ov_Info(0)
-				ov_Info()
-			}			
-		}
-		
-		return 1
 	} else {
 		IniWrite, 0, ini/Settings.ini, Items, canister
 	
-		if (setted) {
-			SendInfo("Du hast nun keinen Kanister mehr bei dir.")
-		}	
-		
-		if (isPlayerInAnyVehicle()) {
-			if (overlay && startOverlay) {
-				imageDestroy(ov_Canister)
-			}	
-		}
-		
-		return 0
+		if (overlay && startOverlay) {
+			imageDestroy(ov_Canister)
+		}		
 	}
-}
-
-getCampfire(setted = 0) {
-	global
 	
-	forceStats() 
-	
-	if (InStr(getDialogText(), "Lagerfeuer")) {
-		if (RegExMatch(getDialogText(), "(.*)Lagerfeuer \((\d+)\)(.*)", out_)) {
-			iniWrite, % out_2, ini/Settings.ini, Items, campfire
-		
-			if (setted) {
-				SendInfo("Du hast nun " . out_2 . " Lagefeuer bei dir.")
-			}
-			
-			return 1
-		} else {
-			iniWrite, 0, ini/Settings.ini, Items, campfire
-		
-			if (setted) {
-				SendInfo("Du hast nun keine Lagefeuer bei dir.")
-			}
-			
-			return 0
+	if (InStr(getDialogText(), "Lagerfeuer")) {	
+		if (RegExMatch(getDialogText(), "(.*)Lagerfeuer \((\d+)\)(.*)", campfire_)) {
+			iniWrite, % campfire_2, ini/Settings.ini, Items, campfire
 		}
 	} else {
 		iniWrite, 0, ini/Settings.ini, Items, campfire
 	
-		if (setted) {
-			SendInfo("Du hast nun keine Lagefeuer bei dir.")
-		}
-		
-		return 0
+		if (overlay && startOverlay) {
+			imageDestroy(ov_Campfire)
+			textDestroy(ov_CampfireText)
+		}		
+	}
+	
+	if (overlay && startOverlay) {
+		ov_Info(0)
+		ov_Info()
 	}
 }
+
 
 forceStats() {
 	global
@@ -16459,8 +16492,13 @@ ov_Info(create := 1) {
 			
 			if (campfire) {
 				ov_Campfire := imageCreate("images\Overlay\campfire.png", infoCampfireX, infoCampfireY, 0, true, true) 
-				ov_CampfireText := textCreate("Arial", 9, true, false, infoCampfireX + 9, infoCampfireY + 10, 0xFFFFFFFF, campfire, true, true)
-			}			
+				ov_CampfireText := textCreate("Arial", 9, true, false, infoCampfireX + 10, infoCampfireY + 14, 0xFFFFFFFF, campfire, true, true)
+			}		
+
+			if (drugs) {
+				ov_Drugs := imageCreate("images\Overlay\drugs.png", infoDrugsX, infoDrugsY, 0, true, true)
+				ov_DrugsText := textCreate("Arial", 9, true, false, infoDrugsX + 11, infoDrugsY + 14, 0xFFFFFFFF, drugs, true, true)
+			}
 			
 			hasCookedFish := 0
 			
@@ -16493,9 +16531,11 @@ ov_Info(create := 1) {
 		imageDestroy(ov_Firstaid)
 		imageDestroy(ov_Canister)
 		imageDestroy(ov_Campfire)
+		imageDestroy(ov_Drugs)
 		imageDestroy(ov_Fish)
 		imageDestroy(ov_UncookedFish)
 		
+		textDestroy(ov_DrugsText)
 		textDestroy(ov_CampfireText)
 		textDestroy(ov_FishText)
 		textDestroy(ov_UncookedFishText)		
@@ -16551,8 +16591,13 @@ ov_UpdatePosition(id) {
 		}
 	} else if (ovMoveMode == 10) {
 		if (infoOv) {
-			textSetPos(ov_CampfireText, infoCampfireX + 9, infoCampfireY + 10)
+			textSetPos(ov_CampfireText, infoCampfireX + 10, infoCampfireY + 14)
 			imageSetPos(ov_Campfire, infoCampfireX, infoCampfireY)
+		}
+	} else if (ovMoveMode == 11) {
+		if (infoOv) {
+			textSetPos(ov_DrugsText, infoDrugsX + 11, infoDrugsY + 14)
+			imageSetPos(ov_Drugs, infoDrugsX, infoDrugsY)
 		}
 	}
 }
@@ -16566,11 +16611,13 @@ destroyOverlay() {
 	imageDestroy(ov_Firstaid)
 	imageDestroy(ov_Canister)
 	imageDestroy(ov_Fish)
+	imageDestroy(ov_Drugs)
 	imageDestroy(ov_UncookedFish)
 	imageDestroy(ov_Campfire)
 
 	boxDestroy(ov_CooldownBox)
 	
+	textDestroy(ov_DrugsText)
 	textDestroy(ov_CampfireText)
 	textDestroy(ov_FishText)
 	textDestroy(ov_UncookedFishText)
@@ -16596,7 +16643,9 @@ SendError(message) {
 }
 
 /*
-- Die Wantedhotkeys können nun umbelegt werden. Standard: ALT + (1-5)
-- Fehler am Killzähler behoben, dass Variablen falsch gespeichert wurden.
-- Fehler am Overlay behoben.
+- Wanted Liste wieder auf Linke Windowstaste gelegt.
+- /hat eingefügt um zu fragen ob jemand Spieler xy schon gefangen hat.
+- /wafk eingefügt um jemanden zu melden der AFK mit Wanteds ist. 
+- Weitere Anpassungen am Overlay vorgenommen.
+- Das Synchronisieren dauert nun max. 2 Sekunden.
 */
