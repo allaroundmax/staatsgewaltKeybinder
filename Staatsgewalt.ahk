@@ -10,7 +10,7 @@
 
 
 SetWorkingDir, %A_ScriptDir%
-/*
+
 if (!A_IsAdmin) {
 	try {
 		Run *RunAs "%A_ScriptFullPath%"
@@ -19,7 +19,6 @@ if (!A_IsAdmin) {
 		ExitApp
 	}
 }
-*/
 
 IfExist update.bat
 {
@@ -41,7 +40,7 @@ IfNotExist, bin/overlay.dll
 global projectName 			:= "Staatsgewalt"
 global fullProjectName 		:= "Staatsgewalt"
 
-global version 				:= "4.2.0"
+global version 				:= "4.2.1"
 global keybinderStart 		:= 0
 global rank					:= 0
 global userFraction			:= 1
@@ -318,7 +317,9 @@ Start:
 	IniRead, spotifyItal, ini/settings.ini, Overlay, spotifyItal, false
 	IniRead, spotifyXPos, ini/settings.ini, Overlay, spotifyXPos, 3
 	IniRead, spotifyYPos, ini/settings.ini, Overlay, spotifyYPos, 586
-	IniRead, spotifyColor, ini/settings.ini, Overlay, spotifyColor, 0xFFFFFFFF	
+	IniRead, spotifyColor, ini/settings.ini, Overlay, spotifyColor, FFFFFF	
+	IniRead, spotifyColorOn, ini/settings.ini, Overlay, spotifyColorOn, 1
+	IniRead, spotifySongColor, ini/settings.ini, Overlay, spotifySongColor, 00962B
 
 	IniRead, cooldownOv, ini/settings.ini, overlay, cooldownOv, 1	
 	IniRead, cooldownFont, ini/settings.ini, Overlay, cooldownFont, Arial
@@ -327,26 +328,9 @@ Start:
 	IniRead, cooldownItal, ini/settings.ini, Overlay, cooldownItal, false
 	IniRead, cooldownXPos, ini/settings.ini, Overlay, cooldownXPos, 645
 	IniRead, cooldownYPos, ini/settings.ini, Overlay, cooldownYPos, 474
-	IniRead, cooldownColor, ini/settings.ini, Overlay, cooldownColor, 0xFFFFA600
-	
-	IniRead, cooldownBoxOv, ini/settings.ini, Overlay, cooldownBoxOv, 1
-	IniRead, cooldownBoxWidth, ini/settings.ini, Overlay, cooldownBoxWidth, 150
-	IniRead, cooldownBoxHeight, ini/settings.ini, Overlay, cooldownBoxHeight, 0
-	IniRead, cooldownBoxX, ini/settings.ini, Overlay, cooldownBoxX, 640
-	IniRead, cooldownBoxY, ini/settings.ini, Overlay, cooldownBoxY, 470
-	IniRead, cooldownBoxHeight, ini/settings.ini, Overlay, cooldownBoxHeight, 22
-	IniRead, cooldownBoxColor, ini/settings.ini, Overlay, cooldownBoxColor, 0xAA000000
-	IniRead, cooldownBoxBorderColor, ini/settings.ini, Overlay, cooldownBoxBorderColor, 0xFFF67D03	
-	
-	IniRead, alertOv, ini/settings.ini, overlay, alertOv, 1
-	IniRead, alertFont, ini/settings.ini, Overlay, alertFont, Arial
-	IniRead, alertize, ini/settings.ini, Overlay, alertize, 9
-	IniRead, alertBold, ini/settings.ini, Overlay, alertBold, true
-	IniRead, alertItal, ini/settings.ini, Overlay, alertItal, false
-	IniRead, alertXPos, ini/settings.ini, Overlay, alertXPos, 30
-	IniRead, alertYPos, ini/settings.ini, Overlay, alertYPos, 280
-	IniRead, alertColor, ini/settings.ini, Overlay, alertColor, 0xFF7C7cE1	
-	
+	IniRead, cooldownColorOn, ini/settings.ini, Overlay, cooldownColorOn, true
+	IniRead, cooldownColor, ini/settings.ini, Overlay, cooldownColor, FFA600	
+
 	IniRead, pingOv, ini/settings.ini, overlay, pingOv, 1
 	IniRead, pingFont, ini/settings.ini, Overlay, pingFont, Arial
 	IniRead, pingSize, ini/settings.ini, Overlay, pingSize, 7
@@ -354,28 +338,41 @@ Start:
 	IniRead, pingItal, ini/settings.ini, Overlay, pingItal, false
 	IniRead, pingXPos, ini/settings.ini, Overlay, pingXPos, 695
 	IniRead, pingYPos, ini/settings.ini, Overlay, pingYPos, 75
-	IniRead, pingColor, ini/settings.ini, Overlay, pingColor, 0xFFFFFFFF	
-	
+	IniRead, pingColor, ini/settings.ini, Overlay, pingColor, FFFFFFF	
+	IniRead, pingColorOn, ini/settings.ini, Overlay, pingColorOn, true
+	IniRead, pingAlertColorOn, ini/settings.ini, Overlay, pingAlertColorOn, true
+
+	IniRead, infoPhone, ini/settings.ini, overlay, infoPhone, 1
+	IniRead, infoFirstaid, ini/settings.ini, overlay, infoFirstaid, 1
+	IniRead, infoCanister, ini/settings.ini, overlay, infoCanister, 1
+	IniRead, infoCampfire, ini/settings.ini, overlay, infoCampfire, 1
+	IniRead, infoDrugs, ini/settings.ini, overlay, infoDrugs, 1
+	IniRead, infoFishCooked, ini/settings.ini, overlay, infoFishCooked, 1
+	IniRead, infoFishUncooked, ini/settings.ini, overlay, infoFishUncooked, 1
 	IniRead, infoOv, ini/settings.ini, overlay, infoOv, 1
 	IniRead, infoPhoneX, ini/settings.ini, overlay, infoPhoneX, 26
 	IniRead, infoPhoneY, ini/settings.ini, overlay, infoPhoneY, 460
-	
 	IniRead, infoFirstaidX, ini/settings.ini, overlay, infoFirstaidX, 193
-	IniRead, infoFirstaidY, ini/settings.ini, overlay, infoFirstaidY, 556
-	
-	IniRead, infoCanisterX, ini/settings.ini, overlay, infoCanisterX, 215
-	IniRead, infoCanisterY, ini/settings.ini, overlay, infoCanisterY, 555
-	
+	IniRead, infoFirstaidY, ini/settings.ini, overlay, infoFirstaidY, 558
+	IniRead, infoCanisterX, ini/settings.ini, overlay, infoCanisterX, 296
+	IniRead, infoCanisterY, ini/settings.ini, overlay, infoCanisterY, 518
 	IniRead, infoCampfireX, ini/settings.ini, overlay, infoCampfireX, 223
 	IniRead, infoCampfireY, ini/settings.ini, overlay, infoCampfireY, 558
-	
 	IniRead, infoDrugsX, ini/settings.ini, overlay, infoDrugsX, 253
-	IniRead, infoDrugsY, ini/settings.ini, overlay, infoDrugsY, 558	
-	
+	IniRead, infoDrugsY, ini/settings.ini, overlay, infoDrugsY, 558
 	IniRead, infoFishCookedX, ini/settings.ini, overlay, infoFishCookedX, 765
 	IniRead, infoFishCookedY, ini/settings.ini, overlay, infoFishCookedY, 350	
 	IniRead, infoFishUncookedX, ini/settings.ini, overlay, infoFishUncookedX, 765
 	IniRead, infoFishUncookedY, ini/settings.ini, overlay, infoFishUncookedY, 385
+
+	IniRead, alertOv, ini/settings.ini, overlay, alertOv, 1
+	IniRead, alertXPos, ini/settings.ini, overlay, alertXPos, 660
+	IniRead, alertYPos, ini/settings.ini, overlay, alertYPos, 250
+	IniRead, alertItal, ini/settings.ini, overlay, alertItal, false
+	IniRead, alertFont, ini/settings.ini, overlay, alertFont, Arial
+	IniRead, alertSize, ini/settings.ini, overlay, alertSize, 7
+	IniRead, alertBold, ini/settings.ini, overlay, alertBold, true
+	IniRead, alertColor, ini/settings.ini, overlay, alertColor, FFFFFF
 
 	IniRead, arrestLimitUnix, ini/Settings.ini, UnixTime, arrestLimitUnix, 0
 	IniRead, commitmentUnix, ini/Settings.ini, UnixTime, commitmentUnix, 0
@@ -652,6 +649,7 @@ Start:
 	global bankrobs				:= []
 	global storerobs			:= []
 	global backups				:= []
+	global trashcan 			:= []
 	
 	global pedStates 			:= {}
 	
@@ -721,6 +719,12 @@ Start:
 	global garbageTimeout_		:= true 
 	global fishSellTimeout_		:= true
 
+	global overlayEnabled		:= false
+	global spotifyOvEnabled		:= false 
+	global cooldownOvEnabled 	:= false
+	global pingOvEnabled 		:= false
+	global infoOvEnabled 		:= false
+	global alertOvEnabled 		:= false
 	global isInVehicle			:= false
 	global agentTog				:= false
 	global startOverlay			:= false
@@ -741,7 +745,112 @@ Start:
 	global alertString 			:= ""
 	global oldSpotifyTrack		:= ""
 	global oldVehicleName		:= "none"
+	
+	if (spotifyOv) {
+		ov_Spotify()
+		
+		spotifyOvEnabled := true
+	}	
 
+	if (cooldownOv) {
+		ov_Cooldown()
+		
+		cooldownOvEnabled := true
+	}
+
+	if (pingOv) {
+		ov_Ping()
+		
+		pingOvEnabled := true
+	}
+
+	if (infoOv) {
+		ov_Info()
+		
+		infoOvEnabled := true
+	}
+
+	if (alertOv) {
+		ov_Alert()
+		
+		alertOvEnabled := true
+	}
+	/*
+	trashcan[1]  := [2058.767578, -1050.120239, 27.710558, "Las Colinas", -1, 1]
+	trashcan[2]  := [2119.865479, -1062.000977, 25.857998, "Las Colinas", -1, 2]
+	trashcan[3]  := [2246.809326, -1153.964966, 26.459375, "Las Colinas", -1, 3]
+	trashcan[4]  := [2545.130615, -1120.289917, 62.752769, "Las Colinas", -1, 4]
+	trashcan[5]  := [2699.683350, -1106.541870, 70.159241, "Las Colinas", -1, 5]
+	trashcan[6]  := [2790.593506, -1096.344116, 31.318750, "Las Colinas", -1, 6]
+	trashcan[7]  := [2802.270020, -1195.662964, 26.091354, "East Beach", -1, 7]
+	trashcan[8]  := [2769.613037, -1374.365356, 40.351383, "East Beach", -1, 8]
+	trashcan[9]  := [2786.151367, -1427.741455, 31.053125, "East Beach", -1, 9]
+	trashcan[10] := [2793.253906, -1625.652344, 11.521875, "East Beach", -1, 10]
+	trashcan[11] := [2758.034180, -2020.873657, 14.161955, "Playa del Seville", -1, 11]
+	trashcan[12] := [2627.479980, -1984.546997, 14.146875, "Willowfield", -1, 12]
+	trashcan[13] := [2441.379150, -1964.233765, 14.146875, "Willowfield", -1, 13]
+	trashcan[14] := [2439.517090, -1900.352295, 14.153357, "Willowfield", -1, 14]
+	trashcan[15] := [2368.265869, -2032.633179, 14.097355, "Willowfield", -1, 15]
+	trashcan[16] := [2340.841553, -2154.718262, 14.146875, "Ocean Docks", -1, 16]
+	trashcan[17] := [2182.485107, -2249.278320, 13.928430, "Ocean Docks", -1, 17]
+	trashcan[18] := [2123.285156, -2282.549072, 14.077246, "Ocean Docks", -1, 18]
+	trashcan[19] := [1998.914795, -2136.649902, 14.146875, "Willowfield", -1, 19]
+	trashcan[20] := [2052.302490, -2146.937744, 14.232813, "Willowfield", -1, 20]
+	trashcan[21] := [1990.136108, -2014.769043, 14.146875, "Willowfield", -1, 21]
+	trashcan[22] := [1731.480713, -2055.552979, 14.174515, "El Corona", -1, 22]
+	trashcan[23] := [1629.833496, -1911.320313, 14.149103, "Verdant Bluffs", -1, 23]
+	trashcan[24] := [1614.523560, -1841.383301, 14.127308, "Commerce", -1, 24]
+	trashcan[25] := [1592.933960, -1784.566040, 13.877789, "Commerce", -1, 25]
+	trashcan[26] := [1809.678711, -1688.933716, 14.151469, "Little Mexico", -1, 26]
+	trashcan[27] := [1907.996826, -1572.763306, 14.200819, "Idlewood", -1, 27]
+	trashcan[28] := [2003.734619, -1551.829468, 14.246980, "Idlewood", -1, 28]
+	trashcan[29] := [1397.024292, -1894.318481, 14.089090, "Verdant Bluffs", -1, 29]
+	trashcan[30] := [1372.502930, -1720.065063, 13.601456, "Commerce", -1, 30]
+	trashcan[31] := [1342.739746, -1680.794189, 14.182812, "Commerce", -1, 31]
+	trashcan[32] := [1641.281250, -1679.334106, 14.137456, "Commerce", -1, 32]
+	trashcan[33] := [1594.332886, -1559.761353, 14.765665, "Commerce", -1, 33]
+	trashcan[34] := [1721.005859, -1472.314453, 14.151341, "Commerce", -1, 34]
+	trashcan[35] := [1611.727905, -1201.589478, 20.409513, "Downtown Los Santos", -1, 35]
+	trashcan[36] := [1830.586792, -1149.416382, 24.450518, "Glen Park", -1, 36]
+	trashcan[37] := [1616.220215, -993.336365, 24.666773, "Mulholland Intersection", -1, 37]
+	trashcan[38] := [1296.652222, -979.811829, 33.295311, "Temple", -1, 38]
+	trashcan[39] := [1201.949097, -976.933716, 44.076561, "Temple", -1, 39]
+	trashcan[40] := [1284.726318, -1252.247681, 14.146875, "Market", -1, 40]
+	trashcan[41] := [1132.987183, -1345.027100, 14.584375, "Market", -1, 41]
+	trashcan[42] := [1084.256714, -1224.599243, 16.420313, "Market", -1, 42]
+	trashcan[43] := [1015.644287, -1005.409424, 32.701561, "Temple", -1, 43]
+	trashcan[44] := [856.674438, -974.783020, 36.115143, "Vinewood", -1, 44]
+	trashcan[45] := [783.716736, -1013.634827, 26.959375, "Richman", -1, 45]
+	trashcan[46] := [777.521851, -1121.635010, 24.428125, "Vinewood", -1, 46]
+	trashcan[47] := [811.763245, -1269.233765, 14.184126, "Vinewood", -1, 47]
+	trashcan[48] := [733.994995, -1337.045410, 14.134808, "Vinewood", -1, 48]
+	trashcan[49] := [877.909180, -1363.699951, 14.146875, "Market", -1, 49]
+	trashcan[50] := [707.066956, -1474.307983, 6.068750, "Marina", -1, 50]
+	trashcan[51] := [587.353088, -1554.240967, 16.212440, "Rodeo", -1, 51]
+	trashcan[52] := [412.291962, -1808.504761, 6.146875, "Santa Maria Beach", -1, 52]
+	trashcan[53] := [309.993774, -1436.890381, 28.529688, "Rodeo", -1, 53]
+	trashcan[54] := [412.914490, -1304.481445, 15.568627, "Rodeo", -1, 54]
+	trashcan[55] := [1082.914307, -1666.565552, 14.138750, "Verona Beach", -1, 55]
+	trashcan[56] := [1229.145264, -1609.433594, 14.146875, "Verona Beach", -1, 56]
+	trashcan[57] := [1010.867615, -1270.720703, 15.787210, "Market", -1, 57]
+	trashcan[58] := [1029.465820, -1363.808350, 14.171368, "Market", -1, 58]
+	trashcan[59] := [1964.835938, -1307.474854, 24.378319, "Glen Park", -1, 59]
+	trashcan[60] := [2384.933350, -1485.982300, 24.600000, "East Los Santos", -1, 60]
+	trashcan[61] := [2345.070801, -1948.613281, 14.156754, "Willowfield", -1, 61]
+	trashcan[62] := [2384.503418, -1940.051514, 14.146875, "Willowfield", -1, 62]
+	trashcan[63] := [2590.447021, -1321.253174, 40.518929, "Los Flores", -1, 63]
+	trashcan[64] := [2416.958252, -1577.622559, 24.431389, "East Los Santos", -1, 64]
+	trashcan[65] := [2442.497559, -1760.444946, 14.191413, "Ganton", -1, 65]
+	trashcan[66] := [2453.276611, -2543.011230, 14.256072, "Ocean Docks", -1, 66]
+	trashcan[67] := [2513.634033, -2640.555908, 14.243263, "Ocean Docks", -1, 67]
+	trashcan[68] := [2200.565918, -2632.509521, 14.146875, "Los Santos International", -1, 68]
+	trashcan[69] := [2199.586182, -2600.765137, 14.140907, "Los Santos International", -1, 69]
+	trashcan[70] := [2735.4619, -2446.2249, 13.6432, "Ocean Docks", -1, 70]
+	trashcan[71] := [2547.7144, -1290.5468, 41.1641, "East Los Santos", -1, 71]
+	trashcan[72] := [2281.9441, -2046.9819, 13.5469, "Willowfield", -1, 72]
+	trashcan[73] := [2209.1743, -1343.6583, 23.9844, "Jefferson", -1, 73]
+	UpdateRest()	
+	*/
 	Loop, 5 {
 		fishName_%A_Index% := "nichts"
 		fishLBS_%A_Index% := 0
@@ -766,11 +875,9 @@ Start:
 	SetTimer, MainTimer, 200
 	SetTimer, KillTimer, 500
 	SetTimer, TimeoutTimer, 1000
+	; SetTimer, UpdateStatus, 1000
 	SetTimer, SecondTimer, 1000
-	
-	if (overlay) {		
-		SetTimer, startOverlay, 2500
-	}	
+	; SetTimer, UpdateRestTimer, 60000
 
 	if (taskInfo) {
 		SetTimer, TaskCheckTimer, 5000
@@ -799,6 +906,9 @@ Start:
 	if (autoUse) {
 		SetTimer, SyncTimer, 60000
 	}
+	
+    SetParam("use_window", "1")
+    SetParam("window", "GTA:SA:MP")	
 	
 	Gui, Color, white
 	Gui, Font, s32 CDefault, Verdana
@@ -900,7 +1010,7 @@ SettingsGUI:
 	
 	Gui, Settings: Add, Button, x10 y730 w130 h40 gequipProfiles, Ausrüstprofile
 	Gui, Settings: Add, Button, x150 y730 w130 h40 gvariables, Variablen
-	Gui, Settings: Add, Button, x290 y730 w130 h40 goverlay, Overlay
+	Gui, Settings: Add, Button, x290 y730 w130 h40 goverlaySettings, Overlay
 	Gui, Settings: Add, Button, x520 y730 w130 h40 gSettingsGuiClose, Schließen
 
 	Gui, Settings: Add, GroupBox, x10 y10 w640 h230, Allgemeine Einstellungen
@@ -981,6 +1091,266 @@ SettingsGUI:
 	Gui, Settings: Add, Edit, x130 y690 w110 h20 vownprefix, %ownprefix%
 
 	Gui, Settings: Show, h780 w660, %projectName% - Einstellungen - Version %version%
+}
+return
+
+overlaySettings:
+{
+	Gui, overlaySettings: Destroy
+	Gui, overlaySettings: Color, white
+	Gui, overlaySettings: Font, ,
+	Gui, overlaySettings: Font, S10,	
+
+	Gui, overlaySettings: Add, GroupBox, x12 y9 w290 h250, Spotify Overlay
+	{
+		Gui, overlaySettings: Add, Text, x22 y29 w110 h20, aktivieren?
+		Gui, overlaySettings: Add, CheckBox, x132 y29 w20 h20 vspotifyOv checked%spotifyOv%,
+		
+		Gui, overlaySettings: Add, Text, x22 y49 w140 h20, Koordinaten:
+		Gui, overlaySettings: Add, Text, x162 y49 w40 h20, X:
+		Gui, overlaySettings: Add, Text, x162 y79 w40 h20, Y:
+		Gui, overlaySettings: Add, Edit, x202 y49 w90 h20 vspotifyXPos, %spotifyXPos%
+		Gui, overlaySettings: Add, Edit, x202 y79 w90 h20 vspotifyYPos, %spotifyYPos%
+		
+		Gui, overlaySettings: Add, Text, x22 y79 w100 h20, Fett:
+		Gui, overlaySettings: Add, CheckBox, x122 y79 w20 h20 vspotifyBold checked%spotifyBold%,
+		
+		Gui, overlaySettings: Add, Text, x22 y109 w100 h20, Kursiv:
+		Gui, overlaySettings: Add, CheckBox, x122 y109 w20 h20 vspotifyItal checked%spotifyItal%, 
+		
+		Gui, overlaySettings: Add, Text, x162 y109 w110 h20, Farbe an:
+		Gui, overlaySettings: Add, CheckBox, x272 y109 w20 h20 vspotifyColorOn checked%spotifyColorOn%
+		
+		Gui, overlaySettings: Add, Text, x112 y139 w90 h20, Font:
+		Gui, overlaySettings: Add, Edit, x202 y139 w90 h20 vspotifyFont, %spotifyFont%
+		
+		Gui, overlaySettings: Add, Text, x112 y169 w90 h20, Fontgröße:
+		Gui, overlaySettings: Add, Edit, x202 y169 w90 h20 vspotifySize, %spotifySize%
+		
+		Gui, overlaySettings: Add, Text, x112 y199 w90 h20, Primärfarbe:
+		Gui, overlaySettings: Add, Edit, x202 y199 w90 h20 vspotifyColor, %spotifyColor%
+		
+		Gui, overlaySettings: Add, Text, x112 y229 w90 h20, Songfarbe:
+		Gui, overlaySettings: Add, Edit, x202 y229 w90 h20 vspotifySongColor, %spotifySongColor%
+	}
+	
+	Gui, overlaySettings: Add, GroupBox, x312 y9 w290 h250, Ping/FPS  Overlay
+	{
+		Gui, overlaySettings: Add, Text, x322 y29 w110 h20, aktivieren?
+		Gui, overlaySettings: Add, CheckBox, x432 y29 w20 h20 vpingOv checked%pingOv%,
+		
+		Gui, overlaySettings: Add, Text, x322 y49 w140 h20, Koordinaten:
+		Gui, overlaySettings: Add, Text, x462 y49 w40 h20, X:
+		Gui, overlaySettings: Add, Text, x462 y79 w40 h20, Y:
+		Gui, overlaySettings: Add, Edit, x502 y49 w90 h20 vpingXPos, %pingXPos%
+		Gui, overlaySettings: Add, Edit, x502 y79 w90 h20 vpingYPos, %pingYPos%
+		
+		Gui, overlaySettings: Add, Text, x322 y79 w100 h20, Fett:
+		Gui, overlaySettings: Add, CheckBox, x422 y79 w20 h20 vpingBold checked%pingBold%, 
+		
+		Gui, overlaySettings: Add, Text, x322 y109 w100 h20, Kursiv:
+		Gui, overlaySettings: Add, CheckBox, x422 y109 w20 h20 vpingItal checked%pingItal%, 
+		
+		Gui, overlaySettings: Add, Text, x462 y109 w110 h20, Farbe an:
+		Gui, overlaySettings: Add, CheckBox, x572 y109 w20 h20 vpingColorOn checked%pingColorOn%,
+		
+		Gui, overlaySettings: Add, Text, x412 y139 w90 h20, Font:
+		Gui, overlaySettings: Add, Edit, x502 y139 w90 h20 vpingFont, %pingFont%
+		
+		Gui, overlaySettings: Add, Text, x412 y169 w90 h20, Fontgröße:
+		Gui, overlaySettings: Add, Edit, x502 y169 w90 h20 vpingSize, %pingSize%
+		
+		Gui, overlaySettings: Add, Text, x412 y199 w90 h20, Primärfarbe:
+		Gui, overlaySettings: Add, Edit, x502 y199 w90 h20 vpingColor, %pingColor%
+		
+		Gui, overlaySettings: Add, Text, x322 y229 w160 h20, low FPS: rot z.B.:
+		Gui, overlaySettings: Add, CheckBox, x482 y229 w20 h20 vpingAlertColorOn checked%pingAlertColorOn%, 
+	}
+	
+	Gui, overlaySettings: Add, GroupBox, x12 y259 w290 h260, Cooldown Overlay
+	{
+		Gui, overlaySettings: Add, Text, x22 y279 w110 h20, aktivieren?
+		Gui, overlaySettings: Add, CheckBox, x132 y279 w20 h20 vcooldownOv checked%cooldownOv% 
+		
+		Gui, overlaySettings: Add, Text, x22 y299 w140 h20, Koordinaten:
+		Gui, overlaySettings: Add, Text, x162 y299 w40 h20, X:
+		Gui, overlaySettings: Add, Text, x162 y329 w40 h20, Y:
+
+		Gui, overlaySettings: Add, Edit, x202 y299 w90 h20 vcooldownXPos, %cooldownXPos%
+		Gui, overlaySettings: Add, Edit, x202 y329 w90 h20 vcooldownYPos, %cooldownYPos%
+		
+		Gui, overlaySettings: Add, Text, x22 y329 w100 h20, Fett:
+		Gui, overlaySettings: Add, CheckBox, x122 y329 w20 h20 vcooldownBold checked%cooldownBold%, 
+		
+		Gui, overlaySettings: Add, Text, x22 y359 w100 h20, Kursiv:
+		Gui, overlaySettings: Add, CheckBox, x122 y359 w20 h20 vcooldownItal checked%cooldownItal%, 
+		
+		Gui, overlaySettings: Add, Text, x162 y359 w110 h20, Farbe an:
+		Gui, overlaySettings: Add, CheckBox, x272 y359 w20 h20 vcooldownColorOn checked%cooldownColorOn%, 
+		
+		Gui, overlaySettings: Add, Text, x112 y389 w90 h20, Font:
+		Gui, overlaySettings: Add, Edit, x202 y389 w90 h20 vcooldownFont, %cooldownFont%
+		
+		Gui, overlaySettings: Add, Text, x112 y419 w90 h20, Fontgröße:
+		Gui, overlaySettings: Add, Edit, x202 y419 w90 h20 vcooldownSize, %cooldownSize%
+		
+		Gui, overlaySettings: Add, Text, x112 y449 w90 h20, Farbe:
+		Gui, overlaySettings: Add, Edit, x202 y449 w90 h20 vcooldownColor, %cooldownColor%
+	}
+	
+	Gui, overlaySettings: Add, GroupBox, x312 y259 w290 h260, Info Overlay
+	{
+		Gui, overlaySettings: Add, Text, x322 y279 w110 h20, aktivieren?
+		Gui, overlaySettings: Add, CheckBox, x432 y279 w20 h20 vinfoOv checked%infoOv%, 
+		
+		Gui, overlaySettings: Add, CheckBox, x322 y309 w110 h20 vinfoPhone checked%infoPhone%, Handy-Status:
+		Gui, overlaySettings: Add, Text, x442 y309 w20 h20, X:
+		Gui, overlaySettings: Add, Edit, x462 y309 w50 h20 vinfoPhoneX, %infoPhoneX%
+		Gui, overlaySettings: Add, Text, x522 y309 w20 h20, Y:
+		Gui, overlaySettings: Add, Edit, x542 y309 w50 h20 vinfoPhoneY, %infoPhoneY%
+		
+		Gui, overlaySettings: Add, CheckBox, x322 y339 w110 h20 vinfoFirstaid checked%infoFirstaid%, Erste-Hilfe:
+		Gui, overlaySettings: Add, Text, x442 y339 w20 h20, X:
+		Gui, overlaySettings: Add, Edit, x462 y339 w50 h20 vinfoFirstaidX, %infoFirstaidX%
+		Gui, overlaySettings: Add, Text, x522 y339 w20 h20, Y:
+		Gui, overlaySettings: Add, Edit, x542 y339 w50 h20 vinfoFirstaidY, %infoFirstaidY%
+		
+		Gui, overlaySettings: Add, CheckBox, x322 y369 w110 h20 vinfoCampfire checked%infoCampfire%, Lagerfeuer:
+		Gui, overlaySettings: Add, Text, x442 y369 w20 h20, X:
+		Gui, overlaySettings: Add, Edit, x462 y369 w50 h20 vinfoCampfireX, %infoCampfireX%
+		Gui, overlaySettings: Add, Text, x522 y369 w20 h20, Y:
+		Gui, overlaySettings: Add, Edit, x542 y369 w50 h20 vinfoCampfireY, %infoCampfireY%
+		
+		Gui, overlaySettings: Add, CheckBox, x322 y399 w110 h20 vinfoCanister checked%infoCanister%, Kanister:
+		Gui, overlaySettings: Add, Text, x442 y399 w20 h20, X:
+		Gui, overlaySettings: Add, Edit, x462 y399 w50 h20 vinfoCanisterX, %infoCanisterX%
+		Gui, overlaySettings: Add, Text, x522 y399 w20 h20, Y:
+		Gui, overlaySettings: Add, Edit, x542 y399 w50 h20 vinfoCanisterY, %infoCanisterY%
+		
+		Gui, overlaySettings: Add, CheckBox, x322 y429 w110 h20 vinfoDrugs checked%infoDrugs%, Drogen:
+		Gui, overlaySettings: Add, Text, x442 y429 w20 h20, X:
+		Gui, overlaySettings: Add, Edit, x462 y429 w50 h20 vinfoDrugsX, %infoDrugsX%
+		Gui, overlaySettings: Add, Text, x522 y429 w20 h20, Y:
+		Gui, overlaySettings: Add, Edit, x542 y429 w50 h20 vinfoDrugsY, %infoDrugsY%
+		
+		Gui, overlaySettings: Add, CheckBox, x322 y459 w110 h20 vinfoFishUncooked checked%infoFishUncooked%, Fische (Roh):
+		Gui, overlaySettings: Add, Text, x442 y459 w20 h20, X:
+		Gui, overlaySettings: Add, Edit, x462 y459 w50 h20 vinfoFishUncookedX, %infoFishUncookedX%
+		Gui, overlaySettings: Add, Text, x522 y459 w20 h20, Y:
+		Gui, overlaySettings: Add, Edit, x542 y459 w50 h20 vinfoFishUncookedY, %infoFishUncookedY%
+		
+		Gui, overlaySettings: Add, CheckBox, x322 y489 w110 h20 vinfoFishCooked checked%infoFishCooked%, Fische:
+		Gui, overlaySettings: Add, Text, x442 y489 w20 h20, X:
+		Gui, overlaySettings: Add, Edit, x462 y489 w50 h20 vinfoFishCookedX, %infoFishCookedX%
+		Gui, overlaySettings: Add, Text, x522 y489 w20 h20, Y:
+		Gui, overlaySettings: Add, Edit, x542 y489 w50 h20 vinfoFishCookedY, %infoFishCookedY%
+	}
+
+	Gui, overlaySettings: Add, GroupBox, x12 y519 w290 h250, Alarm Overlay
+	{
+		Gui, overlaySettings: Add, Text, x22 y539 w110 h20, aktivieren?
+		Gui, overlaySettings: Add, CheckBox, x132 y539 w20 h20 valertOv checked%alertOv%, 
+		
+		Gui, overlaySettings: Add, Text, x22 y559 w140 h20 , Koordinaten:
+		Gui, overlaySettings: Add, Text, x162 y559 w40 h20 , X:
+		Gui, overlaySettings: Add, Text, x162 y589 w40 h20 , Y:
+		Gui, overlaySettings: Add, Edit, x202 y559 w90 h20 valertXPos, %alertXPos%
+		Gui, overlaySettings: Add, Edit, x202 y589 w90 h20 valertYPos, %alertYPos%
+		
+		Gui, overlaySettings: Add, Text, x22 y589 w100 h20, Fett:
+		Gui, overlaySettings: Add, CheckBox, x122 y589 w20 h20 valertBold checked%alertBold%, 
+		
+		Gui, overlaySettings: Add, Text, x22 y619 w100 h20, Kursiv:
+		Gui, overlaySettings: Add, CheckBox, x122 y619 w20 h20 valertItal checked%alertItal%, 
+
+		Gui, overlaySettings: Add, Text, x112 y649 w90 h20, Font:
+		Gui, overlaySettings: Add, Edit, x202 y649 w90 h20 valertFont, %alertFont%
+		
+		Gui, overlaySettings: Add, Text, x112 y679 w90 h20, Fontgröße:
+		Gui, overlaySettings: Add, Edit, x202 y679 w90 h20 valertSize, %alertSize%
+	}
+	
+	Gui, overlaySettings: Add, Button, x472 y719 w130 h40 goverlaySettingsClose, Schließen
+	Gui, overlaySettings: Show, w620 h792, %keybinder% - Overlay - Version: %currentVersion%
+}
+return
+
+overlaySettingsClose:
+{
+	Gui, overlaySettings: Submit, NoHide
+	
+	IniWrite, % spotifyOv, ini/settings.ini, overlay, spotifyOv
+	IniWrite, % spotifyXPos, ini/settings.ini, Overlay, spotifyXPos
+	IniWrite, % spotifyYPos, ini/settings.ini, Overlay, spotifyYPos
+	IniWrite, % spotifyBold, ini/settings.ini, Overlay, spotifyBold
+	IniWrite, % spotifyItal, ini/settings.ini, Overlay, spotifyItal
+	IniWrite, % spotifyFont, ini/settings.ini, Overlay, spotifyFont
+	IniWrite, % spotifySize, ini/settings.ini, Overlay, spotifySize
+	IniWrite, % spotifyColor, ini/settings.ini, Overlay, spotifyColor
+	IniWrite, % spotifyColorOn, ini/settings.ini, Overlay, spotifyColorOn
+	IniWrite, % spotifySongColor, ini/settings.ini, Overlay, spotifySongColor
+	
+	IniWrite, % pingOv, ini/settings.ini, overlay, pingOv
+	IniWrite, % pingFont, ini/settings.ini, Overlay, pingFont
+	IniWrite, % pingSize, ini/settings.ini, Overlay, pingSize
+	IniWrite, % pingBold, ini/settings.ini, Overlay, pingBold
+	IniWrite, % pingItal, ini/settings.ini, Overlay, pingItal
+	IniWrite, % pingXPos, ini/settings.ini, Overlay, pingXPos
+	IniWrite, % pingYPos, ini/settings.ini, Overlay, pingYPos
+	IniWrite, % pingColorOn, ini/settings.ini, Overlay, pingColorOn
+	IniWrite, % pingAlertColorOn, ini/settings.ini, Overlay, pingAlertColorOn
+	IniWrite, % pingColor, ini/settings.ini, Overlay, pingColor		
+	
+	IniWrite, % cooldownOv, ini/settings.ini, overlay, cooldownOv	
+	IniWrite, % cooldownFont, ini/settings.ini, Overlay, cooldownFont
+	IniWrite, % cooldownSize, ini/settings.ini, Overlay, cooldownSize
+	IniWrite, % cooldownBold, ini/settings.ini, Overlay, cooldownBold
+	IniWrite, % cooldownItal, ini/settings.ini, Overlay, cooldownItal
+	IniWrite, % cooldownXPos, ini/settings.ini, Overlay, cooldownXPos
+	IniWrite, % cooldownYPos, ini/settings.ini, Overlay, cooldownYPos
+	IniWrite, % cooldownColorOn, ini/settings.ini, Overlay, cooldownColorOn
+	IniWrite, % cooldownColor, ini/settings.ini, Overlay, cooldownColor
+
+	IniWrite, % cooldownBoxOv, ini/settings.ini, Overlay, cooldownBoxOv
+	IniWrite, % cooldownBoxX, ini/settings.ini, Overlay, cooldownBoxX
+	IniWrite, % cooldownBoxY, ini/settings.ini, Overlay, cooldownBoxY
+	IniWrite, % cooldownBoxBorderColor, ini/settings.ini, Overlay, cooldownBoxBorderColor		
+	
+	IniWrite, % infoOv, ini/settings.ini, overlay, infoOv
+	IniWrite, % infoPhoneX, ini/settings.ini, overlay, infoPhoneX
+	IniWrite, % infoPhoneY, ini/settings.ini, overlay, infoPhoneY
+	IniWrite, % infoFirstaidX, ini/settings.ini, overlay, infoFirstaidX
+	IniWrite, % infoFirstaidY, ini/settings.ini, overlay, infoFirstaidY
+	IniWrite, % infoCanisterX, ini/settings.ini, overlay, infoCanisterX
+	IniWrite, % infoCanisterY, ini/settings.ini, overlay, infoCanisterY
+	IniWrite, % infoCampfireX, ini/settings.ini, overlay, infoCampfireX
+	IniWrite, % infoCampfireY, ini/settings.ini, overlay, infoCampfireY
+	IniWrite, % infoDrugsX, ini/settings.ini, overlay, infoDrugsX
+	IniWrite, % infoDrugsY, ini/settings.ini, overlay, infoDrugsY
+	IniWrite, % infoFishCookedX, ini/settings.ini, overlay, infoFishCookedX
+	IniWrite, % infoFishCookedY, ini/settings.ini, overlay, infoFishCookedY
+	IniWrite, % infoFishUncookedX, ini/settings.ini, overlay, infoFishUncookedX
+	IniWrite, % infoFishUncookedY, ini/settings.ini, overlay, infoFishUncookedY
+	IniWrite, % infoPhone, ini/settings.ini, overlay, infoPhone
+	IniWrite, % infoFirstaid, ini/settings.ini, overlay, infoFirstaid
+	IniWrite, % infoCanister, ini/settings.ini, overlay, infoCanister
+	IniWrite, % infoCampfire, ini/settings.ini, overlay, infoCampfire
+	IniWrite, % infoDrugs, ini/settings.ini, overlay, infoDrugs
+	IniWrite, % infoFishCooked, ini/settings.ini, overlay, infoFishCooked
+	IniWrite, % infoFishUncooked, ini/settings.ini, overlay, infoFishUncooked	
+	
+	IniWrite, % alertOv, ini/settings.ini, overlay, alertOv
+	IniWrite, % alertXPos, ini/settings.ini, overlay, alertXPos
+	IniWrite, % alertYPos, ini/settings.ini, overlay, alertYPos
+	IniWrite, % alertItal, ini/settings.ini, overlay, alertItal
+	IniWrite, % alertFont, ini/settings.ini, overlay, alertFont
+	IniWrite, % alertSize, ini/settings.ini, overlay, alertSize
+	IniWrite, % alertBold, ini/settings.ini, overlay, alertBold
+	
+	Gui, overlaySettings: Destroy
+	
+	destroyOverlay()
+	reload	
 }
 return
 
@@ -2169,7 +2539,8 @@ HelpGUI:
 /mhelp -> MauMau Hilfen
 
 .:: Overlay ::.
-/ov /overlay -> Overlay an/abschalten
+/ovall -> Alle Overlays an/ausschalten
+/ov /overlay -> Overlay einzeln an/abschalten
 /ovmove /moveov -> Overlay bewegen
 /ovsave /saveov -> Overlay speichern
 /ovedit /editov -> Overlayteile de/aktivieren
@@ -4291,6 +4662,19 @@ motorSystemLabel:
 }
 return
 
+~LButton::
+{
+	if (isBlocked())
+		return	
+	
+	/*
+	if (IsDialogOpen()) {
+		OnDialogResponse()
+	}
+	*/
+}
+return
+
 ~F::
 {
 	if (isBlocked() || tv || getVehicleType() == 6) {
@@ -4913,10 +5297,6 @@ pauseLabel:
 		SetTimer, TimeoutTimer, off
 		SetTimer, SecondTimer, off
 		
-		if (overlay) {
-			SetTimer, startOverlay, off
-		}
-		
 		if (taskInfo) {
 			SetTimer, TaskCheckTimer, off
 		}
@@ -4954,10 +5334,6 @@ pauseLabel:
 		SetTimer, TimeoutTimer, 1000
 		SetTimer, SecondTimer, 1000
 		
-		if (overlay) {
-			SetTimer, startOverlay, 2500
-		}
-		
 		if (taskInfo) {
 			SetTimer, TaskCheckTimer, 5000
 		}
@@ -4988,6 +5364,54 @@ pauseLabel:
 	}
 return
 
+:?:/trash::
+:?:/trashs::
+SendInput, {Enter}
+{
+
+	dialog := ""
+	coords := getCoordinates()
+	
+	i := trashcan.MaxIndex()
+	j := 0
+	
+	while (i > 1) {
+		i := i - 1
+		j := 0
+		
+		while (j < i) {
+			j := j + 1
+		
+			if (Floor(GetDist(coords, trashcan[j])) > Floor(GetDist(coords, trashcan[j + 1]))) {
+				temp := trashcan[j]
+				trashcan[j] := trashcan[j + 1]
+				trashcan[j + 1] := temp
+			}
+		}
+	}
+	
+	Loop % trashcan.MaxIndex() {
+		if (trashcan[A_Index][5] == -1) {
+			temp := "{C3C3C3}Unbekannt"
+		} else {
+			min := Floor(trashcan[A_Index][5] / 60)
+			sec := mod(trashcan[A_Index][5], 60)
+			
+			if(min > 9) {
+				temp := "{FF0000}" min "min, " sec "s"
+			} else if(min > 0) {
+				temp := "{FFEE00}" min "min, " sec "s"
+			} else if(min==0) {
+				temp := "{00FF00}Frei"
+			}
+		}
+		
+		dialog .=  trashcan[A_Index][6] "`t" trashcan[A_Index][4] "`t" temp "`t" Floor(getDist(coords, trashcan[A_Index])) "m`n"
+	}
+	
+	ShowDialog(5, "Übersicht der Mülltonnen", "ID`tOrt`tStatus`tEntfernung`n" dialog, "Markieren", "Abbrechen")
+}
+return
 
 :?:/stats::
 {
@@ -5050,23 +5474,125 @@ return
 
 :?:/ov::
 :?:/overlay::
-SendInput, {Enter}
 {
-	if (!overlay) {
-		SendInfo("Das Overlay ist " . cRed . "ausgeschaltet" . cWhite . ".")
-	} else {
-		if (startOverlay) {
-			startOverlay := false 
+	if (ovMoveMode) {
+		SendError("Diese Funktion ist während des Overlaysverschiebens deaktiviert.")
+		return
+	}
+	
+	SendInfo(cSecond . "1" . cWhite . ": Spotify Overlay " . cOrange . "|" . cSecond . " 2" . cWhite . ": Cooldown Overlay")
+	SendInfo(cSecond . "3" . cWhite . ": Ping/FPS Overlay " . cOrange . "|" . cSecond . " 4" . cWhite . ": Info Overlay")
+	SendInfo(cSecond . "5" . cWhite . ": Alarm Overlay")
+	
+	overlayInput := PlayerInput("Overlay de-/aktivieren: ")
+	if (overlayInput == 1) {
+		if (spotifyOvEnabled) {
+			ov_Spotify(0)
 			
-			SendInfo("Das Overlay wurde " . cRed . "deaktiviert" . cWhite . ".")
-			destroyOverlay()
+			spotifyOvEnabled := false
+			
+			SetTimer, SpotifyOverlayTimer, off
+			SendInfo("Spotify Overlay " . cRed . "deaktiviert" . cWhite . ".")
 		} else {
-			startOverlay := true
-		
-			SendInfo("Das Overlay wurde " . cGreen . "aktiviert" . cWhite . ".")
-			destroyOverlay()
-			SetTimer, createOverlay, -1
+			ov_Spotify()
+			
+			spotifyOvEnabled := true
+			
+			SendInfo("Spotify Overlay " . cGreen . "aktiviert" . cWhite . ".")
 		}
+	} else if (overlayInput == 2) {
+		if (cooldownOvEnabled) {			
+			ov_Cooldown(0)
+			
+			cooldownOvEnabled := false
+
+			SetTimer, CooldownOverlayTimer, Off
+			SendInfo("Cooldown Overlay " . cRed . "deaktiviert" . cWhite . ".")
+		} else {
+			ov_Cooldown()
+			
+			cooldownOvEnabled := true
+			
+			SendInfo("Cooldown Overlay " . cGreen . "aktiviert" . cWhite . ".")
+		}
+	} else if (overlayInput == 3) {
+		if (pingOvEnabled) {			
+			ov_Ping(0)
+			
+			pingOvEnabled := false
+
+			SetTimer, PingOverlayTimer, Off
+			SendInfo("FPS/Ping Overlay " . cRed . "deaktiviert" . cWhite . ".")
+		} else {
+			ov_Ping()
+			
+			pingOvEnabled := true
+			
+			SendInfo("FPS/Ping Overlay " . cGreen . "aktiviert" . cWhite . ".")
+		}
+	} else if (overlayInput == 4) {
+		if (infoOvEnabled) {			
+			ov_Info(0)
+			
+			infoOvEnabled := false
+
+			SendInfo("Informations Overlay " . cRed . "deaktiviert" . cWhite . ".")
+		} else {
+			ov_Info()
+			
+			infoOvEnabled := true
+			
+			SendInfo("Informations Overlay " . cGreen . "aktiviert" . cWhite . ".")
+		}
+	} else if (overlayInput == 5) {
+		if (alertOvEnabled) {			
+			ov_Alert(0)
+			
+			alertOvEnabled := false
+
+			SetTimer, AlertOverlayTimer, Off
+			SendInfo("Alarm Overlay " . cRed . "deaktiviert" . cWhite . ".")
+		} else {
+			ov_Alert()
+			
+			alertOvEnabled := true
+			
+			SendInfo("Alarm Overlay " . cGreen . "aktiviert" . cWhite . ".")
+		}
+	}
+}
+return
+
+:?:/ovall::
+{	
+	if (overlayEnabled) {
+		overlayEnabled := false
+		
+		spotifyOvEnabled := false
+		cooldownOvEnabled := false
+		pingOvEnabled := false
+		infoOvEnabled := false
+		alertOvEnabled := false
+		
+		destroyOverlay()
+		
+		SendInfo("Das Overlay wurde " . cRed . "deaktiviert" . cWhite . ".")
+	} else {
+		overlayEnabled := true
+	
+		spotifyOvEnabled := true
+		cooldownOvEnabled := true
+		pingOvEnabled := true
+		infoOvEnabled := true
+		alertOvEnabled := true
+		
+		ov_Spotify()
+		ov_Cooldown()
+		ov_Ping()
+		ov_Info()
+		ov_Alert()
+		
+		SendInfo("Das Overlay wurde " . cGreen . "aktiviert" . cWhite . ".")
 	}
 }
 return
@@ -5074,145 +5600,115 @@ return
 :?:/moveov::
 :?:/ovmove::
 {
-	if (!startOverlay) {
-		SendInfo("Du musst das Overlay anschalten (/(ov)erlay)")
-		return 
-	}	
-	
 	if (ovMoveMode) {
 		ovMoveMode := 0
+		
 		SendInfo("Das Verschieben des Overlays wurde " . cRed . "beendet" . cWhite . ".")
+		SendInfo("Nutze " . cOrange . "/osave" . cWhite . " zum speichern.")
 	} else {
-		SendInfo("1: " . cSecond . "Spotify Overlay" . cWhite . " | 2: " . cSecond . "Cooldown Overlay")
-		SendInfo("3: " . cSecond . "Ausbruch Overlay" . cWhite . " | 4: " . cSecond . "FPS und Ping Overlay")
-		SendInfo("5: " . cSecond . "Info Overlay")
+		SendInfo(cSecond . "1" . cWhite . ": Spotify Overlay " . cOrange . "|" . cSecond . " 2" . cWhite . ": Cooldown Overlay")
+		SendInfo(cSecond . "3" . cWhite . ": Alarm Overlay " . cOrange . "|" . cSecond . " 4" . cWhite . ": Ping / FPS Overlay")
+		SendInfo(cSecond . "5" . cWhite . ": Info Overlay")
 	
 		overlayInput := PlayerInput("Overlay-ID: ")
-		
 		if (overlayInput == 1) {
-			if (spotifyOv) {
+			if (spotifyOvEnabled) {
 				ovMoveMode := 1
 				
 				SendInfo("Das Verschieben des Spotify Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
-				SendClientMessage("")
-				SendInfo("Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
-				SendInfo("Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")
-				
-				if (!isPlayerInAnyVehicle()) {
-					SendChat("/lay")
-				}
+				SendInfo("Verschieben: " . cOrange . "Pfeiltasten" . cWhite . ", Speichern: " . cOrange . "/osave")
 			} else {
-				SendInfo("Das Spotify Overlay muss in den Einstellungen aktiviert sein.")
+				SendError("Das Spotify Overlay muss aktiviert sein.")
 			}
 		} else if (overlayInput == 2) {
-			if (cooldownOv) {
+			if (cooldownOvEnabled) {
 				ovMoveMode := 2
 				
 				SendInfo("Das Verschieben des Cooldown Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
-				SendClientMessage("")
-				SendInfo("Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
-				SendInfo("Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")
-				
-				if (!isPlayerInAnyVehicle()) {
-					SendChat("/lay")
-				}				
+				SendInfo("Verschieben: " . cOrange . "Pfeiltasten" . cWhite . ", Speichern: " . cOrange . "/osave")			
 			} else {
-				SendInfo("Das Cooldown Overlay muss in den Einstellungen aktiviert sein.")
+				SendError("Das Cooldown Overlay muss aktiviert sein.")
 			}
 		} else if (overlayInput == 3) {
-			if (alertOv) {
+			if (alertOvEnabled) {
 				ovMoveMode := 3
 				
 				SendInfo("Das Verschieben des Alarm Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
-				SendClientMessage("")
-				SendInfo("Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
-				SendInfo("Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")
-				
-				if (!isPlayerInAnyVehicle()) {
-					SendChat("/lay")
-				}				
+				SendInfo("Verschieben: " . cOrange . "Pfeiltasten" . cWhite . ", Speichern: " . cOrange . "/osave")	
 			} else {
-				SendInfo("Das Ausbruch Overlay muss in den Einstellungen aktiviert sein.")
+				SendError("Das Gegner Overlay muss aktiviert sein.")
 			}
 		} else if (overlayInput == 4) {
-			if (spotifyOv) {
+			if (pingOvEnabled) {
 				ovMoveMode := 4
 				
 				SendInfo("Das Verschieben des FPS/Ping Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
-				SendClientMessage("")
-				SendInfo("Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
-				SendInfo("Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")
-				
-				if (!isPlayerInAnyVehicle()) {
-					SendChat("/lay")
-				}
+				SendInfo("Verschieben: " . cOrange . "Pfeiltasten" . cWhite . ", Speichern: " . cOrange . "/osave")	
 			} else {
-				SendInfo("Das FPS/Ping Overlay muss in den Einstellungen aktiviert sein.")
+				SendError("Das FPS/Ping Overlay muss aktiviert sein.")
 			}
 		} else if (overlayInput == 5) {
-			if (infoOv) {
-				SendInfo("1: Telefon Overlay, 2: Erste-Hilfe Overlay, 3: Kanister Overlay")
-				SendInfo("4: Gekochte Fische Overlay, 5: Ungekochte Fische Overlay, 6: Lagerfeuer Overlay")
-				
+			if (infoOvEnabled) {
+				SendInfo("Folgende Sub-Overlays sind verfügbar zum bewegen:")
+				SendInfo(cSecond . "1:" . cWhite . "Telefon-Status")
+				SendInfo(cSecond . "2:" . cWhite . "Erste-Hilfe-Paket")
+				SendInfo(cSecond . "3:" . cWhite . "Kanister (nur im Fahrzeug)")
+				SendInfo(cSecond . "4:" . cWhite . "Gekochte Fische")
+				SendInfo(cSecond . "5:" . cWhite . "Ungekochte Fische")
+				SendInfo(cSecond . "6:" . cWhite . "Lagerfeuer")
+				SendInfo(cSecond . "7:" . cWhite . "Drogen")
+
 				typ := PlayerInput("Typ: ")
 				if (typ == 1) {
 					ovMoveMode := 5
 					
 					SendInfo("Das Verschieben des Handy Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
-					SendClientMessage("")
-					SendInfo("Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
-					SendInfo("Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")
-					
-					if (!isPlayerInAnyVehicle()) {
-						SendChat("/lay")
-					}	
+					SendInfo("Verschieben: " . cOrange . "Pfeiltasten" . cWhite . ", Speichern: " . cOrange . "/osave")	
 				} else if (typ == 2) {
 					ovMoveMode := 6
 					
 					SendInfo("Das Verschieben des Erste-Hilfe Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
-					SendClientMessage("")
-					SendInfo("Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
-					SendInfo("Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")
+					SendInfo("Verschieben: " . cOrange . "Pfeiltasten" . cWhite . ", Speichern: " . cOrange . "/osave")	
 				} else if (typ == 3) {
 					ovMoveMode := 7
 					
 					SendInfo("Das Verschieben des Kanister Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
-					SendClientMessage("")
-					SendInfo("Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
-					SendInfo("Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")			
+					SendInfo("Verschieben: " . cOrange . "Pfeiltasten" . cWhite . ", Speichern: " . cOrange . "/osave")				
 				} else if (typ == 4) {
 					ovMoveMode := 8
 					
 					SendInfo("Das Verschieben des Gekochten Fische Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
-					SendClientMessage("")
-					SendInfo("Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
-					SendInfo("Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")	
+					SendInfo("Verschieben: " . cOrange . "Pfeiltasten" . cWhite . ", Speichern: " . cOrange . "/osave")	
 				} else if (typ == 5) {
 					ovMoveMode := 9
 					
 					SendInfo("Das Verschieben des Ungekochten Fische Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
-					SendClientMessage("")
-					SendInfo("Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
-					SendInfo("Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")		
+					SendInfo("Verschieben: " . cOrange . "Pfeiltasten" . cWhite . ", Speichern: " . cOrange . "/osave")		
 				} else if (typ == 6) {
 					ovMoveMode := 10
 					
 					SendInfo("Das Verschieben des Lagerfeuer Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
-					SendClientMessage("")
-					SendInfo("Das Overlay kann  mit den Pfeiltasten /unten Rechts) verschoben werden.")
-					SendInfo("Wenn du fertig bist, verwende '" . cSecond . "/ovsave" . cWhite . "'ein, um die Position zu speichern.")		
+					SendInfo("Verschieben: " . cOrange . "Pfeiltasten" . cWhite . ", Speichern: " . cOrange . "/osave")	
+				} else if (typ == 7) {
+					ovMoveMode := 11
+					
+					SendInfo("Das Verschieben des Drogen Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
+					SendInfo("Verschieben: " . cOrange . "Pfeiltasten" . cWhite . ", Speichern: " . cOrange . "/osave")						
 				} else {
-					SendInfo("1: Telefon Overlay, 2: Erste-Hilfe Overlay, 3: Kanister Overlay")
-					SendInfo("4: Gekochte Fische Overlay, 5: Ungekochte Fische Overlay, 6: Lagerfeuer Overlay")
-				}
-				
-				if (!isPlayerInAnyVehicle()) {
-					SendChat("/lay")
-				}				
+					SendInfo("Folgende Sub-Overlays sind verfügbar zum bewegen:")
+					SendInfo(cSecond . "1:" . cWhite . "Telefon-Status")
+					SendInfo(cSecond . "2:" . cWhite . "Erste-Hilfe-Paket")
+					SendInfo(cSecond . "3:" . cWhite . "Kanister (nur im Fahrzeug)")
+					SendInfo(cSecond . "4:" . cWhite . "Gekochte Fische")
+					SendInfo(cSecond . "5:" . cWhite . "Ungekochte Fische")
+					SendInfo(cSecond . "6:" . cWhite . "Lagerfeuer")
+					SendInfo(cSecond . "7:" . cWhite . "Drogen")
+					return
+				}			
 			} else {
-				SendInfo("Das Info Overlay muss in den Einstellungen aktiviert sein.")
+				SendError("Das Info Overlay muss aktiviert sein.")
 			}
-		} 
+		}
 	}
 }
 return
@@ -5220,11 +5716,6 @@ return
 :?:/ovsave::
 :?:/saveov::
 {
-	if (!startOverlay) {
-		SendInfo("Du musst das Overlay anschalten (/(ov)erlay)")
-		return 
-	}
-	
 	if (ovMoveMode == 1) {
 		IniWrite, % spotifyXPos, ini/settings.ini, Overlay, spotifyXPos
 		IniWrite, % spotifyYPos, ini/settings.ini, Overlay, spotifyYPos
@@ -5234,202 +5725,66 @@ return
 	} else if (ovMoveMode == 2) {
 		IniWrite, % cooldownXPos, ini/settings.ini, Overlay, cooldownXPos
 		IniWrite, % cooldownYPos, ini/settings.ini, Overlay, cooldownYPos
-		IniWrite, % cooldownBoxX, ini/settings.ini, Overlay, cooldownBoxX
-		IniWrite, % cooldownBoxY, ini/settings.ini, Overlay, cooldownBoxY
 		
 		ovMoveMode := 0
 		SendInfo("Die Position des Cooldown Overlays wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
 	} else if (ovMoveMode == 3) {
-		IniWrite, % alertXPos, ini/settings.ini, Overlay, alertXPos
-		IniWrite, % alertYPos, ini/settings.ini, Overlay, alertYPos
-
-		ovMoveMode := 0
-		SendInfo("Die Position des Alarm Overlays wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
-	} else if (ovMoveMode == 4) {
 		IniWrite, % pingXPos, ini/settings.ini, Overlay, pingXPos
 		IniWrite, % pingYPos, ini/settings.ini, Overlay, pingYPos
 
 		ovMoveMode := 0
 		SendInfo("Die Position des FPS/Ping Overlays wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
-	} else if (ovMoveMode == 5) {
+	} else if (ovMoveMode == 4) {
 		IniWrite, % infoPhoneX, ini/settings.ini, overlay, infoPhoneX
 		IniWrite, % infoPhoneY, ini/settings.ini, overlay, infoPhoneY
 		
 		ovMoveMode := 0
 		SendInfo("Die Position der Handy Info wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")		
-	} else if (ovMoveMode == 6) {
+	} else if (ovMoveMode == 5) {
 		IniWrite, % infoFirstaidX, ini/settings.ini, overlay, infoFirstaidX
 		IniWrite, % infoFirstaidY, ini/settings.ini, overlay, infoFirstaidY
 		
 		ovMoveMode := 0
-		SendInfo("Die Position der Erste-Hilfe Info wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")	
-	} else if (ovMoveMode == 7) {
+		SendInfo("Die Position des Erste-Hilfe-Pakets wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")	
+	} else if (ovMoveMode == 6) {
 		IniWrite, % infoCanisterX, ini/settings.ini, overlay, infoCanisterX
 		IniWrite, % infoCanisterY, ini/settings.ini, overlay, infoCanisterY
 		
 		ovMoveMode := 0
-		SendInfo("Die Position der Gekochen Fische wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
-	} else if (ovMoveMode == 8) {
+		SendInfo("Die Position des Kanister wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
+	} else if (ovMoveMode == 7) {
 		IniWrite, % infoFishCookedX, ini/settings.ini, overlay, infoFishCookedX
 		IniWrite, % infoFishCookedY, ini/settings.ini, overlay, infoFishCookedY
 		
 		ovMoveMode := 0
-		SendInfo("Die Position der Ungekochten Fische wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")		
-	} else if (ovMoveMode == 9) {
+		SendInfo("Die Position der gekochten Fische wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")		
+	} else if (ovMoveMode == 8) {
 		IniWrite, % infoFishUncookedX, ini/settings.ini, overlay, infoFishUncookedX
 		IniWrite, % infoFishUncookedY, ini/settings.ini, overlay, infoFishUncookedY
 		
 		ovMoveMode := 0
-		SendInfo("Die Position der Kanister Info wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")		
-	} else if (ovMoveMode == 10) {
+		SendInfo("Die Position der ungekochten Fisch Info wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")	
+	} else if (ovMoveMode == 9) {
 		IniWrite, % infoCampfireX, ini/settings.ini, overlay, infoCampfireX
 		IniWrite, % infoCampfireY, ini/settings.ini, overlay, infoCampfireY
 		
 		ovMoveMode := 0
-		SendInfo("Die Position des Lagerfeuers wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")		
-	} else if (ovMoveMode == 11) {
+		SendInfo("Die Position des Lagerfeuers wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
+	} else if (ovMoveMode == 10) {
 		IniWrite, % infoDrugsX, ini/settings.ini, overlay, infoDrugsX
 		IniWrite, % infoDrugsY, ini/settings.ini, overlay, infoDrugsY
 		
 		ovMoveMode := 0
-		SendInfo("Die Position der Drogen wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")	
+		SendInfo("Die Position der Drogen wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
+	} else if (ovMoveMode == 11) {
+		IniWrite, % alertXPos, ini/settings.ini, overlay, alertXPos
+		IniWrite, % alertYPos, ini/settings.ini, overlay, alertYPos
+		
+		ovMoveMode := 0
+		SendInfo("Die Position des Alarm Overlays wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
 	} else {
-		SendInfo("Der Overlay-Move Modus ist nicht aktiviert.")
-		return
+		SendError("Der Overlay-Move Modus ist nicht aktiviert.")
 	}
-	
-	startOverlay := true
-	destroyOverlay()
-	SetTimer, createOverlay, -1	
-}
-return
-
-:?:/editov::
-:?:/ovedit::
-{
-	SendInfo("1: " . cSecond . "Spotify Overlay" . cWhite . " | 2: " . cSecond . "Cooldown Overlay")
-	SendInfo("3: " . cSecond . "Ausbruch Overlay" . cWhite . " | 4: " . cSecond . "FPS und Ping Overlay")
-	SendInfo("5: " . cSecond . "Info Overlay")
-		
-	overlayID := PlayerInput("Overlay: ")
-	if (overlayID == "" || overlayID == " ") {
-		return
-	} else if (overlayID < 1 && overlayID > 4) {
-		SendInfo("1: " . cSecond . "Spotify Overlay" . cWhite . " | 2: " . cSecond . "Cooldown Overlay")
-		SendInfo("3: " . cSecond . "Ausbruch Overlay" . cWhite . " | 4: " . cSecond . "FPS und Ping Overlay")
-		SendInfo("5: " . cSecond . "Info Overlay")
-		return
-	}
-	
-	IniRead, cooldownOv, ini/settings.ini, overlay, cooldownOv, 1	
-	IniRead, spotifyOv, ini/settings.ini, overlay, spotifyOv, 1
-	IniRead, alertOv, ini/settings.ini, overlay, alertOv, 1
-	IniRead, pingOv, ini/settings.ini, overlay, pingOv, 1	
-	IniRead, infoOv, ini/settings.ini, overlay, infoOv, 1
-	
-	if (overlayID == 1) {
-		if (spotifyOv) {
-			IniWrite, 0, ini/settings.ini, overlay, spotifyOv
-			SendInfo("Du hast das Spotify-Overlay " . cRed . "deaktiviert" . cWhite . ".")
-			textDestroy(ov_Spotify)
-		} else {
-			IniWrite, 1, ini/settings.ini, overlay, spotifyOv
-			SendInfo("Du hast das Spotify-Overlay " . cGreen . "aktiviert" . cWhite . ".")
-		}
-	} else if (overlayID == 2) {
-		SendInfo("1: Cooldown Text, 2: Cooldown Box")
-		
-		type := PlayerInput("Typ: ")
-		if (type == 1) {
-			if (cooldownOv) {
-				IniWrite, 0, ini/settings.ini, overlay, cooldownOv
-				SendInfo("Du hast das Cooldown-Overlay " . cRed . "deaktiviert" . cWhite . ".")
-				textDestroy(ov_Cooldown)
-			} else {
-				IniWrite, 1, ini/settings.ini, overlay, cooldownOv
-				SendInfo("Du hast das Cooldown-Overlay " . cGreen . "aktiviert" . cWhite . ".")
-			}
-		} else if (type == 2) {
-			if (cooldownBoxOv) {
-				IniWrite, 0, ini/settings.ini, overlay, cooldownBoxOv
-				SendInfo("Du hast die Cooldown-Box " . cRed . "deaktiviert" . cWhite . ".")
-				boxDestroy(ov_CooldownBox)
-			} else {
-				IniWrite, 1, ini/settings.ini, overlay, cooldownBoxOv
-				SendInfo("Du hast das Cooldown-Box " . cGreen . "aktiviert" . cWhite . ".")
-			}
-		} else {
-			SendInfo("1: Cooldown Text, 2: Cooldown Box")
-		}
-	} else if (overlayID == 3) {
-		if (alertOv) {
-			IniWrite, 0, ini/settings.ini, overlay, alertOv
-			SendInfo("Du hast das Alarm-Overlay " . cRed . "deaktiviert" . cWhite . ".")
-			textDestroy(ov_Alert)
-		} else {
-			IniWrite, 1, ini/settings.ini, overlay, alertOv
-			SendInfo("Du hast das Alarm-Overlay " . cGreen . "aktiviert" . cWhite . ".")
-		}
-	} else if (overlayID == 4) {
-		if (pingOv) {
-			IniWrite, 0, ini/settings.ini, overlay, pingOv
-			SendInfo("Du hast das Ping-Overlay " . cRed . "deaktiviert" . cWhite . ".")
-			textDestroy(ov_Ping)
-		} else {
-			IniWrite, 1, ini/settings.ini, overlay, pingOv
-			SendInfo("Du hast das Ping-Overlay " . cGreen . "aktiviert" . cWhite . ".")
-		}	
-	} else if (overlayID == 5) {
-		if (infoOv) {
-			IniWrite, 0, ini/settings.ini, overlay, infoOv
-			SendInfo("Du hast das Info-Overlay " . cRed . "deaktiviert" . cWhite . ".")
-			imageDestroy(ov_Phone)
-		} else {
-			IniWrite, 1, ini/settings.ini, overlay, infoOv
-			SendInfo("Du hast das Info-Overlay " . cGreen . "aktiviert" . cWhite . ".")
-		}
-	}
-}
-return
-
-:?:/resetovpos::
-{
-	if (!overlay) {
-		SendError("Das Overlay ist abgeschaltet.")
-		return
-	} else if (!startOverlay) {
-		SendError("Das Overlay ist aus.")
-		return
-	}
-	
-	IniWrite, 3, ini/settings.ini, Overlay, spotifyXPos
-	IniWrite, 586, ini/settings.ini, Overlay, spotifyYPos
-	IniWrite, 645, ini/settings.ini, Overlay, cooldownXPos
-	IniWrite, 474, ini/settings.ini, Overlay, cooldownYPos
-	IniWrite, 640, ini/settings.ini, Overlay, cooldownBoxX
-	IniWrite, 470, ini/settings.ini, Overlay, cooldownBoxY
-	IniWrite, 695, ini/settings.ini, Overlay, pingXPos
-	IniWrite, 75, ini/settings.ini, Overlay, pingYPos
-	IniWrite, 26, ini/settings.ini, overlay, infoPhoneX
-	IniWrite, 460, ini/settings.ini, overlay, infoPhoneY
-	IniWrite, 193, ini/settings.ini, overlay, infoFirstaidX
-	IniWrite, 556, ini/settings.ini, overlay, infoFirstaidY
-	IniWrite, 296, ini/settings.ini, overlay, infoCanisterX
-	IniWrite, 518, ini/settings.ini, overlay, infoCanisterY
-	IniWrite, 223, ini/settings.ini, overlay, infoCampfireX
-	IniWrite, 558, ini/settings.ini, overlay, infoCampfireY
-	IniWrite, 253, ini/settings.ini, overlay, infoDrugsX
-	IniWrite, 558, ini/settings.ini, overlay, infoDrugsY
-	IniWrite, 765, ini/settings.ini, overlay, infoFishCookedX
-	IniWrite, 350, ini/settings.ini, overlay, infoFishCookedY
-	IniWrite, 765, ini/settings.ini, overlay, infoFishUncookedX
-	IniWrite, 385, ini/settings.ini, overlay, infoFishUncookedY
-			
-	destroyOverlay()
-	SetTimer, loadOverlay, off
-
-	SetTimer, createOverlay, -1
-	SendInfo("Die Positionen des Overlays wurden resettet.")
 }
 return
 
@@ -6607,7 +6962,9 @@ SendInput, {Enter}
 	
 	; SendClientMessage("Der Leader hat das Upgrade Arrest-Limit aktiviert (noch 11 Stunden und 19 Minuten).")
 	
-	SendClientMessage("Du hast ein Erstehilfe-Paket erworben (-500$).")
+	; SendClientMessage("Du hast ein Erstehilfe-Paket erworben (-500$).")
+	
+	SendChat(getServerName() . ", " . getServerIP() . ", " . getServerPort())
 }
 return
 
@@ -10781,239 +11138,44 @@ HackerFinder:
 	hackerID++
 }
 return
-
-startOverlay:
+/*
+UpdateStatus:
 {
-	if (overlay) {
-		if (!WinExist("GTA:SA:MP")) {
-			return
-		}
-		
-		if (WinActive("GTA:SA:MP")) {
-			startOverlay := true
-		
-			SendInfo("Das Overlay wurde " . cGreen . "aktiviert" . cWhite . ".")
-			SetTimer, createOverlay, -1
-			SetTimer, startOverlay, off
-		} 
-	} else {
-		SetTimer, startOverlay, off
-	}
-}
-return
-
-createOverlay:
-{
-	if (!WinExist("GTA:SA:MP")) {
-		return
-	}
-	
-	destroyAllVisual()
-	
-	IniRead, overlay, ini/settings.ini, settings, overlay, 1
-	IniRead, spotifyOv, ini/settings.ini, overlay, spotifyOv, 1
-	IniRead, cooldownOv, ini/settings.ini, overlay, cooldownOv, 1
-	IniRead, alertOv, ini/settings.ini, overlay, alertOv, 1
-	IniRead, pingOv, ini/settings.ini, overlay, pingOv, 1
-	
-	if (overlay) {
-		if (spotifyOv) {
-			ov_Spotify()
-		}
-		
-		if (pingOv) {
-			ov_Ping()
-		}
-		
-		if (cooldownOv) {
-			ov_Cooldown()
-		}
-		
-		if (alertOv) {
-			ov_Alert()
-		}
-		
-		if (infoOv) {
-			ov_Info()
-		}
-		
-		SetTimer, loadOverlay, 1000
-	} else {
-		SetTimer, createOverlay, off
-	}
-}
-return 
-
-loadOverlay: 
-{		
-    SetParam("use_window", "1")
-    SetParam("window", "GTA:SA:MP")
-	
-    if (!WinExist("GTA:SA:MP") || isPlayerInMenu()) {
-        if (overlay) {
-			if (startOverlay) {
-				destroyOverlay()
-				pauseOverlay := true
-			}
-        }
-    }
-	
-	if (WinActive("GTA:SA:MP")) {
-		if (pauseOverlay) {
-			pauseOverlay := false
-			SetTimer, createOverlay, -1
-		}
-		
-		IniRead, spotifyOv, ini/settings.ini, overlay, spotifyOv, 1
-		IniRead, cooldownOv, ini/settings.ini, overlay, cooldownOv, 1
-		IniRead, alertOv, ini/settings.ini, overlay, alertOv, 1
-		IniRead, pingOv, ini/settings.ini, overlay, pingOv, 1
-	
-		if (pingOv) {	
-			playerFPS := getPlayerFPS()
-			playerPing := getPlayerPingById(getID())
-			
-			if (playerPing < 50) {
-				pColor := cGreen
-			} else if (playerPing >= 50 && playerPing <= 90) {
-				pColor := cOranage
-			} else if (playerPing > 90) {
-				pingColor := cRed
-			}
-			
-			if (playerFPS >= 60) {
-				fColor := cGreen
-			} else if (playerFPS > 30 && playerFPS < 60) {
-				fColor := cOrange
-			} else if (playerFPS < 30) {
-				fColor := cRed
-			}
-			
-			pingString := cWhite . "FPS: " . fColor . playerFPS . cWhite . " | Ping: " . pColor . playerPing
-			
-			textSetString(ov_ping, pingString)
-		}
-
-		if (spotifyOv) {
-			textSetString(ov_spotify, "{FFFFFF}Spotify: " . cgreen . spotifytrack)
-		}
-		
-		if (alertOv) {
-			alertString := ""
-			alertActive := false
-			
-			for index, entry in outbreaks {
-				if (entry["countdown"] > 0) {		
-					alertActive := true
-				}
-			}
-			
-			for index, entry in bankrobs {
-				if (entry["countdown"] > 0) {	
-					alertActive := true
-				}
-			}
-			
-			for index, entry in storerobs {
-				if (entry["countdown"] > 0) {	
-					alertActive := true
-				}
-			}
-			
-			for index, entry in backups {
-				if (entry["countdown"] > 0) {
-					alertActive := true
-				}
-			}
-			
-			if (alertActive) {
-				alertString .= getFractionName() . " - Alarm:`n"
-			}			
-			
-			for index, entry in outbreaks {
-				if (entry["countdown"] > 0) {			
-					alertString .= "[" . entry["time"] . "] Ausbruch " cOrange . entry["count"] . cWhite . ": noch " . cOrange . formatTime(entry["countdown"]) . cWhite . "`n"
-				}
-			}
-			
-			for index, entry in bankrobs {
-				if (entry["countdown"] > 0) {
-					alertString .= "[" . entry["time"] . "] Bankueberfall: noch " . cOrange . formatTime(entry["countdown"]) . cWhite . " in " . cOrange . entry["place"] . cWhite . "`n"
-				}
-			}
-			
-			for index, entry in storerobs {
-				if (entry["countdown"] > 0) {
-					alertString .= "[" . entry["time"] . "] Raubueberfall: noch " . cOrange . formatTime(entry["countdown"]) . cWhite . " in GK " . cOrange . entry["location"] . cWhite . " (" . entry["name"] . " - ID: " . getPlayerIdByName(entry["name"]) . ")`n"
-				}
-			}	
-
-			for index, entry in backups {
-				if (entry["countdown"] > 0) {
-					alertString .= "[" . entry["time"] . "] Backup: noch " . cRed . formatTime(entry["countdown"]) . cWhite . " in " . cRed . entry["place"] . cWhite . " (" . entry["name"] . " - ID: " . getPlayerIdByName(entry["name"]) . ")`n"
-				}
-			}
-			
-			textSetString(ov_Alert, alertString)
-		}
-		
-		if (cooldownOv) {
-			cooldownString := ""
-			cooldownsRunning := false 
-			
-			if (fishcooldown) {
-				cooldownsRunning := true
-				cooldownString .= "Fischen: " . formatTime(fishcooldown) . "`n"
-			}
-			
-			if (pakcooldown) {
-				cooldownsRunning := true
-				cooldownString .= "Erste-Hilfe-Paket: " . formatTime(pakcooldown) . "`n"		
-			}
-			
-			if (healcooldown) {
-				cooldownsRunning := true
-				cooldownString .= "Healen: " . formatTime(healcooldown) . "`n"
-			}
-			
-			if (drugcooldown) {
-				cooldownsRunning := true
-				cooldownString .= "Drogen: " . formatTime(drugcooldown) . "`n"
-			} 
-			
-			if (admincooldown) {
-				cooldownsRunning := true
-				cooldownString .= "Admin-Chat: " . formatTime(admincooldown) . "`n"
-			}
-
-			if (ooccooldown) {
-				cooldownsRunning := true
-				cooldownString .= "OOC-Chat: " . formatTime(ooccooldown) . "`n"
-			} 
-			
-			if (findcooldown) {
-				cooldownsRunning := true
-				cooldownString .= "Find: " . formatTime(findcooldown) . "`n"
-			}
-			
-			if (cooldownBoxOv) {
-				if (cooldownsRunning == true) {
-					boxSetShown(ov_CooldownBox, true)
-					; boxSetHeight(ov_CooldownBox, cooldownBoxHeight)	
-				} else {
-					boxSetShown(ov_CooldownBox, false)
-				}
-			}
-			
-			textSetString(ov_Cooldown, cooldownString)
+	Loop % trashcan.MaxIndex() {
+		if (trashcan[A_Index][5] > 0) {
+			trashcan[A_Index][5]--
 		}
 	}
 }
 return
 
+UpdateRestTimer:
+{
+	UpdateRest()
+}
+return
+
+DoubleClickTimer:
+{
+	doubleClick := false
+	SetTimer, DoubleClickTimer, Off
+}
+return
+
+SpamProtection:
+{
+	spamProtection := false
+	SetTimer, SpamProtection, Off
+}
+return
+*/
 SyncTimer:
 {	
-	if (WinExist("GTA:SA:MP") && WinActive("GTA:SA:MP") && !isPlayerInMenu()) {
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}	
+	
+	if (autoUse) {
 		SendInfo("Das Synchroniseren von Fischen, Paket, Drogen und Lagerfeuer hat begonnen!")
 		SendInfo("Drücke bitte nach den nächsten 2 Sekunden keine Keys und schreibe nichts im Chat!")
 		
@@ -11028,12 +11190,18 @@ SyncTimer:
 		
 		SendClientMessage(prefix . "Das Synchronisieren ist " . cgreen . "abgeschlossen" . cwhite . ".")
 		SetTimer, SyncTimer, 600000
+	} else {
+		SetTimer, SyncTimer, off
 	}
 }
 return
 
 TempoTimer:
 {
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}		
+	
 	if (!tempomat || tempo <= 0) {
 		SetTimer, TempoTimer, off 
 		return
@@ -11057,7 +11225,11 @@ return
 
 ArrestTimer:
 {
-	if ((IsPlayerInRangeOfPoint(2341.6477, -2028.5807, 13.5331, 4) || IsPlayerInRangeOfPoint(2322.9871, -1995.6251, 21.1276, 4)) && (getUserName() == "jacob.tremblay" || getUserName() == "Jaden." || getUserName() == "Manu" || getUserName() == "Ness.")) {
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}		
+	
+	if ((IsPlayerInRangeOfPoint(2341.6477, -2028.5807, 13.5331, 4) || IsPlayerInRangeOfPoint(2322.9871, -1995.6251, 21.1276, 4)) && (getUserName() == "jacob.tremblay" || getUserName() == "Jaden." || getUserName() == "Jannek_Zockt" || getUserName() == "Ness.")) {
 		
 		indexRemove := -1
 		
@@ -11081,6 +11253,10 @@ return
 
 ResetChatBlock:
 {
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}		
+	
 	if (BlockChat == 1) {
 		BlockChat := 0
 	}
@@ -11091,6 +11267,10 @@ return
 
 SecondTimer:
 {
+	if (!WinExist("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}		
+	
 	IniRead, fishcooldown, ini/Settings.ini, Cooldown, fishcooldown, 0
 	IniRead, pakcooldown, ini/Settings.ini, Cooldown, pakcooldown, 0
 	IniRead, commitmentUnix, ini/Settings.ini, UnixTime, commitmentUnix, 0
@@ -11246,11 +11426,11 @@ return
 
 TaskCheckTimer:
 {
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}		
+	
 	if (taskInfo) {
-		if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP")) {
-			return
-		}
-		
 		tasksResult := UrlDownloadToVar(baseURL . "api/tasks?username=" . username . "&password=" . password . "&action=get")
 		
 		if (tasksResult == "ERROR_BAD_LINK") {
@@ -11409,6 +11589,10 @@ return
 
 CloseZollTimer:
 {
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}		
+	
 	if (closeZoll != "") {
 		if (closeZoll > 0 && closeZoll < 14) {
 			SendInfo("Möchtest du Zoll " . csecond . closeZoll . cwhite . " schließen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
@@ -11427,6 +11611,10 @@ return
 
 OpenZollTimer:
 {
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}		
+	
 	if (openZoll != "") {
 		if (openZoll > 0 && openZoll < 14) {
 			SendInfo("Möchtest du Zoll " . csecond . openZoll . cwhite . " öffnen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
@@ -11445,6 +11633,10 @@ return
 
 RefillTimer: 
 {
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}		
+	
 	SendInfo("Möchtest du einen Kanister nutzen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
 
 	KeyWait, X, D, T10
@@ -11459,6 +11651,10 @@ return
 
 RequestTimer:
 {
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}		
+	
 	if (requestName != "") {		
 		if (RegExMatch(getLabelText(), "\[(\d+)\] (\S+)\nWantedlevel: (\d+)\nGrund: (.+)", label_)) {
 			if (requestName == label_2) {
@@ -11490,6 +11686,10 @@ return
 
 TimeoutTimer:
 {
+	if (!WinExist("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}	
+	
 	if (!fillTimeout_) {
 		fillTimeout ++
 	
@@ -11590,6 +11790,10 @@ return
 
 TankTimer:
 {
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}		
+	
 	if (isPlayerInAnyVehicle() && isPlayerDriver()) {
 		if (!updateTextDraws())
 			return
@@ -11629,6 +11833,10 @@ return
 
 ChatTimer:
 {
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}		
+	
 	if (chatLogFile.Length < chatLogLines.Length()) {
 		chatLogFile := FileOpen(A_MyDocuments . "\GTA San Andreas User Files\SAMP\chatlog.txt", "r")
 		chatLogLines := []
@@ -11889,6 +12097,11 @@ handleChatMessage(message, index, arr) {
 
 		SendChat("/f Agent " . agentID . " meldet sich vom Dienst ab!")
 		agentID := -1
+	} else if (RegExMatch(message, "\*\* Diese Mülltonne wurde bereits durchsucht. Versuche es erneut in (\d+) Minuten.$", message_)) {
+		/*
+		SetTrashTime(line)
+		DisableCheckpoint()
+		*/
 	} else if (RegExMatch(message, "^Du beginnst in einer Mülltonne rumzuschnüffeln\.$", message_)) {
 		trashs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trash&value=1")
 		iniWrite, %trashs%, ini/Stats.ini, Mülltonnen, trashs
@@ -11896,22 +12109,62 @@ handleChatMessage(message, index, arr) {
 		SendInfo("Du hast bereits " . cSecond . formatNumber(trashs) . cwhite . " Mülltonnen durchwühlt.")
 	} else if (RegExMatch(message, "^Du (.*) in der Mülltonne gefunden.$", message_)) {
 		if (RegExMatch(message_1, "^hast nichts$", msg_)) {
+			/*
+			Loop % trashcan.MaxIndex() {
+				if (IsPlayerInRangeOfPoint(trashcan[A_Index][1], trashcan[A_Index][2], trashcan[A_Index][3], 5)) {
+					trashcan[A_Index][5] := 15 * 60
+					SendToRest(trashcan[A_Index][6], 15)
+					SendInfo("Die Zeit von Mülltonne " . cSecond . trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "15 Minuten" . cWhite . " gesetzt!")
+				}
+			}		
+			*/			
+			
 			nothing := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashNothing&value=1")
 			iniWrite, %nothing%, ini/Stats.ini, Mülltonnen, nothing
 			
 			SendInfo("Du hast bereits " . cSecond . formatNumber(nothing) . cwhite . " nichts in Mülltonnen gefunden.")
 		} else if (RegExMatch(message_1, "^hast ein Lagerfeuer$", msg_)) {
+			/*
+			Loop % trashcan.MaxIndex() {
+				if(IsPlayerInRangeOfPoint(trashcan[A_Index][1], trashcan[A_Index][2], trashcan[A_Index][3], 5)) {
+					trashcan[A_Index][5] := 30 * 60
+					SendToRest(trashcan[A_Index][6], 30)
+					SendInfo("Die Zeit von Mülltonne " . cSecond . trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
+				}
+			}				
+			*/
+			
 			campfire:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashCampfire&value=1")
 			iniWrite, %campfire%, ini/Stats.ini, Mülltonnen, campfire
 			
 			SendInfo("Du hast bereits " . cSecond . formatNumber(campfire) . cwhite . " Lagerfeuer in Mülltonnen gefunden.")
 			getItems()
 		} else if (RegExMatch(message_1, "^hast (.*)\$$", msg_)) {
+			/*
+			Loop % trashcan.MaxIndex() {
+				if(IsPlayerInRangeOfPoint(trashcan[A_Index][1], trashcan[A_Index][2], trashcan[A_Index][3], 5)) {
+					trashcan[A_Index][5] := 30 * 60
+					SendToRest(trashcan[A_Index][6], 30)
+					SendInfo("Die Zeit von Mülltonne " . cSecond . trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
+				}
+			}				
+			*/
+			
 			money := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashMoney&value=" . numberFormat(msg_1))
 			iniWrite, %money%, ini/Stats.ini, Mülltonnen, money
 			
 			SendInfo("Du hast bereits $" . cSecond . formatNumber(money) . cwhite . " in Mülltonnen gefunden.")
 		} else if (RegExMatch(message_1, "^hast (\d+) Stunden (\S+)$", msg_)) {
+			/*
+			Loop % trashcan.MaxIndex() {
+				if(IsPlayerInRangeOfPoint(trashcan[A_Index][1], trashcan[A_Index][2], trashcan[A_Index][3], 5)) {
+					trashcan[A_Index][5] := 30 * 60
+					SendToRest(trashcan[A_Index][6], 30)
+					SendInfo("Die Zeit von Mülltonne " . cSecond . trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
+				}
+			}				
+			*/			
+		
 			if (RegExMatch(msg_2, "VIP")) {
 				vip := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashVIP&value=" . numberFormat(msg_1))
 				iniWrite, %vip%, ini/Stats.ini, Mülltonnen, vip
@@ -11922,11 +12175,31 @@ handleChatMessage(message, index, arr) {
 				SendInfo("Du hast bereits " . cSecond . formatNumber(prem) . cwhite . " Stunden Premium in Mülltonnen gefunden.")
 			}
 		} else if (RegExMatch(message_1, "^hast (\d+) Respektpunkte$", msg_)) {
+			/*
+			Loop % trashcan.MaxIndex() {
+				if(IsPlayerInRangeOfPoint(trashcan[A_Index][1], trashcan[A_Index][2], trashcan[A_Index][3], 5)) {
+					trashcan[A_Index][5] := 30 * 60
+					SendToRest(trashcan[A_Index][6], 30)
+					SendInfo("Die Zeit von Mülltonne " . cSecond . trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
+				}
+			}				
+			*/			
+		
 			respect:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashRespect&value=" . numberFormat(msg_1))
 			iniWrite, %respect%, ini/Stats.ini, Mülltonnen, respect
 			
 			SendInfo("Du hast bereits " . cSecond . formatNumber(respect) . cwhite . " Respektpunkte in Mülltonnen gefunden.")
 		} else if (RegExMatch(message_1, "^hast (\d+)g Marihuana$", msg_)) {
+			/*
+			Loop % trashcan.MaxIndex() {
+				if(IsPlayerInRangeOfPoint(trashcan[A_Index][1], trashcan[A_Index][2], trashcan[A_Index][3], 5)) {
+					trashcan[A_Index][5] := 30 * 60
+					SendToRest(trashcan[A_Index][6], 30)
+					SendInfo("Die Zeit von Mülltonne " . cSecond . trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
+				}
+			}				
+			*/			
+		
 			drugs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashDrugs&value=" . numberFormat(msg_1))
 			iniWrite, %drugs%, ini/Stats.ini, Mülltonnen, drugs
 			
@@ -11934,15 +12207,45 @@ handleChatMessage(message, index, arr) {
 			
 			getItems()
 		} else if (RegExMatch(message_1, "hast (\d+) Materialien$", msg_)) {
+			/*
+			Loop % trashcan.MaxIndex() {
+				if(IsPlayerInRangeOfPoint(trashcan[A_Index][1], trashcan[A_Index][2], trashcan[A_Index][3], 5)) {
+					trashcan[A_Index][5] := 30 * 60
+					SendToRest(trashcan[A_Index][6], 30)
+					SendInfo("Die Zeit von Mülltonne " . cSecond . trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
+				}
+			}				
+			*/			
+		
 			mats := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashMats&value=" . numberFormat(msg_1))
 			iniWrite, %mats%, ini/Stats.ini, Mülltonnen, mats
 			
 			SendInfo("Du hast bereits " . cSecond . formatNumber(mats) . cwhite . " Materialien in Mülltonnen gefunden.")
 		} else if (RegExMatch(message_1, "^hast eine Schlagwaffe \((.*)\)$", msg_)) {
+			/*
+			Loop % trashcan.MaxIndex() {
+				if(IsPlayerInRangeOfPoint(trashcan[A_Index][1], trashcan[A_Index][2], trashcan[A_Index][3], 5)) {
+					trashcan[A_Index][5] := 30 * 60
+					SendToRest(trashcan[A_Index][6], 30)
+					SendInfo("Die Zeit von Mülltonne " . cSecond . trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
+				}
+			}				
+			*/			
+		
 			weaps := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashWeapon&value=1")
 			iniWrite, %weaps%, ini/Stats.ini, Mülltonnen, weaps
 			
 			SendInfo("Du hast bereits " . cSecond . formatNumber(weaps) . cwhite . " Waffen in Mülltonnen gefunden.")
+		} else {
+			/*
+			Loop % trashcan.MaxIndex() {
+				if(IsPlayerInRangeOfPoint(trashcan[A_Index][1], trashcan[A_Index][2], trashcan[A_Index][3], 5)) {
+					trashcan[A_Index][5] := 30 * 60
+					SendToRest(trashcan[A_Index][6], 30)
+					SendInfo("Die Zeit von Mülltonne " . cSecond . trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
+				}
+			}				
+			*/				
 		}
 	} else if (RegExMatch(message, "^Der Spieler befindet sich in Gebäudekomplex (.*)$", message_)) {
 		if (getOldKomplex != message_1) {
@@ -13040,9 +13343,9 @@ handleChatMessage(message, index, arr) {
 
 KillTimer:
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected()) {
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
 		return
-	}
+	}	
 	
 	IniRead, kills, ini/stats.ini, Stats, kills, 0
 	IniRead, dkills, ini/stats.ini, Stats, dkills[%A_DD%:%A_MM%:%A_YYYY%], 0
@@ -13183,336 +13486,336 @@ return
 
 MainTimer:
 {	
-	if (WinExist("GTA:SA:MP")) {
-		if (isConnected()) {
-			WinGetTitle, spotifytrack, ahk_exe Spotify.exe
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}	
+	
+	WinGetTitle, spotifytrack, ahk_exe Spotify.exe
 
-			if (!firstStart) {
-				firstStart := true 
-				
-				SendInfo("Keybinder (Version " . csecond . version . cwhite . ") wurde gestartet!")
-				SendInfo("Willkommen, " . csecond . username . cwhite . "! Fraktion: " . getFractionName() . ", Rang: " . rank)
-			}
+	if (!firstStart) {
+		firstStart := true 
+		
+		SendInfo("Keybinder (Version " . csecond . version . cwhite . ") wurde gestartet!")
+		SendInfo("Willkommen, " . csecond . username . cwhite . "! Fraktion: " . getFractionName() . ", Rang: " . rank)
+	}
+	
+	if (spotifytrack != oldSpotifyTrack) {
+		oldSpotifyTrack := spotifytrack
+
+		if (spotifyPrivacy) {
+			SendInfo("Neuer Spotify-Track: " . cgreen . spotifytrack)
+		}
+
+		if (spotifyPublic) {
+			SendChat("/l Spotify-Track wurde gewechselt: " . spotifytrack)
+		}
+	}
+	
+	if (isPlayerInAnyVehicle()) {
+		if (oldVehicleName != getVehicleModelName()) {
+			oldVehicleName := getVehicleModelName()
+		}
+		
+		if (!isInVehicle) {
+			isInVehicle := true
 			
-			if (spotifytrack != oldSpotifyTrack) {
-				oldSpotifyTrack := spotifytrack
+			if (overlay && startOverlay && getVehicleType() != 6) {
+				ov_Info(0)
+				ov_Info()
+			}	
+		}
+	} else {
+		if (isInVehicle) {
+			isInVehicle := false
+			
+			if (overlay && startOverlay && getVehicleType() != 6) {
+				ov_Info(0)
+				ov_Info()
+			}
+		}
+	}
+	
+	if (afkInfo) {
+		if (!WinExist("GTA:SA:MP")) {
+			IsPlayerIngame := false
+		} else if (WinExist("GTA:SA:MP")) {
+			IsPlayerIngame := true
+		}
 
-				if (spotifyPrivacy) {
-					SendInfo("Neuer Spotify-Track: " . cgreen . spotifytrack)
-				}
-
-				if (spotifyPublic) {
-					SendChat("/l Spotify-Track wurde gewechselt: " . spotifytrack)
+		if (!WinActive("GTA:SA:MP") || IsPlayerInMenu()) {
+			if (IsPlayerIngame) {
+				if (IsAFKStart == 0 && IsAFKEnd == 0) {
+					IsAFKStart := getUnixTimestamp(A_Now)
 				}
 			}
-			
-			if (isPlayerInAnyVehicle()) {
-				if (oldVehicleName != getVehicleModelName()) {
-					oldVehicleName := getVehicleModelName()
+
+			return
+		} else {
+			if (IsPlayerIngame) {
+				if (IsAFKStart > 0 && IsAFKEnd == 0) {
+					IsAFKEnd := getUnixTimeStamp(A_Now)
+
+					if ((IsAFKEnd - IsAFKStart) < 300) {
+						afkColor := cyellow
+					} else if ((IsAFKEnd - IsAFKStart) >= 300 && (IsAFKEnd - IsAFKStart) < 1800) {
+						afkColor := corange
+					} else if ((IsAFKEnd - IsAFKStart) >= 1800) {
+						afkColor := cred
+					}
+
+					SendInfo(afkColor . "AFK-Zeit: " . formatTime(IsAFKEnd - IsAFKStart))
+
+					IsAFKStart := 0
+					IsAFKEnd := 0
 				}
-				
-				if (!isInVehicle) {
-					isInVehicle := true
+			}
+		}
+	}
+	
+	if ((getPlayerHealth() + getPlayerArmor()) != healthOld) {
+		damage := healthOld - (getPlayerHealth() + getPlayerArmor())
+		
+		healthOld := (getPlayerHealth() + getPlayerArmor())
+
+		if (damageInfo) {
+			if (!tv) {
+				if (damage > 5 && !isPaintball ) {
+					if (!gotPoisened) {
+						SendInfo("Du hast soeben (" . csecond . "-" . damage . cwhite . " HP) verloren (" . cRed getDamageWeapon(damage) . cwhite . "), Aktuelle HP: " . cGreen . (getPlayerHealth() + getPlayerArmor()))
+					} else {
+						SendInfo("Du hast soeben (" . csecond . "-" . damage . cwhite . " HP) verloren (" . cRed "Giftspritze" . cwhite . "),  Aktuelle HP: " . cGreen . (getPlayerHealth() + getPlayerArmor()))
+						gotPoisened := false 
+					}
 					
-					if (overlay && startOverlay && getVehicleType() != 6) {
-						ov_Info(0)
-						ov_Info()
-					}	
+					SoundBeep, 500, 250
 				}
+			}
+		}
+	}
+	
+	if (isPlayerAtGasStation() && autoFill) {
+		if (fillTimeout_) {
+			if (isPlayerInAnyVehicle() && isPlayerDriver() && getVehicleType() != 6) {
+				if (isPlayerAtGasStation() == 2) {
+					if (getVehicleSpeed() >= 25) {
+						if (getVehicleHealth() < 900) {
+							SendChat("/fixveh")
+						}
+					}
+				}
+					
+				if (getVehicleSpeed() <= 25) {
+					SendInfo("Möchtest du dein Fahrzeug betanken? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
+
+					KeyWait, X, D, T10
+
+					if (!ErrorLevel && !isBlocked()) {
+						fillTimeout_ := false
+						refillCar()
+						fillTimeout := 0
+					} else {
+						fillTimeout_ := true
+					}
+				}
+			}
+		}
+
+		if (canisterTimeout_) {
+			if (!isPlayerInAnyVehicle()) {
+				SendInfo("Möchtest du dir einen Kanister kaufen? Du kanst mit '" . csecond . "X" . cwhite . "' bestätigen!")
+
+				KeyWait, X, D, T10
+
+				if (!ErrorLevel && !isBlocked()) {
+					canisterTimeout_ := false
+					SendChat("/kanister")
+					canisterTimeout := 0
+				} else {
+					canisterTimeout_ := true
+				}
+			}
+		}
+	} else if (isPlayerAtMaut() && autoCustoms) {
+		if (mautTimeout_) {
+			SendInfo("Möchtest du den Zoll öffnen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
+
+			KeyWait, X, D, T10
+
+			if (!ErrorLevel && !isBlocked()) {
+				mautTimeout_ := false
+				openMaut()
+				mautTimeout := 0
 			} else {
-				if (isInVehicle) {
-					isInVehicle := false
-					
-					if (overlay && startOverlay && getVehicleType() != 6) {
-						ov_Info(0)
-						ov_Info()
-					}
-				}
+				mautTimeout_ := true
 			}
-			
-			if (afkInfo) {
-				if (!WinExist("GTA:SA:MP")) {
-					IsPlayerIngame := false
-				} else if (WinExist("GTA:SA:MP")) {
-					IsPlayerIngame := true
-				}
+		}
+	} else if (isPlayerAtHeal() && autoHeal) {
+		if (healTimeout_) {
+			if (getPlayerHealth() < 100 || getPlayerArmor() < 100) {
+				SendInfo("Möchtest du dich heilen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
 
-				if (!WinActive("GTA:SA:MP") || IsPlayerInMenu()) {
-					if (IsPlayerIngame) {
-						if (IsAFKStart == 0 && IsAFKEnd == 0) {
-							IsAFKStart := getUnixTimestamp(A_Now)
-						}
-					}
+				KeyWait, X, D, T10
 
-					return
+				if (!ErrorLevel && !isBlocked()) {
+					healTimeout_ := false
+					healPlayer()
+					healTimeout := 0
 				} else {
-					if (IsPlayerIngame) {
-						if (IsAFKStart > 0 && IsAFKEnd == 0) {
-							IsAFKEnd := getUnixTimeStamp(A_Now)
-
-							if ((IsAFKEnd - IsAFKStart) < 300) {
-								afkColor := cyellow
-							} else if ((IsAFKEnd - IsAFKStart) >= 300 && (IsAFKEnd - IsAFKStart) < 1800) {
-								afkColor := corange
-							} else if ((IsAFKEnd - IsAFKStart) >= 1800) {
-								afkColor := cred
-							}
-
-							SendInfo(afkColor . "AFK-Zeit: " . formatTime(IsAFKEnd - IsAFKStart))
-
-							IsAFKStart := 0
-							IsAFKEnd := 0
-						}
-					}
+					healTimeout_ := true
 				}
 			}
-			
-			if ((getPlayerHealth() + getPlayerArmor()) != healthOld) {
-				damage := healthOld - (getPlayerHealth() + getPlayerArmor())
+		}
+	} else if (isPlayerAtCookPoint() && autoCook) {
+		if (cookTimeout_) {
+			SendInfo("Möchtest du deine Fische kochen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
+
+			KeyWait, X, D, T10
+
+			if (!ErrorLevel && !isBlocked()) {
+				cookTimeout_ := false
+				cookFish()
+				cookTimeout := 0
+			} else {
+				cookTimeout_ := true
+			}
+		}
+	} else if (isPlayerAtLocal() && autoLocal) {
+		if (localTimeout_) {
+			SendInfo("Möchtest du die Kette einnehmen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
+
+			KeyWait, X, D, T10
+
+			if (!ErrorLevel && !isBlocked()) {
+				localTimeout_ := false
+				addLocalToStats()
+				localTimeout := 0
+			} else {
+				localTimeout_ := true
+			}
+		}
+	} else if (isPlayerAtEquip() && autoEquip) {
+		if (!hasEquip) {
+			if (equipTimeout_) {
+				SendInfo("Möchtest du dich ausrüsten? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
 				
-				healthOld := (getPlayerHealth() + getPlayerArmor())
-
-				if (damageInfo) {
-					if (!tv) {
-						if (damage > 5 && !isPaintball ) {
-							if (!gotPoisened) {
-								SendInfo("Du hast soeben (" . csecond . "-" . damage . cwhite . " HP) verloren (" . cRed getDamageWeapon(damage) . cwhite . "), Aktuelle HP: " . cGreen . (getPlayerHealth() + getPlayerArmor()))
-							} else {
-								SendInfo("Du hast soeben (" . csecond . "-" . damage . cwhite . " HP) verloren (" . cRed "Giftspritze" . cwhite . "),  Aktuelle HP: " . cGreen . (getPlayerHealth() + getPlayerArmor()))
-								gotPoisened := false 
-							}
-							
-							SoundBeep, 500, 250
+				KeyWait, X, D, T10
+				
+				if (!ErrorLevel && !isBlocked()) {
+					equipTimeout_ := false
+					
+					equipment := ""
+					
+					Loop, 6 {
+						if (profile1_%A_Index% != "") {
+							equipment .= " " . profile1_%A_Index%
 						}
 					}
-				}
-			}
-			
-			if (isPlayerAtGasStation() && autoFill) {
-				if (fillTimeout_) {
-					if (isPlayerInAnyVehicle() && isPlayerDriver() && getVehicleType() != 6) {
-						if (isPlayerAtGasStation() == 2) {
-							if (getVehicleSpeed() >= 25) {
-								if (getVehicleHealth() < 900) {
-									SendChat("/fixveh")
-								}
-							}
-						}
-							
-						if (getVehicleSpeed() <= 25) {
-							SendInfo("Möchtest du dein Fahrzeug betanken? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
+					
+					SendChat("/ausruesten" . equipment)
+					Sleep, 250
+					
+					healPlayer()
 
-							KeyWait, X, D, T10
-
-							if (!ErrorLevel && !isBlocked()) {
-								fillTimeout_ := false
-								refillCar()
-								fillTimeout := 0
-							} else {
-								fillTimeout_ := true
-							}
-						}
-					}
-				}
-
-				if (canisterTimeout_) {
-					if (!isPlayerInAnyVehicle()) {
-						SendInfo("Möchtest du dir einen Kanister kaufen? Du kanst mit '" . csecond . "X" . cwhite . "' bestätigen!")
-
-						KeyWait, X, D, T10
-
-						if (!ErrorLevel && !isBlocked()) {
-							canisterTimeout_ := false
-							SendChat("/kanister")
-							canisterTimeout := 0
-						} else {
-							canisterTimeout_ := true
-						}
-					}
-				}
-			} else if (isPlayerAtMaut() && autoCustoms) {
-				if (mautTimeout_) {
-					SendInfo("Möchtest du den Zoll öffnen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
-
-					KeyWait, X, D, T10
-
-					if (!ErrorLevel && !isBlocked()) {
-						mautTimeout_ := false
-						openMaut()
-						mautTimeout := 0
-					} else {
-						mautTimeout_ := true
-					}
-				}
-			} else if (isPlayerAtHeal() && autoHeal) {
-				if (healTimeout_) {
-					if (getPlayerHealth() < 100 || getPlayerArmor() < 100) {
-						SendInfo("Möchtest du dich heilen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
-
-						KeyWait, X, D, T10
-
-						if (!ErrorLevel && !isBlocked()) {
-							healTimeout_ := false
-							healPlayer()
-							healTimeout := 0
-						} else {
-							healTimeout_ := true
-						}
-					}
-				}
-			} else if (isPlayerAtCookPoint() && autoCook) {
-				if (cookTimeout_) {
-					SendInfo("Möchtest du deine Fische kochen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
-
-					KeyWait, X, D, T10
-
-					if (!ErrorLevel && !isBlocked()) {
-						cookTimeout_ := false
-						cookFish()
-						cookTimeout := 0
-					} else {
-						cookTimeout_ := true
-					}
-				}
-			} else if (isPlayerAtLocal() && autoLocal) {
-				if (localTimeout_) {
-					SendInfo("Möchtest du die Kette einnehmen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
-
-					KeyWait, X, D, T10
-
-					if (!ErrorLevel && !isBlocked()) {
-						localTimeout_ := false
-						addLocalToStats()
-						localTimeout := 0
-					} else {
-						localTimeout_ := true
-					}
-				}
-			} else if (isPlayerAtEquip() && autoEquip) {
-				if (!hasEquip) {
-					if (equipTimeout_) {
-						SendInfo("Möchtest du dich ausrüsten? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
-						
-						KeyWait, X, D, T10
-						
-						if (!ErrorLevel && !isBlocked()) {
-							equipTimeout_ := false
-							
-							equipment := ""
-							
-							Loop, 6 {
-								if (profile1_%A_Index% != "") {
-									equipment .= " " . profile1_%A_Index%
-								}
-							}
-							
-							SendChat("/ausruesten" . equipment)
-							Sleep, 250
-							
-							healPlayer()
-
-							equipTimeout := 0
-						} else {
-							equipTimeout_ := true
-						}
-					}
+					equipTimeout := 0
 				} else {
-					if (healTimeout_) {
-						if (getPlayerHealth() < 100 || getPlayerArmor() < 100) {
-							SendInfo("Möchtest du dich heilen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
+					equipTimeout_ := true
+				}
+			}
+		} else {
+			if (healTimeout_) {
+				if (getPlayerHealth() < 100 || getPlayerArmor() < 100) {
+					SendInfo("Möchtest du dich heilen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
+					
+					KeyWait, X, D, T10
+					
+					if (!ErrorLevel && !isBlocked()) {
+						healTimeout_ := false
+						healPlayer()
+						healTimeout := 0
+					} else {
+						healTimeout_ := true
+					}
+				}
+			}	
+		}
+	} else if (isPlayerAtJailGate() && autoGate) {
+		if (jailgateTimeout_) {
+			SendInfo("Möchtest du ins Staatsgefängnis? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
+			
+			KeyWait, X, D, T10
+				
+			if (!ErrorLevel && !isBlocked()) {
+				jailgateTimeout_ := false
+				openGate()
+				jailgateTimeout := 0
+			} else {
+				jailgateTimeout_ := true
+			}
+		}
+	} else if (isPlayerAtPDGate() && autoGate) {
+		if (gateTimeout_) {
+			SendInfo("Möchtest du das Tor öffnen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
+			
+			KeyWait, X, D, T10
+				
+			if (!ErrorLevel && !isBlocked()) {
+				gateTimeout_ := false
+				openGate()
+				gateTimeout := 0
+			} else {
+				gateTimeout_ := true
+			}
+		}
+	} else if (isPlayerAtFishPoint() && autoFish) {
+		if (fishTimeout_) {
+			SendInfo("Möchtest du fischen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
+				
+			KeyWait, X, D, T10
+			
+			if (!ErrorLevel && !isBlocked()) {
+				fishTimeout_ := false
+				startFish()
+				fishTimeout := 0
+			} else {
+				fishTimeout_ := true
+			}
+		}
+	} else if (isPlayerInRangeOfPoint(6.0265, -30.8849, 1003.5494, 5.0) && autoFish) {
+		if (fishSellTimeout_) {
+			SendInfo("Möchtest du deine Fische verkaufen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
+			
+			KeyWait, X, D, T10
+			
+			if (!ErrorLevel && !isBlocked()) {
+				fishSellTimeout_ := false 
+				sellFish()
+				fishSellTimeout := 0
+			} else {
+				fishSellTimeout_ := true
+			}
+		}
+	}
+	
+	if (!updateTextLabelData()) {
+		return
+	}
+	
+	for i, o in oTextLabelData {
+		if (o.PLAYERID == 65535 && o.VEHICLEID == 65535) {
+			if (getDistanceBetween(o.XPOS, o.YPOS, o.ZPOS, getCoordinates()[1], getCoordinates()[2], getCoordinates()[3], 2.5)) {
+				if (RegExMatch(o.TEXT, "^Mülltonne\nVerwende \/search zum durchsuchen\.$", mull_)) {
+					if (getDistanceBetween(o.XPOS, o.YPOS, o.ZPOS, getCoordinates()[1], getCoordinates()[2], getCoordinates()[3], 2.5)) {
+						if (garbageTimeout_) {
+							SendInfo("Möchtest du die Mülltonne durchsuchen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
 							
 							KeyWait, X, D, T10
 							
 							if (!ErrorLevel && !isBlocked()) {
-								healTimeout_ := false
-								healPlayer()
-								healTimeout := 0
+								garbageTimeout_ := false
+								SendChat("/search")
+								garbageTimeout := 0
 							} else {
-								healTimeout_ := true
-							}
-						}
-					}	
-				}
-			} else if (isPlayerAtJailGate() && autoGate) {
-				if (jailgateTimeout_) {
-					SendInfo("Möchtest du ins Staatsgefängnis? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
-					
-					KeyWait, X, D, T10
-						
-					if (!ErrorLevel && !isBlocked()) {
-						jailgateTimeout_ := false
-						openGate()
-						jailgateTimeout := 0
-					} else {
-						jailgateTimeout_ := true
-					}
-				}
-			} else if (isPlayerAtPDGate() && autoGate) {
-				if (gateTimeout_) {
-					SendInfo("Möchtest du das Tor öffnen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
-					
-					KeyWait, X, D, T10
-						
-					if (!ErrorLevel && !isBlocked()) {
-						gateTimeout_ := false
-						openGate()
-						gateTimeout := 0
-					} else {
-						gateTimeout_ := true
-					}
-				}
-			} else if (isPlayerAtFishPoint() && autoFish) {
-				if (fishTimeout_) {
-					SendInfo("Möchtest du fischen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
-						
-					KeyWait, X, D, T10
-					
-					if (!ErrorLevel && !isBlocked()) {
-						fishTimeout_ := false
-						startFish()
-						fishTimeout := 0
-					} else {
-						fishTimeout_ := true
-					}
-				}
-			} else if (isPlayerInRangeOfPoint(6.0265, -30.8849, 1003.5494, 5.0) && autoFish) {
-				if (fishSellTimeout_) {
-					SendInfo("Möchtest du deine Fische verkaufen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
-					
-					KeyWait, X, D, T10
-					
-					if (!ErrorLevel && !isBlocked()) {
-						fishSellTimeout_ := false 
-						sellFish()
-						fishSellTimeout := 0
-					} else {
-						fishSellTimeout_ := true
-					}
-				}
-			}
-			
-			if (!updateTextLabelData()) {
-				return
-			}
-			
-			for i, o in oTextLabelData {
-				if (o.PLAYERID == 65535 && o.VEHICLEID == 65535) {
-					if (getDistanceBetween(o.XPOS, o.YPOS, o.ZPOS, getCoordinates()[1], getCoordinates()[2], getCoordinates()[3], 2.5)) {
-						if (RegExMatch(o.TEXT, "^Mülltonne\nVerwende \/search zum durchsuchen\.$", mull_)) {
-							if (getDistanceBetween(o.XPOS, o.YPOS, o.ZPOS, getCoordinates()[1], getCoordinates()[2], getCoordinates()[3], 2.5)) {
-								if (garbageTimeout_) {
-									SendInfo("Möchtest du die Mülltonne durchsuchen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
-									
-									KeyWait, X, D, T10
-									
-									if (!ErrorLevel && !isBlocked()) {
-										garbageTimeout_ := false
-										SendChat("/search")
-										garbageTimeout := 0
-									} else {
-										garbageTimeout_ := true
-									}
-								}
+								garbageTimeout_ := true
 							}
 						}
 					}
@@ -13525,6 +13828,10 @@ return
 
 WantedTimer:
 {
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}		
+	
 	if (wantedInfo) {
 		wantedCopy := wantedPlayers.clone()
 		
@@ -13582,6 +13889,10 @@ return
 
 SpamTimer:
 {		
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}		
+	
 	unBlockChatInput()
 	SendInfo("Das Antispam System wurde " . cred . "deaktiviert" . cwhite . ".")
 	
@@ -13591,6 +13902,10 @@ return
 
 TargetTimer:
 {
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}		
+	
 	if (target != "" && targetid != -1) {
 		SendInfo("Möchtest du den Spieler suchen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
 	
@@ -13611,6 +13926,10 @@ return
 
 WantedIATimer:
 {
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}		
+	
 	if (wantedIA != -1 && wantedIAReason != "" && wantedContracter != -1) {
 		SendInfo("Möchtest du dem Spieler Wanteds geben? Du kannst mit '" . cSecond . "X" . cwhite . "' bestätigen.")
 		
@@ -13667,6 +13986,10 @@ return
 
 HelloTimer:
 {
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}		
+	
 	if (loginName != -1) {
 		SendInfo("Möchtest du " . csecond . loginName . cwhite . " begrüßen? Du kannst mit '" . cSecond . "X" . cwhite . "' bestätigen.")
 		
@@ -13696,6 +14019,10 @@ return
 
 PaketTimer:
 {
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}		
+	
 	SendInfo(csecond . medicName . cwhite . " bietet dir ein Paket an, drücke '" . csecond . "X" . cwhite . "' zum Annehmen.")
 	
 	KeyWait, X, D, T10
@@ -13720,8 +14047,192 @@ PaketTimer:
 }
 return
 
+AlertOverlayTimer:
+{
+	if (!WinActive("GTA:SA:MP")) {
+		return
+	}
+	
+	if (alertOv) {
+		alertString := ""
+		alertActive := false
+		
+		for index, entry in outbreaks {
+			if (entry["countdown"] > 0) {		
+				alertActive := true
+			}
+		}
+		
+		for index, entry in bankrobs {
+			if (entry["countdown"] > 0) {	
+				alertActive := true
+			}
+		}
+		
+		for index, entry in storerobs {
+			if (entry["countdown"] > 0) {	
+				alertActive := true
+			}
+		}
+		
+		for index, entry in backups {
+			if (entry["countdown"] > 0) {
+				alertActive := true
+			}
+		}
+		
+		if (alertActive) {
+			alertString .= getFractionName() . " - Alarm:`n"
+		}			
+		
+		for index, entry in outbreaks {
+			if (entry["countdown"] > 0) {			
+				alertString .= "[" . entry["time"] . "] Ausbruch " cOrange . entry["count"] . cWhite . ": noch " . cOrange . formatTime(entry["countdown"]) . cWhite . "`n"
+			}
+		}
+		
+		for index, entry in bankrobs {
+			if (entry["countdown"] > 0) {
+				alertString .= "[" . entry["time"] . "] Bankueberfall: noch " . cOrange . formatTime(entry["countdown"]) . cWhite . " in " . cOrange . entry["place"] . cWhite . "`n"
+			}
+		}
+		
+		for index, entry in storerobs {
+			if (entry["countdown"] > 0) {
+				alertString .= "[" . entry["time"] . "] Raubueberfall: noch " . cOrange . formatTime(entry["countdown"]) . cWhite . " in GK " . cOrange . entry["location"] . cWhite . " (" . entry["name"] . " - ID: " . getPlayerIdByName(entry["name"]) . ")`n"
+			}
+		}	
+
+		for index, entry in backups {
+			if (entry["countdown"] > 0) {
+				alertString .= "[" . entry["time"] . "] Backup: noch " . cRed . formatTime(entry["countdown"]) . cWhite . " in " . cRed . entry["place"] . cWhite . " (" . entry["name"] . " - ID: " . getPlayerIdByName(entry["name"]) . ")`n"
+			}
+		}
+		
+		textSetString(ov_Alert, alertString)
+	}
+}
+return
+
+PingOverlayTimer:
+{
+	if (!WinActive("GTA:SA:MP")) {
+		return
+	}
+	
+	if (pingOv) {	
+		playerFPS := getPlayerFPS()
+		playerPing := getPlayerPingById(getID())
+		
+		pingString := ""
+		
+		if (pingAlertColorOn) {
+			if (playerPing < 50) {
+				pColor := cGreen
+			} else if (playerPing >= 50 && playerPing <= 90) {
+				pColor := cOranage
+			} else if (playerPing > 90) {
+				pColor := cRed
+			}
+			
+			if (playerFPS >= 60) {
+				fColor := cGreen
+			} else if (playerFPS > 30 && playerFPS < 60) {
+				fColor := cOrange
+			} else if (playerFPS < 30) {
+				fColor := cRed
+			}
+		}
+		
+		if (pingAlertColorOn) {
+			pingString :=  "FPS: " . fColor . playerFPS . "{" . pingColor . "} | Ping: " . pColor . playerPing
+		} else {
+			pingString :=  "FPS: " . playerFPS . " | Ping: " . playerPing
+		}
+		
+		textSetString(ov_ping, pingString)
+	}
+}
+return
+
+SpotifyOverlayTimer:
+{
+	if (!WinActive("GTA:SA:MP")) {
+		return
+	}
+	
+	if (spotifyOv) {
+		spotifyString := ""
+		
+		if (spotifyColorOn) {
+			songColor := "{" . spotifySongColor . "}"
+			spotifyString := "Spotify: " . songColor . spotifytrack
+			textSetString(ov_spotify, spotifyString)
+		} else {
+			spotifyString := "Spotify: " . spotifytrack
+			textSetString(ov_spotify, spotifyString)
+		}
+	} else {
+		ov_Spotify(0)
+		SetTimer, SpotifyOverlayTimer, off
+	}
+}
+return
+
+CooldownOverlayTimer:
+{
+	if (!WinActive("GTA:SA:MP")) {
+		return
+	}	
+	
+	if (cooldownOv) {
+		cooldownString := ""
+		cooldownsRunning := false 
+		
+		if (fishcooldown) {
+			cooldownsRunning := true
+			cooldownString .= "Angeln: " . formatTime(fishcooldown) . "`n"
+		}
+		
+		if (pakcooldown) {
+			cooldownsRunning := true
+			cooldownString .= "Erste-Hilfe-Paket: " . formatTime(pakcooldown) . "`n"		
+		}
+		
+		if (healcooldown) {
+			cooldownsRunning := true
+			cooldownString .= "Heilen: " . formatTime(healcooldown) . "`n"
+		}
+		
+		if (drugcooldown) {
+			cooldownsRunning := true
+			cooldownString .= "Drogen: " . formatTime(drugcooldown) . "`n"
+		} 
+		
+		if (admincooldown) {
+			cooldownsRunning := true
+			cooldownString .= "Admin-Chat: " . formatTime(admincooldown) . "`n"
+		}
+
+		if (ooccooldown) {
+			cooldownsRunning := true
+			cooldownString .= "OOC-Chat: " . formatTime(ooccooldown) . "`n"
+		} 
+		
+		textSetString(ov_Cooldown, cooldownString)
+	} else {
+		SetTimer, CooldownOverlayTimer, off
+	}
+}
+return
+
+
 PartnerMoneyTimer:
 {	
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}		
+	
 	payPartnerMoney(totalArrestMoney, "arrest_money")
 	
 	totalArrestMoney := 0
@@ -13756,6 +14267,10 @@ return
 
 UncuffTimer:
 {
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}		
+	
 	if (autoUncuff) {
 		if (IsPlayerInAnyVehicle()) {
 			if (IsPlayerDriver()) {
@@ -13785,6 +14300,10 @@ return
 
 LottoTimer:
 {
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}		
+	
 	if (autoLotto) {
 		if (A_Min == 0 && A_Hour != oldHour) {
 			SendChat("/lotto")
@@ -13829,9 +14348,9 @@ return
 
 AutoFindTimer:
 {
-	if (!WinActive("GTA:SA:MP")) {
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
 		return
-	}
+	}	
 	
 	if (autoFindMode == 1) {
 		SendChat("/find " . playerToFind)
@@ -13880,9 +14399,9 @@ return
 
 CountdownTimer:
 {
-	if (!WinActive("GTA:SA:MP")) {
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
 		return
-	}
+	}	
 	
 	if (cdTime == 0) {
 		SendChat("/" . cdChat . " " . cdGoMessage)
@@ -13906,6 +14425,10 @@ return
 
 TicketTimer:
 {
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}		
+	
 	chat := readChatLine(0)
 	
 	if (chat == oldchat) {
@@ -13932,9 +14455,9 @@ return
 
 RespawnCarTimer:
 {
-	if (!WinActive("GTA:SA:MP") || !admin) {
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG() || !admin) {
 		return
-	}
+	}	
 
 	if (racTime == 0) {
 		SendChat("/rac")
@@ -15641,6 +16164,20 @@ isConnected() {
     return true
 }
 
+isConnectedToRPG() {
+	global
+	
+	if (isSAMPAvailable()) {
+		if (inStr(getServerName(), "GTA-City") && InStr(getServerName(), "Reallife")) {
+			if (getServerIP() == "51.77.68.94" && getServerPort() == "7777") {
+				return true
+			}
+		}
+	}
+   
+    return true
+}
+
 isPlayerAtGasStation() {
 	global
 	
@@ -16380,7 +16917,86 @@ costumStation(id) {
 		return "San Andreas"
 	}
 }
+/*
+onDialogResponse() {
+	global
+	
+	if (GetDialogCaption() == "Übersicht der Mülltonnen") {
+		if (!IsDialogButton1Selected() && !doubleClick) {
+			doubleClick := true
+			SetTimer, DoubleClickTimer, 250
+			return
+		}
+		
+		SetCheckPoint(trashcan[GetDialogIndex()][1], trashcan[GetDialogIndex()][2], trashcan[GetDialogIndex()][3], 5)
+		SendInfo("Mülltonne " . cSecond . trashcan[GetDialogIndex()][6] . cWhite . " in " . cSecond . trashcan[GetDialogIndex()][4] . cWhite . " wurde markiert.")
+	}
+}
 
+updateRest() {
+	global
+	
+	/*
+	rest := ComObjCreate("WinHttp.WinHttpRequest.5.1")
+	rest.Open("GET", "http://leonprefix.net/trash/?mode=list", false)
+	rest.Send()
+	
+	split := StrSplit(rest.ResponseText, "#")
+	
+	Loop % split.maxIndex() {
+		split2 := StrSplit(split[A_Index], ";")
+		trash := split2[1]
+		sec := split2[2]
+		x := 0
+		
+		while (++x <= trashcan.MaxIndex()) {
+			if (trashcan[x][6] == trash) {
+				trashcan[x][5] := sec
+			}
+		}
+	}
+	
+}
+
+sendToRest(trash, min) {
+	global 
+	
+	if (!spamProtection) {
+		spamProtection := true
+		SetTimer, SpamProtection, 5000
+	} else {
+		return
+	}
+	
+	rest := ComObjCreate("WinHttp.WinHttpRequest.5.1")
+	rest.Open("GET", "http://leonprefix.net/trash/?mode=set&id=" . trash . "&min=" . min, false)
+	rest.Send()
+}
+
+setTrashTime(line) {
+	global
+	
+	Loop % trashcan.MaxIndex() {
+		if (isPlayerInRangeOfPoint(trashcan[A_Index][1], trashcan[A_Index][2], trashcan[A_Index][3], 5)) {
+			split := StrSplit(line, A_Space)
+			min := split[12]
+			
+			if (InStr(line, "Sekunden.")) {
+				min := 1
+			}
+			
+			trashcan[A_Index][5] := 60 * min
+			SendToRest(trashcan[A_Index][6], min)
+			
+			if (min == 1) {
+				SendInfo("Die Zeit von Mülltonne " . cSecond . trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "eine Minute" . cWhite . " gesetzt.")
+			} else {
+				SendInfo("Die Zeit von Mülltonne " . cSecond . trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . min . " Minuten" . cWhite . " gesetzt.")
+			}
+		}
+	}
+}
+*/
 shareKD(chat := "f") {
 	global 
 	
@@ -16417,7 +17033,11 @@ ov_Spotify(create := 1) {
 	global
 		
 	if (create) {		
-		ov_spotify := textCreate("Arial", 9, true, false, spotifyXPos, spotifyYPos, 0xFFFFFFFF, "", true, true)
+		ovColor := "0xFF" . spotifyColor
+		
+		ov_spotify := textCreate(spotifyFont, spotifySize, spotifyBold, spotifyItal, spotifyXPos, spotifyYPos, ovColor, "", true, true)
+		
+		SetTimer, SpotifyOverlayTimer, 2000
 	} else {
 		textDestroy(ov_spotify)
 	}
@@ -16427,9 +17047,25 @@ ov_Ping(create := 1) {
 	global
 			
 	if (create) {
-		ov_Ping := textCreate("Arial", 7, true, false, pingXPos, pingYPos, 0xFFFFFFFF, "", true, true)
+		ovColor := "0xFF" . pingColor
+		ov_Ping := textCreate(pingFont, pingSize, pingBold, pingItal, pingXPos, pingYPos, ovColor, "", true, true)
+		
+		SetTimer, PingOverlayTimer, 1000
 	} else {
 		textDestroy(ov_Ping) 
+	}
+}
+
+ov_Cooldown(create := 1) {
+	global
+			
+	if (create) {
+		ovColor := "0xFF" . cooldownColor
+		ov_Cooldown := textCreate(cooldownFont, cooldownSize, cooldownBold, cooldownItal, cooldownXPos, cooldownYPos, ovColor, "", true, true)
+		
+		SetTimer, CooldownOverlayTimer, 2000
+	} else {
+		textDestroy(ov_Cooldown)
 	}
 }
 
@@ -16437,26 +17073,12 @@ ov_Alert(create := 1) {
 	global
 
 	if (create) {
-		ov_Alert := textCreate("Arial", 6, true, false, alertXPos, alertYPos, 0xFFFFFFFF, "", true, true)
+		ovColor := "0xFF" . alertColor
+		ov_Alert := textCreate(alertFont, alertSize, alertBold, alertItal, alertXPos, alertYPos, ovColor, "", true, true)
+		
+		SetTimer, AlertOverlayTimer, 1000
 	} else {
 		textDestroy(ov_Alert) 
-	}
-}
-
-ov_Cooldown(create := 1) {
-	global
-		
-	if (create) {
-		if (cooldownBoxOv) {
-			ov_CooldownBox := boxCreate(cooldownBoxX, cooldownBoxY, 150, 125, 0xAA000000, true)
-			ov_CooldownBoxBorder := boxSetBorder(ov_CooldownBox, 4, true)
-			boxSetBorderColor(ov_CooldownBoxBorder, cooldownBoxBorderColor)		
-		}
-		
-		ov_Cooldown := textCreate("Arial", 8, true, false, cooldownXPos, cooldownYPos, 0xFFFFA600, "", true, true)
-	} else {
-		boxDestroy(ov_CooldownBox)
-		textDestroy(ov_Cooldown)
 	}
 }
 
@@ -16550,10 +17172,6 @@ ov_UpdatePosition(id) {
 		}
 	} else if (id == 2) {
 		if (cooldownOv) {
-			if (cooldownBoxOv) {
-				boxSetPos(ov_CooldownBox, cooldownBoxX, cooldownBoxY)
-			}
-			
 			textSetPos(ov_Cooldown, cooldownXPos, cooldownYPos)
 		}
 	} else if (id == 3) {
@@ -16604,27 +17222,35 @@ ov_UpdatePosition(id) {
 destroyOverlay() {
 	global
 	
-	SetTimer, loadOverlay, off
+	overlayEnabled := false
+	
+	spotifyOvEnabled := false
+	cooldownOvEnabled := false
+	pingOvEnabled := false
+	infoOvEnabled := false
+	alertOvEnabled := false	
+
+	SetTimer, SpotifyOverlayTimer, off
+	SetTimer, CooldownOverlayTimer, off
+	SetTimer, PingOverlayTimer, off
+	SetTimer, AlertOverlayTimer, off
 
 	imageDestroy(ov_Phone)
 	imageDestroy(ov_Firstaid)
 	imageDestroy(ov_Canister)
-	imageDestroy(ov_Fish)
-	imageDestroy(ov_Drugs)
-	imageDestroy(ov_UncookedFish)
 	imageDestroy(ov_Campfire)
-
-	boxDestroy(ov_CooldownBox)
-	
+	imageDestroy(ov_Drugs)
+	imageDestroy(ov_Fish)
+	imageDestroy(ov_UncookedFish)
+		
 	textDestroy(ov_DrugsText)
 	textDestroy(ov_CampfireText)
 	textDestroy(ov_FishText)
 	textDestroy(ov_UncookedFishText)
 	textDestroy(ov_Cooldown)
-	textDestroy(ov_Alert)
-	textDestroy(ov_Cooldown)
 	textDestroy(ov_Ping)
 	textDestroy(ov_spotify)
+	textDestroy(ov_Alert)
 	
 	destroyAllVisual()
 }
@@ -16642,9 +17268,10 @@ SendError(message) {
 }
 
 /*
-- Wanted Liste wieder auf Linke Windowstaste gelegt.
-- /hat eingefügt um zu fragen ob jemand Spieler xy schon gefangen hat.
-- /wafk eingefügt um jemanden zu melden der AFK mit Wanteds ist. 
-- Weitere Anpassungen am Overlay vorgenommen.
-- Das Synchronisieren dauert nun max. 2 Sekunden.
+Staatsgewalt:
+- Funktion "isConnectedToRPG()" hinzugefügt.
+- Sämtliche Timer funktionieren nur ncoh auf RPG, so werden auf DM Servern z.B. keine Kills mehr gezählt. 
+- Mögliche Crashs beim Overlay gefixxt. 
+
+
 */
