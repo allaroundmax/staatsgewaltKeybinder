@@ -10,7 +10,7 @@
 
 
 SetWorkingDir, %A_ScriptDir%
-
+/*
 if (!A_IsAdmin) {
 	try {
 		Run *RunAs "%A_ScriptFullPath%"
@@ -19,6 +19,7 @@ if (!A_IsAdmin) {
 		ExitApp
 	}
 }
+*/
 
 IfExist update.bat
 {
@@ -366,13 +367,22 @@ Start:
 	IniRead, infoFishUncookedY, ini/settings.ini, overlay, infoFishUncookedY, 385
 
 	IniRead, alertOv, ini/settings.ini, overlay, alertOv, 1
-	IniRead, alertXPos, ini/settings.ini, overlay, alertXPos, 660
+	IniRead, alertXPos, ini/settings.ini, overlay, alertXPos, 25
 	IniRead, alertYPos, ini/settings.ini, overlay, alertYPos, 250
 	IniRead, alertItal, ini/settings.ini, overlay, alertItal, false
 	IniRead, alertFont, ini/settings.ini, overlay, alertFont, Arial
 	IniRead, alertSize, ini/settings.ini, overlay, alertSize, 7
 	IniRead, alertBold, ini/settings.ini, overlay, alertBold, true
 	IniRead, alertColor, ini/settings.ini, overlay, alertColor, FFFFFF
+
+	IniRead, partnerOv, ini/settings.ini, overlay, partnerOv, 1
+	IniRead, partnerX, ini/settings.ini, overlay, partnerX, 660
+	IniRead, partnerY, ini/settings.ini, overlay, partnerY, 250
+	IniRead, partnerItal, ini/settings.ini, overlay, partnerItal, false
+	IniRead, partnerFont, ini/settings.ini, overlay, partnerFont, Arial
+	IniRead, partnerSize, ini/settings.ini, overlay, partnerSize, 8
+	IniRead, partnerBold, ini/settings.ini, overlay, partnerBold, true
+	IniRead, partnerColor, ini/settings.ini, overlay, partnerColor, 00962B
 
 	IniRead, arrestLimitUnix, ini/Settings.ini, UnixTime, arrestLimitUnix, 0
 	IniRead, commitmentUnix, ini/Settings.ini, UnixTime, commitmentUnix, 0
@@ -725,6 +735,7 @@ Start:
 	global pingOvEnabled 		:= false
 	global infoOvEnabled 		:= false
 	global alertOvEnabled 		:= false
+	global partnerOvEnabled		:= false
 	global isInVehicle			:= false
 	global agentTog				:= false
 	global startOverlay			:= false
@@ -775,6 +786,13 @@ Start:
 		
 		alertOvEnabled := true
 	}
+	
+	if (partnerOv) {
+		ov_Partner()
+		
+		partnerOvEnabled := true
+	}
+	
 	/*
 	trashcan[1]  := [2058.767578, -1050.120239, 27.710558, "Las Colinas", -1, 1]
 	trashcan[2]  := [2119.865479, -1062.000977, 25.857998, "Las Colinas", -1, 2]
@@ -874,10 +892,7 @@ Start:
 	SetTimer, ChatTimer, 200	
 	SetTimer, MainTimer, 200
 	SetTimer, KillTimer, 500
-	SetTimer, TimeoutTimer, 1000
-	; SetTimer, UpdateStatus, 1000
 	SetTimer, SecondTimer, 1000
-	; SetTimer, UpdateRestTimer, 60000
 
 	if (taskInfo) {
 		SetTimer, TaskCheckTimer, 5000
@@ -898,10 +913,6 @@ Start:
 	if (autoLotto) {
 		SetTimer, LottoTimer, 2000
 	}
-	
-	if (refillInfo) {
-		SetTimer, TankTimer, 5000
-	}	
 	
 	if (autoUse) {
 		SetTimer, SyncTimer, 60000
@@ -2697,6 +2708,8 @@ return
 			infoCampfireY -= 1
 		} else if (ovMoveMode == 11) {
 			infoDrugsY -= 1
+		} else if (ovMoveMode == 12) {
+			partnerY -= 1
 		}
 		
 		ov_UpdatePosition(ovMoveMode)
@@ -2730,6 +2743,8 @@ return
 			infoCampfireY += 1
 		} else if (ovMoveMode == 11) {
 			infoDrugsY += 1
+		} else if (ovMoveMode == 12) {
+			partnerY += 1
 		}
 		
 		ov_UpdatePosition(ovMoveMode)
@@ -2763,6 +2778,8 @@ return
 			infoCampfireX -= 1
 		} else if (ovMoveMode == 11) {
 			infoDrugsX -= 1
+		} else if (ovMoveMode == 12) {
+			partnerX -= 1
 		}
 		
 		ov_UpdatePosition(ovMoveMode)
@@ -2796,6 +2813,8 @@ return
 			infoCampfireX += 1
 		} else if (ovMoveMode == 11) {
 			infoDrugsX += 1
+		} else if (ovMoveMode == 12) {
+			partnerX += 1
 		}
 		
 		ov_UpdatePosition(ovMoveMode)
@@ -5294,7 +5313,6 @@ pauseLabel:
 		SetTimer, ChatTimer, off
 		SetTimer, MainTimer, off
 		SetTimer, KillTimer, off
-		SetTimer, TimeoutTimer, off
 		SetTimer, SecondTimer, off
 		
 		if (taskInfo) {
@@ -5313,10 +5331,6 @@ pauseLabel:
 			SetTimer, UncuffTimer, off
 		}
 
-		if (refillInfo) {
-			SetTimer, TankTimer, Off
-		}
-
 		if (admin) {
 			SetTimer, TicketTimer, Off
 		}
@@ -5331,7 +5345,6 @@ pauseLabel:
 		SetTimer, ChatTimer, 200
 		SetTimer, MainTimer, 200
 		SetTimer, KillTimer, 500
-		SetTimer, TimeoutTimer, 1000
 		SetTimer, SecondTimer, 1000
 		
 		if (taskInfo) {
@@ -5352,10 +5365,6 @@ pauseLabel:
 
 		if (admin) {
 			SetTimer, TicketTimer, 1000
-		}
-
-		if (refillInfo) {
-			SetTimer, TankTimer, 5000
 		}
 
 		if (autoUse) {
@@ -5423,7 +5432,7 @@ return
 		IniWrite, % drugs_2, ini/settings.ini, Items, drugs
 		
 		if (drugs_2 == 0) {
-			if (overlay && startOverlay) {
+			if (infoOvEnabled) {
 				imageDestroy(ov_Drugs)
 				textDestroy(ov_DrugsText)
 			}	
@@ -5437,7 +5446,7 @@ return
 	} else {
 		IniWrite, 0, ini/settings.ini, Items, firstaid
 	
-		if (overlay && startOverlay) {
+		if (infoOvEnabled) {
 			imageDestroy(ov_Firstaid)
 		}		
 	}
@@ -5447,7 +5456,7 @@ return
 	} else {
 		IniWrite, 0, ini/settings.ini, Items, canister
 	
-		if (overlay && startOverlay) {
+		if (infoOvEnabled) {
 			imageDestroy(ov_Canister)
 		}		
 	}
@@ -5459,13 +5468,13 @@ return
 	} else {
 		iniWrite, 0, ini/settings.ini, Items, campfire
 	
-		if (overlay && startOverlay) {
+		if (infoOvEnabled) {
 			imageDestroy(ov_Campfire)
 			textDestroy(ov_CampfireText)
 		}		
 	}
 	
-	if (overlay && startOverlay) {
+	if (infoOvEnabled) {
 		ov_Info(0)
 		ov_Info()
 	}
@@ -5482,7 +5491,7 @@ return
 	
 	SendInfo(cSecond . "1" . cWhite . ": Spotify Overlay " . cOrange . "|" . cSecond . " 2" . cWhite . ": Cooldown Overlay")
 	SendInfo(cSecond . "3" . cWhite . ": Ping/FPS Overlay " . cOrange . "|" . cSecond . " 4" . cWhite . ": Info Overlay")
-	SendInfo(cSecond . "5" . cWhite . ": Alarm Overlay")
+	SendInfo(cSecond . "5" . cWhite . ": Alarm Overlay " . cOrange . "|" . cSecond . " 6" . cWhite . ": Partner Overlay")
 	
 	overlayInput := PlayerInput("Overlay de-/aktivieren: ")
 	if (overlayInput == 1) {
@@ -5559,6 +5568,21 @@ return
 			
 			SendInfo("Alarm Overlay " . cGreen . "aktiviert" . cWhite . ".")
 		}
+	} else if (overlayInput == 6) {
+		if (partnerOvEnabled) {
+			ov_Partner(0) 
+			
+			partnerOvEnabled := false
+			
+			SetTimer, PartnerOverlayTimer, off
+			SendInfo("Partner Overlay " . cRed . "deaktiviert" . cWhite . ".")
+		} else {
+			ov_Partner()
+		
+			partnerOvEnabled := true
+			
+			SendInfo("Partner Overlay " . cRed . "aktiviert" . cWhite . ".")
+		}
 	}
 }
 return
@@ -5573,6 +5597,7 @@ return
 		pingOvEnabled := false
 		infoOvEnabled := false
 		alertOvEnabled := false
+		partnerOvEnabled := false 
 		
 		destroyOverlay()
 		
@@ -5585,12 +5610,14 @@ return
 		pingOvEnabled := true
 		infoOvEnabled := true
 		alertOvEnabled := true
+		partnerOvEnabled := true
 		
 		ov_Spotify()
 		ov_Cooldown()
 		ov_Ping()
 		ov_Info()
 		ov_Alert()
+		ov_Partner()
 		
 		SendInfo("Das Overlay wurde " . cGreen . "aktiviert" . cWhite . ".")
 	}
@@ -5708,6 +5735,15 @@ return
 			} else {
 				SendError("Das Info Overlay muss aktiviert sein.")
 			}
+		} else if (overlayInput == 6) {
+			if (pingOvEnabled) {
+				ovMoveMode := 12
+				
+				SendInfo("Das Verschieben des Partner Overlays wurde " . cGreen . "aktiviert" . cWhite . ".")
+				SendInfo("Verschieben: " . cOrange . "Pfeiltasten" . cWhite . ", Speichern: " . cOrange . "/osave")	
+			} else {
+				SendError("Das Partner Overlay muss aktiviert sein.")
+			}
 		}
 	}
 }
@@ -5716,74 +5752,52 @@ return
 :?:/ovsave::
 :?:/saveov::
 {
+	saved := true
+	
 	if (ovMoveMode == 1) {
 		IniWrite, % spotifyXPos, ini/settings.ini, Overlay, spotifyXPos
 		IniWrite, % spotifyYPos, ini/settings.ini, Overlay, spotifyYPos
-		
-		ovMoveMode := 0
-		SendInfo("Die Position des Spotify Overlays wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
 	} else if (ovMoveMode == 2) {
 		IniWrite, % cooldownXPos, ini/settings.ini, Overlay, cooldownXPos
 		IniWrite, % cooldownYPos, ini/settings.ini, Overlay, cooldownYPos
-		
-		ovMoveMode := 0
-		SendInfo("Die Position des Cooldown Overlays wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
 	} else if (ovMoveMode == 3) {
 		IniWrite, % pingXPos, ini/settings.ini, Overlay, pingXPos
 		IniWrite, % pingYPos, ini/settings.ini, Overlay, pingYPos
-
-		ovMoveMode := 0
-		SendInfo("Die Position des FPS/Ping Overlays wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
 	} else if (ovMoveMode == 4) {
 		IniWrite, % infoPhoneX, ini/settings.ini, overlay, infoPhoneX
-		IniWrite, % infoPhoneY, ini/settings.ini, overlay, infoPhoneY
-		
-		ovMoveMode := 0
-		SendInfo("Die Position der Handy Info wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")		
+		IniWrite, % infoPhoneY, ini/settings.ini, overlay, infoPhoneY	
 	} else if (ovMoveMode == 5) {
 		IniWrite, % infoFirstaidX, ini/settings.ini, overlay, infoFirstaidX
 		IniWrite, % infoFirstaidY, ini/settings.ini, overlay, infoFirstaidY
-		
-		ovMoveMode := 0
-		SendInfo("Die Position des Erste-Hilfe-Pakets wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")	
 	} else if (ovMoveMode == 6) {
 		IniWrite, % infoCanisterX, ini/settings.ini, overlay, infoCanisterX
 		IniWrite, % infoCanisterY, ini/settings.ini, overlay, infoCanisterY
-		
-		ovMoveMode := 0
-		SendInfo("Die Position des Kanister wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
 	} else if (ovMoveMode == 7) {
 		IniWrite, % infoFishCookedX, ini/settings.ini, overlay, infoFishCookedX
 		IniWrite, % infoFishCookedY, ini/settings.ini, overlay, infoFishCookedY
-		
-		ovMoveMode := 0
-		SendInfo("Die Position der gekochten Fische wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")		
 	} else if (ovMoveMode == 8) {
 		IniWrite, % infoFishUncookedX, ini/settings.ini, overlay, infoFishUncookedX
 		IniWrite, % infoFishUncookedY, ini/settings.ini, overlay, infoFishUncookedY
-		
-		ovMoveMode := 0
-		SendInfo("Die Position der ungekochten Fisch Info wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")	
 	} else if (ovMoveMode == 9) {
 		IniWrite, % infoCampfireX, ini/settings.ini, overlay, infoCampfireX
 		IniWrite, % infoCampfireY, ini/settings.ini, overlay, infoCampfireY
-		
-		ovMoveMode := 0
-		SendInfo("Die Position des Lagerfeuers wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
 	} else if (ovMoveMode == 10) {
 		IniWrite, % infoDrugsX, ini/settings.ini, overlay, infoDrugsX
 		IniWrite, % infoDrugsY, ini/settings.ini, overlay, infoDrugsY
-		
-		ovMoveMode := 0
-		SendInfo("Die Position der Drogen wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
 	} else if (ovMoveMode == 11) {
 		IniWrite, % alertXPos, ini/settings.ini, overlay, alertXPos
 		IniWrite, % alertYPos, ini/settings.ini, overlay, alertYPos
-		
-		ovMoveMode := 0
-		SendInfo("Die Position des Alarm Overlays wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
+	} else if (ovMoveMode == 12) {
+		IniWrite, % partnerX, ini/settings.ini, overlay, partnerX
+		IniWrite, % partnerY, ini/settings.ini, overlay, partnerY
 	} else {
+		saved := false
 		SendError("Der Overlay-Move Modus ist nicht aktiviert.")
+	}
+	
+	if (saved) {
+		ovMoveMode := 0
+		SendInfo("Die Position des Overlays wurde gespeichert. Verschieben " . cRed . "beendet" . cWhite . ".")
 	}
 }
 return
@@ -11406,6 +11420,14 @@ SecondTimer:
 		}
 	}
 	
+	
+	for index, partner_ in partners {
+		if (!getFullName(partner_)) {
+			SendChat("/f " . partner_ . " wurde als Dienstpartner ausgetragen (offline).")
+			partners.RemoveAt(index)
+		}
+	}	
+	
 	if (oldLocalTime > 0) {
 		oldLocalTime --
 		
@@ -11421,6 +11443,102 @@ SecondTimer:
 			oldFrisk := ""
 		}
 	}	
+	
+	if (!fillTimeout_) {
+		fillTimeout ++
+	
+		if (fillTimeout >= 15) {
+			fillTimeout_ := true
+		}
+	}
+	
+	if (!canisterTimeout_) {
+		canisterTimeout ++
+		
+		if (canisterTimeout >= 15) {
+			canisterTimeout_ := true
+		}
+	}
+	
+	if (!mautTimeout_) {
+		mautTimeout ++
+		
+		if (mautTimeout >= 15) {
+			mautTimeout_ := true
+		}
+	}
+	
+	if (!healTimeout_) {
+		healTimeout ++
+		
+		if (healTimeout >= 15) {
+			healTimeout_ := true
+		}
+	}
+	
+	if (!cookTimeout_) {
+		cookTimeout ++
+		
+		if (cookTimeout >= 15) {
+			cookTimeout_ := true
+		}
+	}
+	
+	if (!equipTimeout_) {
+		equipTimeout ++
+		
+		if (equipTimeout >= 15) {
+			equipTimeout_ := true
+		}
+	}
+	
+	if (!jailgateTimeout_) {
+		jailgateTimeout ++
+		
+		if (jailgateTimeout >= 5) {
+			jailgateTimeout_ := true 
+		}
+	}
+	
+	if (!gateTimeout_) {
+		gateTimeout ++
+		
+		if (gateTimeout >= 5) {
+			gateTimeout_ := true
+		}
+	}
+	
+	if (!fishTimeout_) {
+		fishTimeout ++
+		
+		if (fishTimeout >= 15) {
+			fishTimeout_ := true
+		}
+	}
+	
+	if (!localTimeout_) {
+		localTimeout ++
+		
+		if (localTimeout >= 15) {
+			localTimeout_ := true
+		}
+	}
+	
+	if (!garbageTimeout_) {
+		garbageTimeout ++
+		
+		if (garbageTimeout >= 6) {
+			garbageTimeout_ := true
+		}
+	}
+	
+	if (!fishSellTimeout_) {
+		fishSellTimeout ++
+		
+		if (fishSellTimeout >= 15) {
+			fishSellTimeout_ := true
+		}
+	}
 }
 return
 
@@ -11684,153 +11802,6 @@ RequestTimer:
 }
 return
 
-TimeoutTimer:
-{
-	if (!WinExist("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
-		return
-	}	
-	
-	if (!fillTimeout_) {
-		fillTimeout ++
-	
-		if (fillTimeout >= 15) {
-			fillTimeout_ := true
-		}
-	}
-	
-	if (!canisterTimeout_) {
-		canisterTimeout ++
-		
-		if (canisterTimeout >= 15) {
-			canisterTimeout_ := true
-		}
-	}
-	
-	if (!mautTimeout_) {
-		mautTimeout ++
-		
-		if (mautTimeout >= 15) {
-			mautTimeout_ := true
-		}
-	}
-	
-	if (!healTimeout_) {
-		healTimeout ++
-		
-		if (healTimeout >= 15) {
-			healTimeout_ := true
-		}
-	}
-	
-	if (!cookTimeout_) {
-		cookTimeout ++
-		
-		if (cookTimeout >= 15) {
-			cookTimeout_ := true
-		}
-	}
-	
-	if (!equipTimeout_) {
-		equipTimeout ++
-		
-		if (equipTimeout >= 15) {
-			equipTimeout_ := true
-		}
-	}
-	
-	if (!jailgateTimeout_) {
-		jailgateTimeout ++
-		
-		if (jailgateTimeout >= 5) {
-			jailgateTimeout_ := true 
-		}
-	}
-	
-	if (!gateTimeout_) {
-		gateTimeout ++
-		
-		if (gateTimeout >= 5) {
-			gateTimeout_ := true
-		}
-	}
-	
-	if (!fishTimeout_) {
-		fishTimeout ++
-		
-		if (fishTimeout >= 15) {
-			fishTimeout_ := true
-		}
-	}
-	
-	if (!localTimeout_) {
-		localTimeout ++
-		
-		if (localTimeout >= 15) {
-			localTimeout_ := true
-		}
-	}
-	
-	if (!garbageTimeout_) {
-		garbageTimeout ++
-		
-		if (garbageTimeout >= 6) {
-			garbageTimeout_ := true
-		}
-	}
-	
-	if (!fishSellTimeout_) {
-		fishSellTimeout ++
-		
-		if (fishSellTimeout >= 15) {
-			fishSellTimeout_ := true
-		}
-	}
-}
-return
-
-TankTimer:
-{
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
-		return
-	}		
-	
-	if (isPlayerInAnyVehicle() && isPlayerDriver()) {
-		if (!updateTextDraws())
-			return
-		
-		oReplace := ["~s~", "~r~", "~w~", "~h~", "~g~", "~y~", "~n~", "~b~", "  ", "   "]
-		
-		for i, o in oTextDraws {
-			Loop % oReplace.MaxIndex() {
-				o := StrReplace(o, oReplace[A_Index], " ")
-			}
-			
-			if (RegExMatch(o, "Tank: (\S+)\/(\d+) L", tank_)) {
-				if (tank_1 <= 5 && oldTank != Ceil(tank_1)) {
-					SoundBeep
-					
-					SendInfo(csecond . "WARNUNG: Dein Tank ist fast leer, es befinde" . (tank_1 == 1 ? "t" : "n") . " sich nur noch " . tank_1 . " Liter darin.")
-					oldTank := Ceil(tank_1)
-					break
-				}
-			} else if (RegExMatch(o, "Tank:  Leer")) {
-				SoundBeep
-				
-				SendInfo("WARNUNG: Dein Tank ist leer, du kannst mit '" . cSecond . "X" . cwhite . "' einen Kanister nutzen.")
-				
-				KeyWait, X, D, T10
-				
-				if (!ErrorLevel && !isBlocked()) {
-					SendChat("/fillcar")
-				}
-			}
-			
-			; SendClientMessage(o)
-		}
-	}
-}
-return
-
 ChatTimer:
 {
 	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
@@ -12076,7 +12047,7 @@ handleChatMessage(message, index, arr) {
 		
 		IniWrite, 0, ini/Settings.ini, items, mobilePhone
 	
-		if (overlay && startOverlay) {
+		if (infoOvEnabled) {
 			ov_Info(0)
 			ov_Info()
 		}	
@@ -12090,7 +12061,7 @@ handleChatMessage(message, index, arr) {
 		
 		IniWrite, 1, ini/Settings.ini, items, mobilePhone
 	
-		if (overlay && startOverlay) {
+		if (infoOvEnabled) {
 			ov_Info(0)
 			ov_Info()
 		}	
@@ -13231,7 +13202,7 @@ handleChatMessage(message, index, arr) {
 		if (message_2 != getUserName()) {	
 			IniWrite, 1, ini/Settings.ini, items, mobilePhone
 	
-			if (overlay && startOverlay) {
+			if (infoOvEnabled) {
 				ov_Info(0)
 				ov_Info()
 			}	
@@ -13245,7 +13216,7 @@ handleChatMessage(message, index, arr) {
 		if (message_2 != getUserName()) {
 			IniWrite, 1, ini/Settings.ini, items, mobilePhone
 			
-			if (overlay && startOverlay) {
+			if (infoOvEnabled) {
 				ov_Info(0)
 				ov_Info()
 			}
@@ -13258,7 +13229,7 @@ handleChatMessage(message, index, arr) {
 	} else if (RegExMatch(message, "^Dein Handy klingelt\. Tippe \/pickup\. Anrufer-ID: (\S+)$", message_)) {
 		IniWrite, 1, ini/Settings.ini, items, mobilePhone
 	
-		if (overlay && startOverlay) {
+		if (infoOvEnabled) {
 			ov_Info(0)
 			ov_Info()
 		}	
@@ -13272,7 +13243,7 @@ handleChatMessage(message, index, arr) {
 		|| RegExMatch(message,"^Die Verbindung zu deinem Gesprächspartner wurde unterbrochen\.$")) {
 		IniWrite, 1, ini/Settings.ini, items, mobilePhone
 		
-		if (overlay && startOverlay) {
+		if (infoOvEnabled) {
 			ov_Info(0)
 			ov_Info()
 		}		
@@ -13284,7 +13255,7 @@ handleChatMessage(message, index, arr) {
 		if (message_1 == getUserName()) {
 			IniWrite, 1, ini/Settings.ini, items, mobilePhone
 			
-			if (overlay && startOverlay) {
+			if (infoOvEnabled) {
 				ov_Info(0)
 				ov_Info()
 			}
@@ -13302,7 +13273,7 @@ handleChatMessage(message, index, arr) {
 		
 		Sleep, 100
 		
-		if (overlay && startOverlay) {
+		if (infoOvEnabled) {
 			ov_Info(0)
 			ov_Info()
 		}		
@@ -13318,7 +13289,7 @@ handleChatMessage(message, index, arr) {
 			}
 		}
 
-		if (overlay && startOverlay) {
+		if (infoOvEnabled) {
 			ov_Info(0)
 			ov_Info()
 		}	
@@ -13334,7 +13305,7 @@ handleChatMessage(message, index, arr) {
 			}
 		}
 		
-		if (overlay && startOverlay) {
+		if (infoOvEnabled) {
 			ov_Info(0)
 			ov_Info()
 		}			
@@ -13419,7 +13390,7 @@ KillTimer:
 						IniWrite, 1, ini/Settings.ini, items, mobilePhone
 					}
 					
-					if (overlay && startOverlay) {
+					if (infoOvEnabled) {
 						ov_Info(0)
 						ov_Info()
 					}	
@@ -13519,7 +13490,7 @@ MainTimer:
 		if (!isInVehicle) {
 			isInVehicle := true
 			
-			if (overlay && startOverlay && getVehicleType() != 6) {
+			if (infoOvEnabled && getVehicleType() != 6) {
 				ov_Info(0)
 				ov_Info()
 			}	
@@ -13528,7 +13499,7 @@ MainTimer:
 		if (isInVehicle) {
 			isInVehicle := false
 			
-			if (overlay && startOverlay && getVehicleType() != 6) {
+			if (infoOvEnabled && getVehicleType() != 6) {
 				ov_Info(0)
 				ov_Info()
 			}
@@ -13570,6 +13541,43 @@ MainTimer:
 				}
 			}
 		}
+	}
+	
+	if (refillInfo) {
+		if (isPlayerInAnyVehicle() && isPlayerDriver()) {
+			if (!updateTextDraws())
+				return
+			
+			oReplace := ["~s~", "~r~", "~w~", "~h~", "~g~", "~y~", "~n~", "~b~", "  ", "   "]
+			
+			for i, o in oTextDraws {
+				Loop % oReplace.MaxIndex() {
+					o := StrReplace(o, oReplace[A_Index], " ")
+				}
+				
+				if (RegExMatch(o, "Tank: (\S+)\/(\d+) L", tank_)) {
+					if (tank_1 <= 5 && oldTank != Ceil(tank_1)) {
+						SoundBeep
+						
+						SendInfo(csecond . "WARNUNG: Dein Tank ist fast leer, es befinde" . (tank_1 == 1 ? "t" : "n") . " sich nur noch " . tank_1 . " Liter darin.")
+						oldTank := Ceil(tank_1)
+						break
+					}
+				} else if (RegExMatch(o, "Tank:  Leer")) {
+					SoundBeep
+					
+					SendInfo("WARNUNG: Dein Tank ist leer, du kannst mit '" . cSecond . "X" . cwhite . "' einen Kanister nutzen.")
+					
+					KeyWait, X, D, T10
+					
+					if (!ErrorLevel && !isBlocked()) {
+						SendChat("/fillcar")
+					}
+				}
+				
+				; SendClientMessage(o)
+			}
+		}	
 	}
 	
 	if ((getPlayerHealth() + getPlayerArmor()) != healthOld) {
@@ -14044,6 +14052,37 @@ PaketTimer:
 	}
 	
 	SetTimer, PaketTimer, off
+}
+return
+
+PartnerOverlayTimer:
+{
+	if (!WinActive("GTA:SA:MP")) {
+		return
+	}
+	
+	regPartners := 0
+	partnerString := ""
+	
+	for index, partner_ in partners {
+		if (getFullName(partner_)) {
+			regPartners ++
+		}
+	}
+	
+	partnerString .= "=== Diensteinheit (" . regPartners . ") ===`n"
+	
+	if (partnerOv) {
+		for index, partner_ in partners {
+			if (getFullName(partner_) != "") {
+				partnerString .= "Partner " . index . ": " . partner_ . " [ID: " . getPlayerIdByName(partner_) . "]`n"
+			}
+		}
+		
+		textSetString(ov_Partner, partnerString)
+	} else {
+		SetTimer, PartnerOverlayTimer, off
+	}
 }
 return
 
@@ -15212,7 +15251,7 @@ startFish() {
 		}
 	}
 	
-	if (overlay && startOverlay) {
+	if (infoOvEnabled) {
 		ov_Info(0)
 		ov_Info()
 	}	
@@ -15755,7 +15794,7 @@ checkFish() {
 	
 	SendInfo("Gesamt HP: " . cSecond . formatNumber(allFishHP) . cwhite . " HP | Gesamt Wert: $" . cSecond . formatNumber(allFishMoney))
 	
-	if (overlay && startOverlay) {
+	if (infoOvEnabled) {
 		ov_Info(0)
 		ov_Info()
 	}	
@@ -15794,7 +15833,7 @@ checkCook() {
 	
 	SendInfo("Gesamt HP: " . cSecond . formatNumber(allHP) . cwhite . " HP.")
 	
-	if (overlay && startOverlay) {
+	if (infoOvEnabled) {
 		ov_Info(0)
 		ov_Info()
 	}	
@@ -15902,7 +15941,7 @@ getItems() {
 		IniWrite, % drugs_2, ini/Settings.ini, Items, drugs
 		
 		if (drugs_2 == 0) {
-			if (overlay && startOverlay) {
+			if (infoOvEnabled) {
 				imageDestroy(ov_Drugs)
 				textDestroy(ov_DrugsText)
 			}	
@@ -15916,7 +15955,7 @@ getItems() {
 	} else {
 		IniWrite, 0, ini/Settings.ini, Items, firstaid
 	
-		if (overlay && startOverlay) {
+		if (infoOvEnabled) {
 			imageDestroy(ov_Firstaid)
 		}		
 	}
@@ -15926,7 +15965,7 @@ getItems() {
 	} else {
 		IniWrite, 0, ini/Settings.ini, Items, canister
 	
-		if (overlay && startOverlay) {
+		if (infoOvEnabled) {
 			imageDestroy(ov_Canister)
 		}		
 	}
@@ -15938,13 +15977,13 @@ getItems() {
 	} else {
 		iniWrite, 0, ini/Settings.ini, Items, campfire
 	
-		if (overlay && startOverlay) {
+		if (infoOvEnabled) {
 			imageDestroy(ov_Campfire)
 			textDestroy(ov_CampfireText)
 		}		
 	}
 	
-	if (overlay && startOverlay) {
+	if (infoOvEnabled) {
 		ov_Info(0)
 		ov_Info()
 	}
@@ -17063,7 +17102,7 @@ ov_Cooldown(create := 1) {
 		ovColor := "0xFF" . cooldownColor
 		ov_Cooldown := textCreate(cooldownFont, cooldownSize, cooldownBold, cooldownItal, cooldownXPos, cooldownYPos, ovColor, "", true, true)
 		
-		SetTimer, CooldownOverlayTimer, 2000
+		SetTimer, CooldownOverlayTimer, 990
 	} else {
 		textDestroy(ov_Cooldown)
 	}
@@ -17079,6 +17118,19 @@ ov_Alert(create := 1) {
 		SetTimer, AlertOverlayTimer, 1000
 	} else {
 		textDestroy(ov_Alert) 
+	}
+}
+
+ov_Partner(create := 1) {
+	global
+	
+	if (create) {
+		ovColor := "0xFF" . partnerColor
+		ov_Partner := textCreate(partnerFont, partnerSize, partnerBold, partnerItal, partnerX, partnerY, ovColor, "", true, true)
+		
+		SetTimer, PartnerOverlayTimer, 5000
+	} else {
+		textDestroy(ov_Partner)
 	}
 }
 
@@ -17216,6 +17268,10 @@ ov_UpdatePosition(id) {
 			textSetPos(ov_DrugsText, infoDrugsX + 11, infoDrugsY + 14)
 			imageSetPos(ov_Drugs, infoDrugsX, infoDrugsY)
 		}
+	} else if (ovMoveMode == 12) {
+		if (infoOv) {
+			textSetPos(ov_Partner, partnerX, partnerY)
+		}
 	}
 }
 
@@ -17223,7 +17279,6 @@ destroyOverlay() {
 	global
 	
 	overlayEnabled := false
-	
 	spotifyOvEnabled := false
 	cooldownOvEnabled := false
 	pingOvEnabled := false
@@ -17234,6 +17289,7 @@ destroyOverlay() {
 	SetTimer, CooldownOverlayTimer, off
 	SetTimer, PingOverlayTimer, off
 	SetTimer, AlertOverlayTimer, off
+	SetTimer, PartnerOverlayTimer, off
 
 	imageDestroy(ov_Phone)
 	imageDestroy(ov_Firstaid)
@@ -17251,6 +17307,7 @@ destroyOverlay() {
 	textDestroy(ov_Ping)
 	textDestroy(ov_spotify)
 	textDestroy(ov_Alert)
+	textDestroy(ov_Partners)
 	
 	destroyAllVisual()
 }
@@ -17266,12 +17323,3 @@ SendError(message) {
 	
 	SendClientMessage(prefix . cRed . "Fehler: " . message)
 }
-
-/*
-Staatsgewalt:
-- Funktion "isConnectedToRPG()" hinzugefügt.
-- Sämtliche Timer funktionieren nur ncoh auf RPG, so werden auf DM Servern z.B. keine Kills mehr gezählt. 
-- Mögliche Crashs beim Overlay gefixxt. 
-
-
-*/
