@@ -13060,7 +13060,6 @@ KillTimer:
 		for index, object in data {
 			if (object.victim.local) {
 				killWeaponShort := weaponShort(object.weapon)
-				killFaction := getSkinFraction(object.skin)
 				killWeapon := getWeaponName(object.weapon)
 				killerID := getPlayerIdByName(object.murderer.name)
 				ped := getPedById(killerID)
@@ -15090,14 +15089,14 @@ gk(id, store := "", showGK := false) {
             return
         }
         
-        for index, entry in data {
-            name := entry["name"]
+        for index, storerob in data {
+            name := storerob["name"]
             location := ""
             
-            if (entry["type"] == "public") {
+            if (storerob["type"] == "public") {
                 color := "{12C0EB}"
-                location := " (" . calculateZone(entry["x"], entry["y"], 0.0) . ", " . calculateCity(entry["x"], entry["y"], 0.0) . ")"
-            } else if (entry["type"] == "house") {
+                location := " (" . calculateZone(storerob["x"], storerob["y"], 0.0) . ", " . calculateCity(storerob["x"], storerob["y"], 0.0) . ")"
+            } else if (storerob["type"] == "house") {
                 
                 if (name == "Nobody") {
 					color := "{09B814}"
@@ -15110,15 +15109,15 @@ gk(id, store := "", showGK := false) {
                     name := "Haus von " . name
                 }
                 
-                location := " (" . calculateZone(entry["x"], entry["y"], 0.0) . ", " . calculateCity(entry["x"], entry["y"], 0.0) . ")"
-            } else if (entry["type"] == "faction") {
+                location := " (" . calculateZone(storerob["x"], storerob["y"], 0.0) . ", " . calculateCity(storerob["x"], storerob["y"], 0.0) . ")"
+            } else if (storerob["type"] == "faction") {
                 color := "{117ABB}"
-                location := " (" . calculateZone(entry["x"], entry["y"], 0.0) . ", " . calculateCity(entry["x"], entry["y"], 0.0) . ")"
-            } else if (entry["type"] == "vehicle") {
+                location := " (" . calculateZone(storerob["x"], storerob["y"], 0.0) . ", " . calculateCity(storerob["x"], storerob["y"], 0.0) . ")"
+            } else if (storerob["type"] == "vehicle") {
                 color := "{FF00FF}"
             }
             
-            if (entry["x"] == -5000 || entry["y"] == -5000) {
+            if (storerob["x"] == -5000 || storerob["y"] == -5000) {
                 location := ""
             }
             
@@ -15133,15 +15132,15 @@ gk(id, store := "", showGK := false) {
                     continue
                 }
                 
-                SendInfo("GK " . id . ": (ID: " . entry["type"] . "." . entry["id"] . ") " . color . name . location)
+                SendInfo("GK " . id . ": (ID: " . storerob["type"] . "." . storerob["id"] . ") " . color . name . location)
                 
                 if (showGK) {
                     Sleep, 50
                     
-                    showGK(entry["type"] . "." . entry["id"], true)
+                    showGK(storerob["type"] . "." . storerob["id"], true)
                 }
             } else {
-                SendInfo("[" . entry["type"] . "." . entry["id"] . "] " . color . name . location)
+                SendInfo("[" . storerob["type"] . "." . storerob["id"] . "] " . color . name . location)
             }
         }
     }
@@ -15581,19 +15580,19 @@ getSkinFraction(id) {
     skins := {"LSPD": [260, 163, 164, 265, 266, 267, 280, 281, 283, 284, 288], "FBI": [165, 166, 240, 286, 294, 11, 172, 194, 211, 59], "Sanitäter": [70, 274, 275, 276, 308], "Feuerwehr": [255, 277, 278, 279, 191], "Russen": [43, 111, 112, 113, 124, 125, 126, 127, 258, 272, 40], "Yakuza": [121, 122, 123, 186, 203, 204, 228, 169, 224], "Hitman": [], "Wheelman": [], "San News": [60, 170, 188, 227, 250, 56, 226], "Grove Street": [105, 106, 107, 269, 271, 65], "Ballas": [102, 103, 104, 293, 13], "LCM": [46, 47, 48, 98, 185, 223, 249, 214], "Ordnungsamt": [8, 42, 50, 71, 233], "Transport GmbH": [34, 44, 132, 133, 202, 206, 261, 31, 131], "San Fierro Rifa": [], "Vagos": [108, 109, 110, 292, 91], "Triaden": [], "Biker": [100, 247, 248, 254, 131]}
     fraction := ""
   
-	for key, array in skins {
-        for index2, value2 in array {
+	for key, array in skins
+    {
+        for index2, value2 in array
+        {
             if (value2 == id) {
                 fraction := key
                 Break, 2
             }
         }
     }
-	
-    if (fraction) {
+    if(fraction) {
         return fraction
     }
-	
     return "Zivilist"
 }
 
