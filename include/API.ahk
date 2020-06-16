@@ -1,6 +1,4 @@
-﻿; ------------------- ;
-; Fahrzeug-Funktionen ;
-; ------------------- ;
+﻿
 global SAMP_MAX_VEHICLES			:= 2000
 global SAMP_PPOOL_VEHICLE_OFFSET	:= 0x1C
 global VEHPOOL_iVehicleCount		:= 0x0
@@ -9,6 +7,7 @@ global VEHPOOL_pGTA_Vehicle			:= 0x4FB4
 global iRefreshVeh					:= 0
 global oVehiclePoolData				:= []
 global iUpdateTickVeh				:= 1000
+
 
 getVehicleID() {
 	if (!checkHandles())
@@ -298,26 +297,30 @@ GetVehicleColor(ByRef int_ColorFirst, ByRef int_ColorSecond) {
 	return res
 }
 
-; -------------------- ;
-; TextLabel-Funktionen ;
-; -------------------- ;
 createTextLabel(sText, dwColor, fX, fY, fZ, fDrawDistance := 50.0, bTestLOS := 0, wPlayerID := 0xFFFF, wVehicleID := 0xFFFF) {
-	if (!checkHandles())
+	if (!checkHandles()) {
 		return -1
+	}
+	
 	dwAddress := readDWORD(hGTA, readDWORD(hGTA, readDWORD(hGTA, dwSAMP + SAMP_INFO_OFFSET) + SAMP_PPOOLS_OFFSET) + 0xC)
+	
 	Loop, 2048 {
 		wID := A_Index - 1
+	
 		if (!readDWORD(hGTA, dwAddress + 0xE800 + wID * 4)) {
 			return callWithParams2(hGTA, dwSAMP + 0x11C0, [["i", dwAddress], ["i", wID], ["s", sText], ["i", dwColor], ["f", fX], ["f", fY], ["f", fZ]
 				, ["f", fDrawDistance], ["i", bTestLOS], ["i", wPlayerID], ["i", wVehicleID]], false, true) ? wID : -1
 		}
 	}
+	
 	return -1
 }
 
 updateTextLabel(wID, sText, dwColor) {
-	if (wID < 0 || wID > 2047 || !checkHandles())
+	if (wID < 0 || wID > 2047 || !checkHandles()) {
 		return false
+	}
+	
 	dwAddress := readDWORD(hGTA, readDWORD(hGTA, readDWORD(hGTA, dwSAMP + SAMP_INFO_OFFSET) + SAMP_PPOOLS_OFFSET) + 0xC)
 	fX := readFloat(hGTA, dwAddress + wID * 0x1D + 0x8)
 	fY := readFloat(hGTA, dwAddress + wID * 0x1D + 0xC)
@@ -326,26 +329,32 @@ updateTextLabel(wID, sText, dwColor) {
 	bTestLOS := readMem(hGTA, dwAddress + wID * 0x1D + 0x18, 1, "Byte")
 	wPlayerID := readMem(hGTA, dwAddress + wID * 0x1D + 0x19, 2, "UShort")
 	wVehicleID := readMem(hGTA, dwAddress + wID * 0x1D + 0x1B, 2, "UShort")
-	return callWithParams2(hGTA, dwSAMP + 0x11C0, [["i", dwAddress], ["i", wID], ["s", sText], ["i", dwColor], ["f", fX], ["f", fY], ["f", fZ], ["f", fDrawDistance]
-		, ["i", bTestLOS], ["i", wPlayerID], ["i", wVehicleID]], false, true)
+	
+	return callWithParams2(hGTA, dwSAMP + 0x11C0, [["i", dwAddress], ["i", wID], ["s", sText], ["i", dwColor], ["f", fX], ["f", fY], ["f", fZ], ["f", fDrawDistance], ["i", bTestLOS], ["i", wPlayerID], ["i", wVehicleID]], false, true)
 }
 
 deleteTextLabel(ByRef wID) {
-	if (!checkHandles())
+	if (!checkHandles()) {
 		return false
+	}
+	
 	dwAddress := readDWORD(hGTA, readDWORD(hGTA, readDWORD(hGTA, dwSAMP + SAMP_INFO_OFFSET) + SAMP_PPOOLS_OFFSET) + 0xC)
 	if (callWithParams2(hGTA, dwSAMP + 0x12D0, [["i", dwAddress], ["i", wID]], false, true)) {
 		wID := -1
 		return true
 	}
+	
 	return false
 }
+
+
 
 global SAMP_3DTEXT					:= 0x12C7BC
 
 getLabelText() {
-	if (!checkHandles())
+	if (!checkHandles()) {
 		return -1
+	}
 	
 	ADDR_3DText := readDWORD(hGTA, dwSAMP + SAMP_3DTEXT)
 	TEXT_3DTEXT := readString(hGTA, ADDR_3DText, 512)
@@ -357,7 +366,6 @@ global iRefreshTL := 0
 global oTextLabelData := ""
 global iUpdateTickTL := 1000
 
-; internal stuff
 updateTextLabelData() {
 	if (!checkHandles())
 		return 0
@@ -663,7 +671,7 @@ restartGameEx() {
 	
 	dwAddress := readDWORD(hGTA, dwSAMP + SAMP_INFO_OFFSET) ;g_SAMP
 	
-	if (ErrorLevel || dwAddress==0) {
+	if (ErrorLevel || dwAddress == 0) {
 		ErrorLevel := ERROR_READ_MEMORY
 		return -1
 	}
@@ -690,7 +698,6 @@ restartGameEx() {
 		return false
 	
 	waitForSingleObject(hThread, 0xFFFFFFFF)
-	
 	return true
 }
 
@@ -753,7 +760,6 @@ disconnectEx() {
 		return false
 	
 	waitForSingleObject(hThread, 0xFFFFFFFF)
-	
 	return true
 }
  
@@ -774,8 +780,9 @@ setRestart() {
 
 restart() {
 	restartGameEx()
+	Sleep, 2000
 	disconnectEx()
-	Sleep, 1000
+	Sleep, 2000
 	setRestart()
 }
 
@@ -832,20 +839,18 @@ getKills() {
 	}
 	
 	pedLocal := readDWORD(hGTA, 0xB6F5F0)
-	
 	if (!pedLocal) {
 		return false
 	}
 	
 	peds := getPeds()
-	
 	if (!peds) {
 		return false
 	}
 	
 	data := []
 	
-	For index, object in peds {
+	for index, object in peds {
 		state := readMem(hGTA, object.PED + 0x530, 4, "UInt")
 		
 		if ((pedStates[object.PED] == 55 || pedStates[object.PED] == 54) == (state == 55 || state == 54)) {
@@ -857,7 +862,8 @@ getKills() {
 		if (object.PED && !object.ISNPC && (state == 55 || state == 54)) {
 			pedMurderer := readDWORD(hGTA, object.PED + 0x764)
 			murderer := false
-			For index2, object2 in peds
+			
+			for index2, object2 in peds
 			{
 				if (object2.PED == pedMurderer) {
 					murderer := object2
@@ -868,10 +874,11 @@ getKills() {
 			weapon := readMem(hGTA, object.PED + 0x760, 4, "UInt")
 			skin := readMem(hGTA, object.PED + 0x22, 2, "UShort")
 			
-			if (!murderer)
+			if (!murderer) {
 				data.Push({victim: object, weapon: weapon, skin: skin})
-			else
+			} else {
 				data.Push({victim: object, murderer: murderer, weapon: weapon, skin: skin})
+			}
 		}
 	}
 	
@@ -902,8 +909,7 @@ getPeds() {
 	
 	data.Push({LOCAL: true, ID: wID, PED: dwPed, ISNPC: false, NAME: sName})
 	
-	Loop % 1000
-	{
+	Loop % 1000 {
 		i := A_Index - 1
 		dwRemotePlayer := readDWORD(hGTA, dwAddress + 0x2E + i*4)
 		
@@ -939,7 +945,7 @@ global GAMETEXT_3					:= 0xBAAE40
 global GAMETEXT_4					:= 0xBAAEC0
 global GAMETEXT_5					:= 0xBAABC0
 
-getGameText(type = 1, length = 12) {
+getGameText(type = 1, length = 68) {
 	if (!checkHandles())
 		return ""
 	
@@ -1259,6 +1265,70 @@ getWeaponName(id) {
 	}
 	
 	return "Unknown"
+}
+
+getAttacker(bReset := false) {	
+	if (!checkHandles())
+		return 0
+	
+	dwLocalPED := readDWORD(hGTA, 0xB6F5F0)
+	dwAttacker := readDWORD(hGTA, dwLocalPED + 0x764)
+	
+	if (!dwAttacker) {
+		return -1
+	}
+	
+	for i, o in oScoreboardData {
+		if (!o.PED || o.ISNPC || dwAttacker != o.PED) {
+			continue
+		}
+		
+		if (bReset) {
+			writeMemory(hGTA, dwLocalPED + 0x764, 0, 4, "UInt")
+		}
+		
+		return o.ID
+	}
+	
+	return -1
+}
+
+getAttackWeapon(bReset := false) {
+	
+	if (!checkHandles()) {
+		return 0
+	}
+	
+	dwLocalPED := readDWORD(hGTA, ADDR_CPED_PTR)
+	dwAttackGun := readDWORD(hGTA, dwLocalPED + 0x760)
+	
+	if (!dwAttackGun) {
+		return -1
+	}
+	
+	weapon := readMem(hGTA, dwLocalPED + 0x760, 4, "UInt")
+	return weapon
+}
+
+isPlayerCrouch() {
+    if (!checkHandles()) {
+        return -1
+	}
+	
+    if (!CPed := readDWORD(hGTA, 0xB6F5F0)) {
+        return -1
+	}
+	
+    state := readMem(hGTA, CPed + 0x46F, 1, "byte")
+    if (state == 132) {
+        return 1
+	}
+	
+    if (state == 128) {
+        return 0
+	}
+	
+    return -1
 }
 
 numberFormat(input_var) {
