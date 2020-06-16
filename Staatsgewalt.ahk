@@ -8,7 +8,6 @@
 #Include, include/API.ahk
 #Include, include/JSON.ahk
 
-
 SetWorkingDir, %A_ScriptDir%
 /*
 if (!A_IsAdmin) {
@@ -140,7 +139,7 @@ Start:
 	rank := URLDownloadToVar(baseURL . "api/getUserInfo?username=" . username . "&info=rank")
 	userFraction := URLDownloadToVar(baseURL . "api/getUserInfo?username=" . username . "&info=fraction")
 	
-	fraction := getFractionName()
+	fraction := getFactionName()
 	
 	if (newversion > version) {		
 		MsgBox, 68, %projectName% Keybinder - Version %version%, Es wurde eine neue Keybinderversion (Version %newversion%) veröffentlicht!`nMöchtest du diese nun herunterladen?`n`nÄnderungen sind im Forum im Thread!
@@ -547,7 +546,7 @@ Start:
 			
 			if (!alreadyRegistered) {
 				Hotkey, %value%, %key%Label
-				StringReplace, %key%NoMods, value, ~
+				stringReplace, %key%NoMods, value, ~
 				
 				registeredHotkeys[key] := value
 			}
@@ -568,7 +567,7 @@ Start:
 			
 			if (!alreadyRegistered) {
 				Hotkey, %hk%, %key%Label
-				StringReplace, %key%NoMods, hk, ~
+				stringReplace, %key%NoMods, hk, ~
 				
 				registeredHotkeys[key] := hk
 			}
@@ -601,7 +600,7 @@ Start:
 				}
 			}
 			
-			StringReplace, ownHotkey%outerIndex%NoMods, hk, ~
+			stringReplace, ownHotkey%outerIndex%NoMods, hk, ~
 			
 			if (!alreadyRegistered) {
 				if (ownHotkey%outerIndex%Active) {
@@ -659,8 +658,17 @@ Start:
 	global bankrobs				:= []
 	global storerobs			:= []
 	global backups				:= []
-	global trashcan 			:= []
 	
+	global array_Trashcan 		:= []
+	global array_Faction 		:= []
+	global array_Custom			:= []
+	global array_Gas			:= []
+	global array_Heal			:= []
+	global array_Local			:= []
+	global array_Gate 			:= []
+	global array_Cook 			:= []
+	global array_Fish 			:= []
+
 	global pedStates 			:= {}
 	
 	global tempo 				:= 80
@@ -715,7 +723,7 @@ Start:
 	global oldLocal				:= ""
 	global cooldownString		:= ""
 	
-	
+	global repairTimeout_		:= true
 	global fillTimeout_ 		:= true
 	global canisterTimeout_ 	:= true
 	global mautTimeout_ 		:= true
@@ -757,6 +765,8 @@ Start:
 	global oldSpotifyTrack		:= ""
 	global oldVehicleName		:= "none"
 	
+	destroyOverlay()
+	
 	if (spotifyOv) {
 		ov_Spotify()
 		
@@ -793,82 +803,204 @@ Start:
 		partnerOvEnabled := true
 	}
 	
-	/*
-	trashcan[1]  := [2058.767578, -1050.120239, 27.710558, "Las Colinas", -1, 1]
-	trashcan[2]  := [2119.865479, -1062.000977, 25.857998, "Las Colinas", -1, 2]
-	trashcan[3]  := [2246.809326, -1153.964966, 26.459375, "Las Colinas", -1, 3]
-	trashcan[4]  := [2545.130615, -1120.289917, 62.752769, "Las Colinas", -1, 4]
-	trashcan[5]  := [2699.683350, -1106.541870, 70.159241, "Las Colinas", -1, 5]
-	trashcan[6]  := [2790.593506, -1096.344116, 31.318750, "Las Colinas", -1, 6]
-	trashcan[7]  := [2802.270020, -1195.662964, 26.091354, "East Beach", -1, 7]
-	trashcan[8]  := [2769.613037, -1374.365356, 40.351383, "East Beach", -1, 8]
-	trashcan[9]  := [2786.151367, -1427.741455, 31.053125, "East Beach", -1, 9]
-	trashcan[10] := [2793.253906, -1625.652344, 11.521875, "East Beach", -1, 10]
-	trashcan[11] := [2758.034180, -2020.873657, 14.161955, "Playa del Seville", -1, 11]
-	trashcan[12] := [2627.479980, -1984.546997, 14.146875, "Willowfield", -1, 12]
-	trashcan[13] := [2441.379150, -1964.233765, 14.146875, "Willowfield", -1, 13]
-	trashcan[14] := [2439.517090, -1900.352295, 14.153357, "Willowfield", -1, 14]
-	trashcan[15] := [2368.265869, -2032.633179, 14.097355, "Willowfield", -1, 15]
-	trashcan[16] := [2340.841553, -2154.718262, 14.146875, "Ocean Docks", -1, 16]
-	trashcan[17] := [2182.485107, -2249.278320, 13.928430, "Ocean Docks", -1, 17]
-	trashcan[18] := [2123.285156, -2282.549072, 14.077246, "Ocean Docks", -1, 18]
-	trashcan[19] := [1998.914795, -2136.649902, 14.146875, "Willowfield", -1, 19]
-	trashcan[20] := [2052.302490, -2146.937744, 14.232813, "Willowfield", -1, 20]
-	trashcan[21] := [1990.136108, -2014.769043, 14.146875, "Willowfield", -1, 21]
-	trashcan[22] := [1731.480713, -2055.552979, 14.174515, "El Corona", -1, 22]
-	trashcan[23] := [1629.833496, -1911.320313, 14.149103, "Verdant Bluffs", -1, 23]
-	trashcan[24] := [1614.523560, -1841.383301, 14.127308, "Commerce", -1, 24]
-	trashcan[25] := [1592.933960, -1784.566040, 13.877789, "Commerce", -1, 25]
-	trashcan[26] := [1809.678711, -1688.933716, 14.151469, "Little Mexico", -1, 26]
-	trashcan[27] := [1907.996826, -1572.763306, 14.200819, "Idlewood", -1, 27]
-	trashcan[28] := [2003.734619, -1551.829468, 14.246980, "Idlewood", -1, 28]
-	trashcan[29] := [1397.024292, -1894.318481, 14.089090, "Verdant Bluffs", -1, 29]
-	trashcan[30] := [1372.502930, -1720.065063, 13.601456, "Commerce", -1, 30]
-	trashcan[31] := [1342.739746, -1680.794189, 14.182812, "Commerce", -1, 31]
-	trashcan[32] := [1641.281250, -1679.334106, 14.137456, "Commerce", -1, 32]
-	trashcan[33] := [1594.332886, -1559.761353, 14.765665, "Commerce", -1, 33]
-	trashcan[34] := [1721.005859, -1472.314453, 14.151341, "Commerce", -1, 34]
-	trashcan[35] := [1611.727905, -1201.589478, 20.409513, "Downtown Los Santos", -1, 35]
-	trashcan[36] := [1830.586792, -1149.416382, 24.450518, "Glen Park", -1, 36]
-	trashcan[37] := [1616.220215, -993.336365, 24.666773, "Mulholland Intersection", -1, 37]
-	trashcan[38] := [1296.652222, -979.811829, 33.295311, "Temple", -1, 38]
-	trashcan[39] := [1201.949097, -976.933716, 44.076561, "Temple", -1, 39]
-	trashcan[40] := [1284.726318, -1252.247681, 14.146875, "Market", -1, 40]
-	trashcan[41] := [1132.987183, -1345.027100, 14.584375, "Market", -1, 41]
-	trashcan[42] := [1084.256714, -1224.599243, 16.420313, "Market", -1, 42]
-	trashcan[43] := [1015.644287, -1005.409424, 32.701561, "Temple", -1, 43]
-	trashcan[44] := [856.674438, -974.783020, 36.115143, "Vinewood", -1, 44]
-	trashcan[45] := [783.716736, -1013.634827, 26.959375, "Richman", -1, 45]
-	trashcan[46] := [777.521851, -1121.635010, 24.428125, "Vinewood", -1, 46]
-	trashcan[47] := [811.763245, -1269.233765, 14.184126, "Vinewood", -1, 47]
-	trashcan[48] := [733.994995, -1337.045410, 14.134808, "Vinewood", -1, 48]
-	trashcan[49] := [877.909180, -1363.699951, 14.146875, "Market", -1, 49]
-	trashcan[50] := [707.066956, -1474.307983, 6.068750, "Marina", -1, 50]
-	trashcan[51] := [587.353088, -1554.240967, 16.212440, "Rodeo", -1, 51]
-	trashcan[52] := [412.291962, -1808.504761, 6.146875, "Santa Maria Beach", -1, 52]
-	trashcan[53] := [309.993774, -1436.890381, 28.529688, "Rodeo", -1, 53]
-	trashcan[54] := [412.914490, -1304.481445, 15.568627, "Rodeo", -1, 54]
-	trashcan[55] := [1082.914307, -1666.565552, 14.138750, "Verona Beach", -1, 55]
-	trashcan[56] := [1229.145264, -1609.433594, 14.146875, "Verona Beach", -1, 56]
-	trashcan[57] := [1010.867615, -1270.720703, 15.787210, "Market", -1, 57]
-	trashcan[58] := [1029.465820, -1363.808350, 14.171368, "Market", -1, 58]
-	trashcan[59] := [1964.835938, -1307.474854, 24.378319, "Glen Park", -1, 59]
-	trashcan[60] := [2384.933350, -1485.982300, 24.600000, "East Los Santos", -1, 60]
-	trashcan[61] := [2345.070801, -1948.613281, 14.156754, "Willowfield", -1, 61]
-	trashcan[62] := [2384.503418, -1940.051514, 14.146875, "Willowfield", -1, 62]
-	trashcan[63] := [2590.447021, -1321.253174, 40.518929, "Los Flores", -1, 63]
-	trashcan[64] := [2416.958252, -1577.622559, 24.431389, "East Los Santos", -1, 64]
-	trashcan[65] := [2442.497559, -1760.444946, 14.191413, "Ganton", -1, 65]
-	trashcan[66] := [2453.276611, -2543.011230, 14.256072, "Ocean Docks", -1, 66]
-	trashcan[67] := [2513.634033, -2640.555908, 14.243263, "Ocean Docks", -1, 67]
-	trashcan[68] := [2200.565918, -2632.509521, 14.146875, "Los Santos International", -1, 68]
-	trashcan[69] := [2199.586182, -2600.765137, 14.140907, "Los Santos International", -1, 69]
-	trashcan[70] := [2735.4619, -2446.2249, 13.6432, "Ocean Docks", -1, 70]
-	trashcan[71] := [2547.7144, -1290.5468, 41.1641, "East Los Santos", -1, 71]
-	trashcan[72] := [2281.9441, -2046.9819, 13.5469, "Willowfield", -1, 72]
-	trashcan[73] := [2209.1743, -1343.6583, 23.9844, "Jefferson", -1, 73]
-	UpdateRest()	
-	*/
+	; Trashcan locations
+	array_Trashcan[1]  := [2058.767578, -1050.120239, 27.710558, "Las Colinas", -1, 1]
+	array_Trashcan[2]  := [2119.865479, -1062.000977, 25.857998, "Las Colinas", -1, 2]
+	array_Trashcan[3]  := [2246.809326, -1153.964966, 26.459375, "Las Colinas", -1, 3]
+	array_Trashcan[4]  := [2545.130615, -1120.289917, 62.752769, "Las Colinas", -1, 4]
+	array_Trashcan[5]  := [2699.683350, -1106.541870, 70.159241, "Las Colinas", -1, 5]
+	array_Trashcan[6]  := [2790.593506, -1096.344116, 31.318750, "Las Colinas", -1, 6]
+	array_Trashcan[7]  := [2802.270020, -1195.662964, 26.091354, "East Beach", -1, 7]
+	array_Trashcan[8]  := [2769.613037, -1374.365356, 40.351383, "East Beach", -1, 8]
+	array_Trashcan[9]  := [2786.151367, -1427.741455, 31.053125, "East Beach", -1, 9]
+	array_Trashcan[10] := [2793.253906, -1625.652344, 11.521875, "East Beach", -1, 10]
+	array_Trashcan[11] := [2758.034180, -2020.873657, 14.161955, "Playa del Seville", -1, 11]
+	array_Trashcan[12] := [2627.479980, -1984.546997, 14.146875, "Willowfield", -1, 12]
+	array_Trashcan[13] := [2441.379150, -1964.233765, 14.146875, "Willowfield", -1, 13]
+	array_Trashcan[14] := [2439.517090, -1900.352295, 14.153357, "Willowfield", -1, 14]
+	array_Trashcan[15] := [2368.265869, -2032.633179, 14.097355, "Willowfield", -1, 15]
+	array_Trashcan[16] := [2340.841553, -2154.718262, 14.146875, "Ocean Docks", -1, 16]
+	array_Trashcan[17] := [2182.485107, -2249.278320, 13.928430, "Ocean Docks", -1, 17]
+	array_Trashcan[18] := [2123.285156, -2282.549072, 14.077246, "Ocean Docks", -1, 18]
+	array_Trashcan[19] := [1998.914795, -2136.649902, 14.146875, "Willowfield", -1, 19]
+	array_Trashcan[20] := [2052.302490, -2146.937744, 14.232813, "Willowfield", -1, 20]
+	array_Trashcan[21] := [1990.136108, -2014.769043, 14.146875, "Willowfield", -1, 21]
+	array_Trashcan[22] := [1731.480713, -2055.552979, 14.174515, "El Corona", -1, 22]
+	array_Trashcan[23] := [1629.833496, -1911.320313, 14.149103, "Verdant Bluffs", -1, 23]
+	array_Trashcan[24] := [1614.523560, -1841.383301, 14.127308, "Commerce", -1, 24]
+	array_Trashcan[25] := [1592.933960, -1784.566040, 13.877789, "Commerce", -1, 25]
+	array_Trashcan[26] := [1809.678711, -1688.933716, 14.151469, "Little Mexico", -1, 26]
+	array_Trashcan[27] := [1907.996826, -1572.763306, 14.200819, "Idlewood", -1, 27]
+	array_Trashcan[28] := [2003.734619, -1551.829468, 14.246980, "Idlewood", -1, 28]
+	array_Trashcan[29] := [1397.024292, -1894.318481, 14.089090, "Verdant Bluffs", -1, 29]
+	array_Trashcan[30] := [1372.502930, -1720.065063, 13.601456, "Commerce", -1, 30]
+	array_Trashcan[31] := [1342.739746, -1680.794189, 14.182812, "Commerce", -1, 31]
+	array_Trashcan[32] := [1641.281250, -1679.334106, 14.137456, "Commerce", -1, 32]
+	array_Trashcan[33] := [1594.332886, -1559.761353, 14.765665, "Commerce", -1, 33]
+	array_Trashcan[34] := [1721.005859, -1472.314453, 14.151341, "Commerce", -1, 34]
+	array_Trashcan[35] := [1611.727905, -1201.589478, 20.409513, "Downtown Los Santos", -1, 35]
+	array_Trashcan[36] := [1830.586792, -1149.416382, 24.450518, "Glen Park", -1, 36]
+	array_Trashcan[37] := [1616.220215, -993.336365, 24.666773, "Mulholland Intersection", -1, 37]
+	array_Trashcan[38] := [1296.652222, -979.811829, 33.295311, "Temple", -1, 38]
+	array_Trashcan[39] := [1201.949097, -976.933716, 44.076561, "Temple", -1, 39]
+	array_Trashcan[40] := [1284.726318, -1252.247681, 14.146875, "Market", -1, 40]
+	array_Trashcan[41] := [1132.987183, -1345.027100, 14.584375, "Market", -1, 41]
+	array_Trashcan[42] := [1084.256714, -1224.599243, 16.420313, "Market", -1, 42]
+	array_Trashcan[43] := [1015.644287, -1005.409424, 32.701561, "Temple", -1, 43]
+	array_Trashcan[44] := [856.674438, -974.783020, 36.115143, "Vinewood", -1, 44]
+	array_Trashcan[45] := [783.716736, -1013.634827, 26.959375, "Richman", -1, 45]
+	array_Trashcan[46] := [777.521851, -1121.635010, 24.428125, "Vinewood", -1, 46]
+	array_Trashcan[47] := [811.763245, -1269.233765, 14.184126, "Vinewood", -1, 47]
+	array_Trashcan[48] := [733.994995, -1337.045410, 14.134808, "Vinewood", -1, 48]
+	array_Trashcan[49] := [877.909180, -1363.699951, 14.146875, "Market", -1, 49]
+	array_Trashcan[50] := [707.066956, -1474.307983, 6.068750, "Marina", -1, 50]
+	array_Trashcan[51] := [587.353088, -1554.240967, 16.212440, "Rodeo", -1, 51]
+	array_Trashcan[52] := [412.291962, -1808.504761, 6.146875, "Santa Maria Beach", -1, 52]
+	array_Trashcan[53] := [309.993774, -1436.890381, 28.529688, "Rodeo", -1, 53]
+	array_Trashcan[54] := [412.914490, -1304.481445, 15.568627, "Rodeo", -1, 54]
+	array_Trashcan[55] := [1082.914307, -1666.565552, 14.138750, "Verona Beach", -1, 55]
+	array_Trashcan[56] := [1229.145264, -1609.433594, 14.146875, "Verona Beach", -1, 56]
+	array_Trashcan[57] := [1010.867615, -1270.720703, 15.787210, "Market", -1, 57]
+	array_Trashcan[58] := [1029.465820, -1363.808350, 14.171368, "Market", -1, 58]
+	array_Trashcan[59] := [1964.835938, -1307.474854, 24.378319, "Glen Park", -1, 59]
+	array_Trashcan[60] := [2384.933350, -1485.982300, 24.600000, "East Los Santos", -1, 60]
+	array_Trashcan[61] := [2345.070801, -1948.613281, 14.156754, "Willowfield", -1, 61]
+	array_Trashcan[62] := [2384.503418, -1940.051514, 14.146875, "Willowfield", -1, 62]
+	array_Trashcan[63] := [2590.447021, -1321.253174, 40.518929, "Los Flores", -1, 63]
+	array_Trashcan[64] := [2416.958252, -1577.622559, 24.431389, "East Los Santos", -1, 64]
+	array_Trashcan[65] := [2442.497559, -1760.444946, 14.191413, "Ganton", -1, 65]
+	array_Trashcan[66] := [2453.276611, -2543.011230, 14.256072, "Ocean Docks", -1, 66]
+	array_Trashcan[67] := [2513.634033, -2640.555908, 14.243263, "Ocean Docks", -1, 67]
+	array_Trashcan[68] := [2200.565918, -2632.509521, 14.146875, "Los Santos International", -1, 68]
+	array_Trashcan[69] := [2199.586182, -2600.765137, 14.140907, "Los Santos International", -1, 69]
+	array_Trashcan[70] := [2735.4619, -2446.2249, 13.6432, "Ocean Docks", -1, 70]
+	array_Trashcan[71] := [2547.7144, -1290.5468, 41.1641, "East Los Santos", -1, 71]
+	array_Trashcan[72] := [2281.9441, -2046.9819, 13.5469, "Willowfield", -1, 72]
+	array_Trashcan[73] := [2209.1743, -1343.6583, 23.9844, "Jefferson", -1, 73]
+	
+	; Fish points
+	array_Fish[1] := [1610.3545, 599.4703, 7.7813, 2.0]
+	array_Fish[2] := [1606.8572, 599.4689, 7.7802, 2.0]
+	array_Fish[3] := [1603.3273, 599.4689, 7.7802, 2.0]
+	array_Fish[4] := [1599.8569, 599.8057, 7.7802, 2.0]
+	array_Fish[5] := [1596.3372, 599.7783, 7.7813, 2.0]
+	array_Fish[6] := [1592.8359, 599.4689, 7.7813, 2.0]
+	array_Fish[7] := [1589.3557, 599.4712, 7.7813, 2.0]
+	array_Fish[8] := [1585.8787, 599.4683, 7.7802, 2.0]
+	array_Fish[9] := [403.8053, -2088.7981, 7.8359, 2.0]
+	array_Fish[10] := [398.7274, -2088.7927, 7.8359, 2.0]
+	array_Fish[11] := [396.1470, -2088.7983, 7.8359, 2.0]
+	array_Fish[12] := [391.0635, -2088.7979, 7.8359, 2.0]
+	array_Fish[13] := [383.3910, -2088.6040, 7.8359, 2.0]
+	array_Fish[14] := [374.9511, -2088.6829, 7.8359, 2.0]
+	array_Fish[15] := [369.8314, -2088.7937, 7.8359, 2.0]
+	array_Fish[16] := [367.2829, -2088.7981, 7.8359, 2.0]
+	array_Fish[17] := [362.2083, -2088.7891, 7.8359, 2.0]
+	array_Fish[18] := [354.5507, -2088.7954, 7.8359, 2.0]
+	array_Fish[19] := [-2091.2231, 1436.5226, 7.1016, 2.0]
+	array_Fish[20] := [-2086.6912, 1436.4066, 7.1016, 2.0]
+	array_Fish[21] := [-2082.6958, 1436.1895, 7.1016, 2.0]
+	array_Fish[22] := [-2078.2371, 1436.4476, 7.1016, 2.0]
+	array_Fish[23] := [-2073.6873, 1436.2191, 7.1016, 2.0]
+	array_Fish[24] := [-2069.6814, 1436.1677, 7.1007, 2.0]
+	array_Fish[25] := [-2065.1917, 1436.3531, 7.1007, 2.0]
+	
+	; custom Station
+	array_Custom[1] := [1733.4700, 546.3700, 26.00, 10.0, 1.0]
+	array_Custom[2] := [1741.1100, 543.4700, 26.00, 10.0, 1.0]
+	array_Custom[3] := [1744.0300, 523.6300, 27.00, 10.0, 1.0]
+	array_Custom[4] := [1752.7100, 521.6900, 27.00, 10.0, 1.0]
+	array_Custom[5] := [512.5400, 476.6200, 18.00, 10.0, 2.0]
+	array_Custom[6] := [529.2200, 467.2100, 18.00, 10.0, 2.0]
+	array_Custom[7] := [-159.7900, 414.1800, 11.00, 10.0, 3.0]
+	array_Custom[8] := [-157.4400, 392.2400, 11.00, 10.0, 3.0]
+	array_Custom[9] := [-1408.2300, 824.1900, 47.00, 10.0, 4.0]
+	array_Custom[10] := [-1414.7700, 803.5900, 47.00, 10.0, 4.0]
+	array_Custom[11] := [-2695.0500, 1284.6300, 55.00, 10.0, 5.0]
+	array_Custom[12] := [-2686.3400, 1284.2400, 55.00, 10.0, 5.0]
+	array_Custom[13] := [-2676.6200, 1265.3700, 55.00, 10.0, 5.0]
+	array_Custom[14] := [-2668.1800, 1264.9100, 55.00, 10.0, 5.0]
+	array_Custom[15] := [-963.0800, -343.0500, 36.00, 10.0, 6.0]
+	array_Custom[16] := [-968.0000, -322.3300, 36.00, 10.0, 6.0]
+	array_Custom[17] := [-71.7600, -892.4700, 15.00, 10.0, 7.0]
+	array_Custom[18] := [-68.7400, -867.9600, 15.00, 10.0, 7.0]
+	array_Custom[19] := [100.2000, -1284.3700, 14.00, 10.0, 8.0]
+	array_Custom[20] := [94.4000, -1277.8200, 14.00, 10.0, 8.0]
+	array_Custom[21] := [97.1900, -1254.1100, 14.00, 10.0, 8.0]
+	array_Custom[22] := [94.6900, -1245.5900, 14.00, 10.0, 8.0]
+	array_Custom[23] := [42.7100, -1537.9800, 5.00, 10.0, 9.0]
+	array_Custom[24] := [58.0200, -1524.9300, 5.00, 10.0, 9.0]
+	
+	; Gate location
+	array_Gate[1] := [2325.9573, -2010.4614, 13.5528, 6.0, 1]
+	array_Gate[2] := [2292.4316, -2028.8600, 13.5469, 6.0, 1]
+	array_Gate[3] := [2349.7400, -2006.9121, 13.5433, 6.0, 1]
+	array_Gate[4] := [2350.1248, -1985.2939, 13.3828, 6.0, 1]
+	array_Gate[5] := [2345.8162, -1979.7006, 13.4098, 6.0, 1]
+	array_Gate[6] := [2345.8069, -1999.7858, 13.3766, 6.0, 1]
+	array_Gate[7] := [239.4568, 117.5778, 1003.2188, 6.0, 0]
+	array_Gate[8] := [252.6459, 109.0739, 1003.2188, 6.0, 0]
+	array_Gate[9] := [-1632.6377, 688.2757, 7.1875, 10.0, 0]
+	array_Gate[10] := [-1572.1520, 662.2211, 7.1875, 10.0, 0]
+	array_Gate[11] := [-1701.6948, 684.0962, 24.8906, 10.0, 0]
+	array_Gate[12] := [214.1250, 1875.7494, 13.1470, 10.0, 0]
+	array_Gate[13] := [135.1927, 1941.3784, 19.3160, 10.0, 0]
+	array_Gate[14] := [246.3796, 72.4658, 1003.6406, 6.0, 0]
+	array_Gate[15] := [1588.5104, -1638.0930, 13.4157, 10.0, 0]
+	array_Gate[16] := [1544.6460, -1626.9393, 13.3835, 10.0, 0] 
+	
+	; Gas location
+	array_Gas[1] := [700.0000, -1930.0000, 0.0000, 10.0, "Verona Beach", 1]
+	array_Gas[2] := [1833.0000, -2431.0000, 14.0000, 10.0, "Los Santos International", 1]
+	array_Gas[3] := [1555.0000, -1605.0000, 14.0000, 6.0, "Pershing Square", 0]
+	array_Gas[4] := [615.0000, 1689.0000, 7.0000, 6.0, "Bone County", 0]
+	array_Gas[5] := [-1328.0000, 2677.0000, 40.0000, 6.0, "Tierra Robada", 0]
+	array_Gas[6] := [1596.0000, 2199.0000, 11.0000, 6.0, "Redsands West", 0]
+	array_Gas[7] := [2202.0000, 2474.0000, 11.0000, 6.0, "The Emerald Isle", 0]
+	array_Gas[8] := [2114.0000, 920.0000, 11.0000, 6.0, "The Strip", 0]
+	array_Gas[9] := [-2408.0000, 976.0000, 45.0000, 6.0, "Juniper Hill", 0]
+	array_Gas[10] := [-2029.0000, 156.0000, 29.0000, 6.0, "Doherty", 0]
+	array_Gas[11] := [-1676.0000, 414.0000, 7.0000, 6.0, "Easter Basin", 0]
+	array_Gas[12] := [1004.0000, -939.0000, 43.0000, 6.0, "Temple", 0]
+	array_Gas[13] := [1944.0000, -1773.0000, 14.0000, 6.0, "Idlewood", 0]
+	array_Gas[14] := [-90.0000, -1169.0000, 3.0000, 6.0, "Flint County", 0]
+	array_Gas[15] := [-1605.0000, -2714.0000, 49.0000, 6.0, "Whetstone", 0]
+	array_Gas[16] := [-2243.0000, -2560.0000, 32.0000, 6.0, "Angel Pine", 0]
+	array_Gas[17] := [1381.0000, 457.0000, 20.0000, 6.0, "Montgomery", 0]
+	array_Gas[18] := [70.0000, 1218.0000, 19.0000, 6.0, "Fort Carson", 0]	
+		
+	; Heal / Equip points
+	array_Heal[1] := [225.5152, 121.3243, 999.0702, 4.0, 1]
+	array_Heal[2] := [240.5149, 1878.7798, 11.4609, 4.0, 1]
+	array_Heal[3] := [255.3406, 77.3936, 1003.6406, 4.0, 1]
+	array_Heal[4] := [2317.0151, -2019.1134, 13.5528, 4.0, 1]
+	array_Heal[5] := [197.0000, 168.0000, 1003.0000, 4.0, 0]
+	array_Heal[6] := [2324.0000, -1148.0000, 1050.0000, 5.0, 0]
+	array_Heal[7] := [418.7545, -83.8548, 1001.0000, 5.0, 0]
+	array_Heal[8] := [-794.9179, 490.1421, 1376.0000, 5.0, 0]
+	array_Heal[9] := [774.3298, -49.7077, 1000.0000, 5.0, 0]	
+	
+	; Local points
+	array_Local[1] := [792.6970, -1626.2189, 13.3906, 3.1]
+	array_Local[2] := [2412.0930, -1491.2977, 24.0000, 3.1]
+	array_Local[3] := [2113.6445, -1788.6113, 13.5608, 3.1]
+	array_Local[4] := [1026.6838, -1350.2480, 13.7266, 3.1]
+	
+	; Cook points
+	array_Cook[1] := [376.3651, -61.0868, 1001.5078, 3]
+	array_Cook[2] := [377.7927, -57.4440, 1001.5078, 3]
+	array_Cook[3] := [369.5478, -6.0176, 1001.8589, 3]
+	array_Cook[4] := [374.0126, -113.5144, 1001.4922, 3]
+	
+	; Police factions
+	array_Faction[1] := [1, "LSPD", "Los Santos Police Department", "Officer"]
+	array_Faction[2] := [2, "FBI", "Federal Bureau of Investigation", "Agent"]
+	array_Faction[3] := [3, "Army", "Las Venturas Army", "Soldat"]
+	
+	Loop % array_array_Trashcan.MaxIndex() {
+		array_Trashcan[A_Index][5] := 0
+	}	
+	
 	Loop, 5 {
 		fishName_%A_Index% := "nichts"
 		fishLBS_%A_Index% := 0
@@ -948,7 +1080,7 @@ Start:
 
 	Gui, Add, GroupBox, x232 y89 w560 h190, Neuigkeiten (Version %version%)
 	changelog := URLDownloadToVar(baseURL . "api/getupdatelog?version=" . version . "")
-	StringReplace, update, msg, ', `r`n, All
+	stringReplace, update, msg, ', `r`n, All
 	Gui, Add, Edit, x242 y109 w540 h160 ReadOnly, %changelog%
 
 	Gui, Add, GroupBox, x232 y289 w560 h190, User-Informationen 
@@ -964,7 +1096,7 @@ Start:
 		rankinfo := "Du bist kein Beamter"
 	}
 	
-	fractionName := getFractionName()
+	fractionName := getFactionName()
 	
 	info =
 	(
@@ -1464,19 +1596,20 @@ Folgende Variablen können im Killspruch verwendet werden:
 [VICTIMWEAP] -> Mit welcher Waffe du ihn getötet hast
 [VICTIMWEAPART] -> Artikel (eine, einer, einem (( bezogen auf Waffe )) )
 [KILLPLACE] -> Ort des Kills (Kurz)
-[KILLPLACEFULL] -> Ort des Kills (mit Fahrzeug)
 [MURDERER] -> Dein Mörder
 [MURDERERFRAK] -> Fraktion des Mörders
 [MURDERERWEAP] -> Waffe des Mörders
 [MURDERERWEAPART] -> Artikel (eine, einer, einem (( bezogen auf Waffe )) )
 [DEATHPLACE] -> Todesort (Kurz)
-[DEATHPLACEFULL] -> Todesort (mit Fahrzeug)
 [KILLS] -> Alle Kills
 [DEATHS] -> Alle Tode
+[KD] -> K/D anzeigen
 [DKILLS] -> Tages-Kills
 [DDEATHS] -> Tages-Tode
-[KD] -> K/D anzeigen
 [DKD] -> Tages-KD anzeigen
+[MKILLS] -> Monat-Kills
+[MDEATHS] -> Monats-Tode
+[MKD] -> Monats-K/D
 	)
 	Gui, Variables: Add, Button, x12 y549 w130 h40 gVariablesClose, Schließen
 	Gui, Variables: Show, w600 h600, %Keybinder%
@@ -1983,12 +2116,12 @@ SaveHotkeyLabel:
 			}
 		}
 		
-		if (!InStr(hk, "F") && !InStr(hk, "!"))
+		if (!inStr(hk, "F") && !inStr(hk, "!"))
 			hk := "~" . hk
 		
 		if (!alreadyRegistered) {
 			Hotkey, %hk%, %name%Label
-			StringReplace, %name%NoMods, hk, ~
+			stringReplace, %name%NoMods, hk, ~
 			IniWrite, %hk%, ini/Hotkeys.ini, Hotkeys, %name%
 			
 			registeredHotkeys[name] := hk
@@ -2191,10 +2324,10 @@ OwnHotkeysSave:
 				}
 			}
 			
-			if (!InStr(hk, "F") && !InStr(hk, "!"))
+			if (!inStr(hk, "F") && !inStr(hk, "!"))
 				hk := "~" . hk
 			
-			StringReplace, %name%NoMods, hk, ~
+			stringReplace, %name%NoMods, hk, ~
 			IniWrite, %hk%, ownhotkeys.ini, %outerIndex%, Hotkey
 			
 			if (!alreadyRegistered) {
@@ -2550,8 +2683,8 @@ HelpGUI:
 /mhelp -> MauMau Hilfen
 
 .:: Overlay ::.
-/ovall -> Alle Overlays an/ausschalten
-/ov /overlay -> Overlay einzeln an/abschalten
+/sov /singleov -> Einzelne Overlays an/ausschalten
+/ov /overlay -> Overlay voll aus/anschalten
 /ovmove /moveov -> Overlay bewegen
 /ovsave /saveov -> Overlay speichern
 /ovedit /editov -> Overlayteile de/aktivieren
@@ -2843,10 +2976,6 @@ return
 
 ~Enter::
 {
-	if (isBlocked() || tv) {
-		return
-	}	
-	
 	if (!isPlayerInAnyVehicle()) {
 		if (isPlayerInRangeOfPoint(901.2969, -1203.0950, 16.9832, 3)) {
 			if (getPlayerMoney() >= 2500) {
@@ -2861,6 +2990,10 @@ return
 			}
 		}
 	}
+	
+	if (IsDialogOpen()) {
+		OnDialogResponse()
+	}	
 }
 return
 
@@ -2868,44 +3001,44 @@ return
 ~S::
 ~A::
 ~W::
-{
-	IniRead, autoUse, ini/Settings.ini, settings, autoUse, 0
-	IniRead, pakcooldown, ini/Settings.ini, Cooldown, pakcooldown, 0
-	
+{	
 	if (isBlocked() || isPaintball || !autoUse || isPlayerInAnyVehicle() || getPlayerArmor() >= 46) {
 		return
 	}
-
+	
 	IniRead, firstaid, ini/Settings.ini, Items, firstaid, 0
 	IniRead, drugs, ini/Settings.ini, Items, drugs, 0
+	IniRead, pakcooldown, ini/Settings.ini, Cooldown, pakcooldown, 0
+	
+	if (damageTime > getUnixTimestamp(A_Now)) {
+		if (getPlayerHealth() <= 75 && getPlayerArmor() < 30) {		
+			if (firstaid && !pakcooldown) {
+				usePaket()
+			}
 
-	if (getPlayerHealth() <= 75 && getPlayerArmor() < 30) {		
-		if (firstaid && !pakcooldown) {
-			usePaket()
-		}
-
-		if (autoDrugs) {
-			if (drugs > 0 && !getPlayerArmor()) {
-				if (!drugCooldown) {
-					useDrugs()
+			if (autoDrugs) {
+				if (drugs > 0 && !getPlayerArmor()) {
+					if (!drugCooldown) {
+						useDrugs()
+					}
 				}
 			}
-		}
-	}	
-	
-	Loop, 5 {
-		fishLBS := fishLBS_%A_Index%
-		lostHP := getPlayerHealth()
-		lostHP += fishHP_%A_Index%
+		}	
 		
-		if (fishHP_%A_Index% > 0 && fishLBS_%A_Index% && fishName_%A_Index% != "nichts") {			
-			if (lostHP <= 90 && fishLBS > 0) {
-				SendChat("/eat " . A_Index)
-				
-				fishName_%A_Index% := "nichts"
-				fishLBS_%A_Index% := 0
-				fishHP_%A_Index% := 0
-				return
+		Loop, 5 {
+			fishLBS := fishLBS_%A_Index%
+			lostHP := getPlayerHealth()
+			lostHP += fishHP_%A_Index%
+			
+			if (fishHP_%A_Index% > 0 && fishLBS_%A_Index% && fishName_%A_Index% != "nichts") {			
+				if (lostHP <= 90 && fishLBS > 0) {
+					SendChat("/eat " . A_Index)
+					
+					fishName_%A_Index% := "nichts"
+					fishLBS_%A_Index% := 0
+					fishHP_%A_Index% := 0
+					return
+				}
 			}
 		}
 	}
@@ -3112,7 +3245,7 @@ openCustomsLabel:
 		return
 	}
 	
-	if (isPlayerAtMaut()) {
+	if (isPlayerAtCustom()) {
 		openMaut()
 	} else {
 		SendInfo("Du bist an keiner Zollstation.")
@@ -3126,7 +3259,7 @@ openDoorLabel:
 		return
 	}
 	
-	openGate()
+	SendChat("/auf")
 }
 return
 
@@ -3922,7 +4055,7 @@ clearPointsLabel:
 	Sleep, 200
 	
 	Loop, 5 {
-		if (InStr(readChatLine(A_Index - 1), "Dieser Befehl ist ab Rang 9.")) {
+		if (inStr(readChatLine(A_Index - 1), "Dieser Befehl ist ab Rang 9.")) {
 			SendChat("/d HQ: " . getFullName(name) . " bitte " . amount . " Strafpunkte löschen!")
 			break
 		}
@@ -3956,18 +4089,7 @@ equipProfile1Label:
 		return
 	}
 	
-	equipment := ""
-	
-	Loop, 6 {
-		if (profile1_%A_Index% != "") {
-			equipment .= " " . profile1_%A_Index%
-		}
-	}
-	
-	SendChat("/ausruesten" . equipment)
-	Sleep, 250
-	
-	healPlayer()
+	equipProfile(1)
 }
 return
 
@@ -3977,18 +4099,7 @@ equipProfile2Label:
 		return
 	}
 	
-	equipment := ""
-	
-	Loop, 6 {
-		if (profile2_%A_Index% != "") {
-			equipment .= " " . profile2_%A_Index%
-		}
-	}
-	
-	SendChat("/ausruesten" . equipment)
-	Sleep, 250
-	
-	healPlayer()
+	equipProfile(2)
 }
 return
 
@@ -3998,34 +4109,7 @@ equipProfile3Label:
 		return
 	}
 
-	equipment := ""
-	
-	Loop, 6 {
-		if (profile3_%A_Index% != "") {
-			equipment .= " " . profile3_%A_Index%
-		}
-	}
-	
-	SendChat("/ausruesten" . equipment)
-
-	if (equipArmour) {
-		SendChat("/undercover " . ucSkin)
-		
-		if (!admin) {
-			Sleep, 250
-		}
-		
-		healPlayer()
-	} else {
-		SendChat("/heal")
-		
-		if (!admin) {
-			Sleep, 200
-		}
-		
-		SendChat("/undercover " . ucSkin)
-		checkHealMessage()
-	}
+	equipProfile(3)
 }
 return
 
@@ -4320,7 +4404,7 @@ checkLabel:
 	}
 		
 	SendChat("/waffen " . frisk_name)
-	
+	Sleep, 200
 	addControlsToStats(getFullName(frisk_name))
 	
 	Sleep, 300
@@ -4686,11 +4770,9 @@ return
 	if (isBlocked())
 		return	
 	
-	/*
 	if (IsDialogOpen()) {
 		OnDialogResponse()
 	}
-	*/
 }
 return
 
@@ -4823,6 +4905,11 @@ stopAutomaticSystemsLabel:
 		SendChat("/announce Der Fahrzeug-Respawn wurde abgebrochen!")
 	}
 	
+	if (rewantedting) {
+		rewantedting := false
+		stoppedAnything := true
+	}
+	
 	if (!stoppedAnything) {
 		SendInfo("Es laufen keine Systeme.")
 	}
@@ -4860,7 +4947,7 @@ acceptJobLabel:
 			SendChat("/d HQ: Wagen " . getVehicleModelId() . " übernimmt den Auftrag!")
 		}
 	} else {
-		SendChat("/d HQ: " . getFractionTitle() . " " . getUserName() . " übernimmt den Auftrag!")
+		SendChat("/d HQ: " . getFactionTitle() . " " . getUserName() . " übernimmt den Auftrag!")
 	}
 }
 return
@@ -4878,7 +4965,7 @@ doneJobLabel:
 			SendChat("/d HQ: Wagen " . getVehicleModelId() . " hat den Auftrag ausgeführt!")
 		}
 	} else {
-		SendChat("/d HQ: " . getFractionTitle() . " " . getUserName() . " hat den Auftrag ausgeführt!")
+		SendChat("/d HQ: " . getFactionTitle() . " " . getUserName() . " hat den Auftrag ausgeführt!")
 	}
 }
 return
@@ -5237,6 +5324,10 @@ CountdownLabel:
 }
 return
 
+:?:/test::
+SendChat(getVehicleHealth())
+return
+
 thanksLabel:
 {
 	if (isBlocked() || tv) {
@@ -5381,7 +5472,7 @@ SendInput, {Enter}
 	dialog := ""
 	coords := getCoordinates()
 	
-	i := trashcan.MaxIndex()
+	i := array_array_Trashcan.MaxIndex()
 	j := 0
 	
 	while (i > 1) {
@@ -5391,31 +5482,31 @@ SendInput, {Enter}
 		while (j < i) {
 			j := j + 1
 		
-			if (Floor(GetDist(coords, trashcan[j])) > Floor(GetDist(coords, trashcan[j + 1]))) {
-				temp := trashcan[j]
-				trashcan[j] := trashcan[j + 1]
-				trashcan[j + 1] := temp
+			if (Floor(GetDist(coords, array_Trashcan[j])) > Floor(GetDist(coords, array_Trashcan[j + 1]))) {
+				temp := array_Trashcan[j]
+				array_Trashcan[j] := array_Trashcan[j + 1]
+				array_Trashcan[j + 1] := temp
 			}
 		}
 	}
 	
-	Loop % trashcan.MaxIndex() {
-		if (trashcan[A_Index][5] == -1) {
+	Loop % array_array_Trashcan.MaxIndex() {
+		if (array_Trashcan[A_Index][5] == -1) {
 			temp := "{C3C3C3}Unbekannt"
 		} else {
-			min := Floor(trashcan[A_Index][5] / 60)
-			sec := mod(trashcan[A_Index][5], 60)
+			min := Floor(array_Trashcan[A_Index][5] / 60)
+			sec := mod(array_Trashcan[A_Index][5], 60)
 			
-			if(min > 9) {
+			if (min > 9) {
 				temp := "{FF0000}" min "min, " sec "s"
-			} else if(min > 0) {
+			} else if (min > 0) {
 				temp := "{FFEE00}" min "min, " sec "s"
-			} else if(min==0) {
+			} else if (min==0) {
 				temp := "{00FF00}Frei"
 			}
 		}
 		
-		dialog .=  trashcan[A_Index][6] "`t" trashcan[A_Index][4] "`t" temp "`t" Floor(getDist(coords, trashcan[A_Index])) "m`n"
+		dialog .=  array_Trashcan[A_Index][6] "`t" array_Trashcan[A_Index][4] "`t" temp "`t" Floor(getDist(coords, array_Trashcan[A_Index])) "m`n"
 	}
 	
 	ShowDialog(5, "Übersicht der Mülltonnen", "ID`tOrt`tStatus`tEntfernung`n" dialog, "Markieren", "Abbrechen")
@@ -5441,7 +5532,7 @@ return
 		SendError("Beim Auslesen der Drogen ist ein Fehler aufgetreten.")
 	}
 	
-	if (InStr(getDialogText(), "Erste-Hilfe-Paket")) {
+	if (inStr(getDialogText(), "Erste-Hilfe-Paket")) {
 		IniWrite, 1, ini/settings.ini, Items, firstaid
 	} else {
 		IniWrite, 0, ini/settings.ini, Items, firstaid
@@ -5451,7 +5542,7 @@ return
 		}		
 	}
 	
-	if (InStr(getDialogText(), "Benzin Kanister")) {
+	if (inStr(getDialogText(), "Benzin Kanister")) {
 		IniWrite, 1, ini/settings.ini, Items, canister
 	} else {
 		IniWrite, 0, ini/settings.ini, Items, canister
@@ -5461,7 +5552,7 @@ return
 		}		
 	}
 	
-	if (InStr(getDialogText(), "Lagerfeuer")) {	
+	if (inStr(getDialogText(), "Lagerfeuer")) {	
 		if (RegExMatch(getDialogText(), "(.*)Lagerfeuer \((\d+)\)(.*)", campfire_)) {
 			iniWrite, % campfire_2, ini/settings.ini, Items, campfire
 		}
@@ -5481,8 +5572,8 @@ return
 }
 return
 
-:?:/ov::
-:?:/overlay::
+:?:/sov::
+:?:/singleov::
 {
 	if (ovMoveMode) {
 		SendError("Diese Funktion ist während des Overlaysverschiebens deaktiviert.")
@@ -5587,7 +5678,8 @@ return
 }
 return
 
-:?:/ovall::
+:?:/ov::
+:?:/overlay::
 {	
 	if (overlayEnabled) {
 		overlayEnabled := false
@@ -5603,6 +5695,8 @@ return
 		
 		SendInfo("Das Overlay wurde " . cRed . "deaktiviert" . cWhite . ".")
 	} else {
+		destroyOverlay()
+	
 		overlayEnabled := true
 	
 		spotifyOvEnabled := true
@@ -5611,6 +5705,8 @@ return
 		infoOvEnabled := true
 		alertOvEnabled := true
 		partnerOvEnabled := true
+		
+		Sleep, 250
 		
 		ov_Spotify()
 		ov_Cooldown()
@@ -5818,7 +5914,7 @@ return
 :?:/auf::
 SendInput, {Enter}
 {	
-	openGate()
+	SendChat("/auf")
 }
 return
 
@@ -5890,7 +5986,7 @@ SendInput, {Enter}
 	Sleep, 200
 	
 	Loop, 5 {
-		if (InStr(readChatLine(A_Index - 1), "Fehler: Nachdem du getroffen wurdest, musst du 5 Sekunde warten, um die Arena zu verlassen.")) {
+		if (inStr(readChatLine(A_Index - 1), "Fehler: Nachdem du getroffen wurdest, musst du 5 Sekunde warten, um die Arena zu verlassen.")) {
 			cantExit := 1
 		}
 	}
@@ -5955,14 +6051,28 @@ return
 :?:/tanken::
 SendInput, {Enter}
 {
-	if (!isPlayerInAnyVehicle() || !isPlayerDriver()) {
-		SendError("Du bist nicht der Fahrer eines Fahrzeuges.")
-	} else if (!isPlayerAtGasStation()) {
-		SendError("Du bist nicht in der Nähe einer Tankstelle.")
-	} else if (getVehicleType() == 6) {
-		SendError("Du sitzt auf einem Fahrrad.")
+	if (isPlayerInAnyVehicle()) {
+		if (isPlayerDriver()) {
+			if (isPlayerAtGasStation()) {
+				if (getVehicleType() != 6) {
+					if (isPlayerAtFixVeh()) {
+						if (getVehicleHealth() < 1000) {
+							SendChat("/fixveh")
+						}
+					}
+					
+					refillCar()
+				} else {
+					SendError("Du fährst ein Fahrrad.")
+				}
+			} else {
+				SendError("Du bist an keiner Tankstelle.")
+			}
+		} else {
+			SendError("Du bist nicht der Fahrer des Fahrzeuges.")
+		}
 	} else {
-		refillCar()
+		SendError("Du befindest dich in keinem Fahrzeug.")
 	}
 }
 return
@@ -5996,6 +6106,7 @@ return
 	global currentSpeed 		:= 0
 	global countdownRunning 	:= 0
 	global autoFindMode		 	:= 0
+	global stopwatchTime 		:= 0
 	global IsPayday				:= 0
 	global drugcooldown			:= 0
 	global healcooldown			:= 0
@@ -6005,6 +6116,7 @@ return
 	
 	global oldWanted            := -1
 	global agentID 				:= -1
+	global oldHour 				:= -1
 	global oldVehicle			:= -1
 	global targetid				:= -1
 	global wantedIA				:= -1
@@ -6021,6 +6133,7 @@ return
 	global oldLocal				:= ""
 	global cooldownString		:= ""
 	
+	global repairTimeout_		:= true
 	global fillTimeout_ 		:= true
 	global canisterTimeout_ 	:= true
 	global mautTimeout_ 		:= true
@@ -6034,10 +6147,20 @@ return
 	global garbageTimeout_		:= true 
 	global fishSellTimeout_		:= true
 
+	global overlayEnabled		:= false
+	global spotifyOvEnabled		:= false 
+	global cooldownOvEnabled 	:= false
+	global pingOvEnabled 		:= false
+	global infoOvEnabled 		:= false
+	global alertOvEnabled 		:= false
+	global partnerOvEnabled		:= false
+	global isInVehicle			:= false
 	global agentTog				:= false
 	global startOverlay			:= false
+	global pauseOverlay			:= false
 	global isArrested			:= false
 	global isCuffed				:= false
+	global firstStart			:= false
 	global isPaintball			:= false
 	global hackerFinder 		:= false
 	global rewantedting			:= false
@@ -6051,7 +6174,7 @@ return
 	global alertString 			:= ""
 	global oldSpotifyTrack		:= ""
 	global oldVehicleName		:= "none"
-
+	
 	Loop, 5 {
 		fishName_%A_Index% := "nichts"
 		fishLBS_%A_Index% := 0
@@ -6146,21 +6269,18 @@ return
 	Loop, %reCount% {
 		if (rewantedting) {
 			SendChat("/suspect " . getFullName(reInput) . " Re-Wanted")
-			Sleep, 100
-			
-			if (InStr(readChatLine(0), "HQ: Verbrechen: Re-Wanted, Zeuge: " . getUserName() . ", Verdächtiger: " . getFullName(reInput))) {
-				givedRewanted ++
-			}
 		} else {
 			break
 		}
 	}
 		
-	if (givedRewanted > 0) {
-		wanteds := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=wanteds&value=" . wanteds)
-		IniWrite, %wanteds%, ini/Stats.ini, Vergaben, Wanteds
-		
-		SendInfo("Du hast bereits " . csecond . formatNumber(wanteds) . cwhtie . " Wanteds vergeben.")	
+	if (inStr(readChatLine(0) . readChatLine(1) . readChatLine(2), "HQ: Verbrechen: Re-Wanted, Zeuge: " . getUserName() . ", Verdächtiger: " . getFullName(reInput))) {
+		if (givedRewanted > 0) {
+			wanteds := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=wanteds&value=" . wanteds)
+			IniWrite, %wanteds%, ini/Stats.ini, Vergaben, Wanteds
+			
+			SendInfo("Du hast bereits " . csecond . formatNumber(wanteds) . cwhtie . " Wanteds vergeben.")	
+		}
 	}
 }
 return
@@ -6188,7 +6308,7 @@ return
 	Sleep, 200
 	
 	Loop, 5 {
-		if (InStr(readChatLine(A_Index - 1), "Dieser Befehl ist ab Rang 9.")) {
+		if (inStr(readChatLine(A_Index - 1), "Dieser Befehl ist ab Rang 9.")) {
 			SendChat("/d HQ: " . getFullName(name) . " bitte " . amount . " Strafpunkte löschen!")
 			break
 		}
@@ -6212,47 +6332,47 @@ return
 {
 	jobInput := PlayerInput("Job: ")
 	
-	if (InStr(jobInput, "Dro")) {
+	if (inStr(jobInput, "Dro")) {
 		job := 2
 		
 		SendInfo("Du hast deinen Job auf " . csecond . "Drogendealer " . cwhite . "gesetzt.")
-	} else if (InStr(jobInput, "Waf")) {
+	} else if (inStr(jobInput, "Waf")) {
 		job := 3
 		
 		SendInfo("Du hast deinen Job auf " . csecond . "Waffendealer " . cwhite . "gesetzt.")
-	} else if (InStr(jobInput, "Bus")) {
+	} else if (inStr(jobInput, "Bus")) {
 		job := 4
 		
 		SendInfo("Du hast deinen Job auf " . csecond . "Busfahrer " . cwhite . "gesetzt.")
-	} else if (InStr(jobInput, "Pil")) {
+	} else if (inStr(jobInput, "Pil")) {
 		job := 5
 		
 		SendInfo("Du hast deinen Job auf " . csecond . "Pilot " . cwhite . "gesetzt.")
-	} else if (InStr(jobInput, "Fis") || InStr(jobInput, "Hoch")) {
+	} else if (inStr(jobInput, "Fis") || inStr(jobInput, "Hoch")) {
 		job := 6
 		
 		SendInfo("Du hast deinen Job auf " . csecond . "Hochseefischer " . cwhite . "gesetzt.")
-	} else if (InStr(jobInput, "Anw")) {
+	} else if (inStr(jobInput, "Anw")) {
 		job := 7
 		
 		SendInfo("Du hast deinen Job auf " . csecond . "Anwalt " . cwhite . "gesetzt.")
-	} else if (InStr(jobInput, "Det")) {
+	} else if (inStr(jobInput, "Det")) {
 		job := 8
 		
 		SendInfo("Du hast deinen Job auf " . csecond . "Detektiv " . cwhite . "gesetzt.")
-	} else if (InStr(jobInput, "Tru")) {
+	} else if (inStr(jobInput, "Tru")) {
 		job := 9
 		
 		SendInfo("Du hast deinen Job auf " . csecond . "Trucker " . cwhite . "gesetzt.")
-	} else if (InStr(jobInput, "Far")) {
+	} else if (inStr(jobInput, "Far")) {
 		job := 10
 		
 		SendInfo("Du hast deinen Job auf " . csecond . "Farmer " . cwhite . "gesetzt.")
-	} else if (InStr(jobInput, "Zug")) {
+	} else if (inStr(jobInput, "Zug")) {
 		job := 11
 		
 		SendInfo("Du hast deinen Job auf " . csecond . "Zugfahrer " . cwhite . "gesetzt.")
-	} else if (InStr(jobInput, "Gär") || InStr(jobInput, "Gar")) {
+	} else if (inStr(jobInput, "Gär") || inStr(jobInput, "Gar")) {
 		job := 12
 		
 		SendInfo("Du hast deinen Job auf " . csecond . "Gärtner " . cwhite . "gesetzt.")
@@ -6571,7 +6691,7 @@ return
 	if (afk_1 == "error") {
 		SendInfo("Es ist ein Fehler aufgetreten: " . csecond . afk_2)
 	} else {
-		SendClientMessage(prefix . csecond . afk_2)
+		SendInfo(csecond . afk_2)
 	}
 }
 return
@@ -6599,7 +6719,7 @@ SendInput, {Enter}
 		Loop, Parse, result, `n
 		{
 			StringSplit, result_, A_LoopField, ~
-			SendClientMessage(prefix . csecond . result_1 . cwhite . " - AFK gemeldet um: " . csecond . result_2 . cwhite . " Uhr, " . "Bis: " . csecond . result_3 . cwhite . " Uhr")
+			SendInfo(csecond . result_1 . cwhite . " - AFK gemeldet um: " . csecond . result_2 . cwhite . " Uhr, " . "Bis: " . csecond . result_3 . cwhite . " Uhr")
 		}
 	}
 }
@@ -6724,9 +6844,9 @@ return
 SendInput, {Enter}
 {
     if (fpsUnlock()) {
-        SendClientMessage(prefix . cgreen . "Die Beschränkung deiner FPS wurde aufgehoben.")
+        SendInfo(cgreen . "Die Beschränkung deiner FPS wurde aufgehoben.")
     } else {
-        SendClientMessage(prefix . cred . "Beim Aufheben der Beschränkung deiner FPS ist ein Fehler aufgetreten.")
+        SendInfo(cred . "Beim Aufheben der Beschränkung deiner FPS ist ein Fehler aufgetreten.")
     }
 }
 return
@@ -6764,8 +6884,8 @@ SendInput, {Enter}
 	openHotkey := StrReplace(openHotkey, "!", "ALT+")
 	openHotkey := StrReplace(openHotkey, "^", "STRG+")
 	
-	SendClientMessage(prefix . csecond . closeHotkey . cwhite . " - Zoll schließen (lassen)")
-	SendClientMessage(prefix . csecond . openHotkey . cwhite . " - Zoll öffnen (lassen)")
+	SendInfo(csecond . closeHotkey . cwhite . " - Zoll schließen (lassen)")
+	SendInfo(csecond . openHotkey . cwhite . " - Zoll öffnen (lassen)")
 }
 return
 
@@ -6963,22 +7083,9 @@ return
 {
 	Loop, 5 {
 		if (fishName_%A_Index% != "nichts" && fishHP_%A_Index% > 0) {
-			SendClientMessage(fishName_%A_Index% . ", HP: " . fishHP_%A_Index% . ", LBS: " . fishLBS_%A_Index%)
+			SendInfo(fishName_%A_Index% . ", HP: " . fishHP_%A_Index% . ", LBS: " . fishLBS_%A_Index%)
 		}
 	}
-}
-return
-
-:?:/test::
-SendInput, {Enter}
-{
-	; SendClientMessage("* " . getUserName() . " hat Drogen konsumiert.")
-	
-	; SendClientMessage("Der Leader hat das Upgrade Arrest-Limit aktiviert (noch 11 Stunden und 19 Minuten).")
-	
-	; SendClientMessage("Du hast ein Erstehilfe-Paket erworben (-500$).")
-	
-	SendChat(getServerName() . ", " . getServerIP() . ", " . getServerPort())
 }
 return
 
@@ -7357,7 +7464,7 @@ return
 		}
 		
 		if (autoSpeed < 80) {
-			SendClientMessage("Fehler: Die Geschwindigkeit muss 80 kmh überschreiten.")
+			SendError("Die Geschwindigkeit muss 80 kmh überschreiten.")
 			return
 		}
 	}
@@ -7769,7 +7876,7 @@ SendInput, {Enter}
 	for index, partner in partners {
 		partnerPlayerID := getPlayerIdByName(partner)
 		
-		SendClientMessage(prefix . cSecond . index . cwhite . ": " . partner . " (ID: " . csecond . partnerPlayerID . cwhite . ")")
+		SendInfo(cSecond . index . cwhite . ": " . partner . " (ID: " . csecond . partnerPlayerID . cwhite . ")")
 		partnerCount ++
 	}
 }
@@ -8205,7 +8312,7 @@ SendInput, {Enter}
 			SendChat("/d HQ: Wagen " . getVehicleModelId() . " hat verstanden und bestätigt!")
 		}
 	} else {
-		SendChat("/d HQ: " . getFractionTitle() . " " . getUserName() . " hat verstanden und bestätigt!")
+		SendChat("/d HQ: " . getFactionTitle() . " " . getUserName() . " hat verstanden und bestätigt!")
 	}
 }
 return
@@ -8220,7 +8327,7 @@ SendInput, {Enter}
 			SendChat("/f HQ: Wagen " . getVehicleModelId() . " hat verstanden und bestätigt!")
 		}
 	} else {
-		SendChat("/f HQ: " . getFractionTitle() . " " . getUserName() . " hat verstanden und bestätigt!")
+		SendChat("/f HQ: " . getFactionTitle() . " " . getUserName() . " hat verstanden und bestätigt!")
 	}
 }
 return
@@ -8235,7 +8342,7 @@ SendInput, {Enter}
 			SendChat("/r HQ: Wagen " . getVehicleModelId() . " hat verstanden und bestätigt!")
 		}
 	} else {
-		SendChat("/r HQ: " . getFractionTitle() . " " . getUserName() . " hat verstanden und bestätigt!")
+		SendChat("/r HQ: " . getFactionTitle() . " " . getUserName() . " hat verstanden und bestätigt!")
 	}
 }
 return
@@ -8287,11 +8394,11 @@ return
 	if (extras == "" || extras == " ") {
 		return
 	} else {
-		if (InStr(extras, "Undercover") || InStr(extras, "uc")) {
+		if (inStr(extras, "Undercover") || inStr(extras, "uc")) {
 			extras := "Undercover Outfit"
-		} else if (InStr(extras, "Normal")) {
+		} else if (inStr(extras, "Normal")) {
 			extras := "Dienstuniform"
-		} else if (InStr(extras, "SWAT")) {
+		} else if (inStr(extras, "SWAT")) {
 			extras := "S.W.A.T."
 		} else {
 			SendError("Verwende folgende Parameter: (U)nder(c)over, Normal, SWAT")
@@ -8840,7 +8947,7 @@ return
 :?:/taxi::
 SendInput, {Enter}
 {
-	SendChat("Ich bin kein Taxifahrer, sondern ein " . getFractionTitle() . "!")
+	SendChat("Ich bin kein Taxifahrer, sondern ein " . getFactionTitle() . "!")
 }
 return
 
@@ -9038,7 +9145,7 @@ SendInput, {Enter}
 	players := 0
 	
 	Loop, 100 {
-		if (InStr(readChatLine(players), "Punkte")) {
+		if (inStr(readChatLine(players), "Punkte")) {
 			players ++
 		} else {
 			SendInfo("Spieler im Paintball: " . csecond . players)
@@ -9144,7 +9251,7 @@ return
 	
 	if (sms_2 != "") {
 		SendInfo("Letzte SMS (von " . csecond . sms_2 . cwhite . "):")
-		SendClientMessage(prefix . csecond . sms_1)
+		SendInfo(csecond . sms_1)
 		
 		SendInput, /sms %sms_3%{space}
 	} else {
@@ -9164,7 +9271,7 @@ return
 	
 	if (ad_2 != "" || ad_2 != getUserName()) {
 		SendInfo("Letzte Werbung (von " . ad_2 . "):")
-		SendClientMessage(prefix . csecond . ad_1)
+		SendInfo(csecond . ad_1)
 		
 		SendInput, /sms %ad_3%{space}
 	} else {
@@ -9289,7 +9396,7 @@ SendInput, {Enter}
 			Sleep, 400
 		}
 		
-		SendChat("Guten " . getDayTime() . " " . caller_1 . ", Sie sprechen mit " . getFractionTitle() . " " . name . ".")
+		SendChat("Guten " . getDayTime() . " " . caller_1 . ", Sie sprechen mit " . getFactionTitle() . " " . name . ".")
 		
 		if (!admin) {
 			Sleep, 750
@@ -9448,7 +9555,7 @@ SendInput, {Enter}
 
 	Sleep, 200
 
-	if (InStr(readChatLine(0) . readChatLine(1) . readChatLine(2), "Du hast bereits ein Erste-Hilfe-Paket")) {
+	if (inStr(readChatLine(0) . readChatLine(1) . readChatLine(2), "Du hast bereits ein Erste-Hilfe-Paket")) {
 		getItems()
 		
 		if (paketInfo) {
@@ -9489,7 +9596,7 @@ return
 	
 	if (seconds != "") {
 		minutes := Floor(seconds / 60)
-		SendClientMessage(prefix . csecond . formatNumber(seconds) . cwhite . " Sekunden sind " . csecond . formatNumber(minutes) . cwhite . " Minuten.")
+		SendInfo(csecond . formatNumber(seconds) . cwhite . " Sekunden sind " . csecond . formatNumber(minutes) . cwhite . " Minuten.")
 	}
 }
 return
@@ -9517,11 +9624,11 @@ SendInput, {Enter}
 		}
 			
 		if (linkresult) {
-			SendClientMessage(prefix . cblue . "|________________________________________|")
+			SendInfo(cblue . "|________________________________________|")
 			SendInfo("Es wurde ein Link abkopiert und gespeichert:")
-			SendClientMessage(prefix . csecond . clipboard)
+			SendInfo(csecond . clipboard)
 			SendInfo("Du kannst diesen nun überall einfügen.")
-			SendClientMessage(prefix . cblue . "|________________________________________|")
+			SendInfo(cblue . "|________________________________________|")
 			return
 		}
 	}
@@ -9858,22 +9965,22 @@ return
 		return
 	}
 	
-	if (InStr(toWhomInput, "Sup") || InStr(toWhomInput, "Mod") || InStr(toWhomInput, "Admin") || InStr(toWhomInput, "Head") || InStr(toWhomInput, "Proj") || InStr(toWhomInput, "Community")) {
+	if (inStr(toWhomInput, "Sup") || inStr(toWhomInput, "Mod") || inStr(toWhomInput, "Admin") || inStr(toWhomInput, "Head") || inStr(toWhomInput, "Proj") || inStr(toWhomInput, "Community")) {
 		toWhom := ""
 		plus := "+"
 		
-		if (InStr(toWhomInput, "Proj")) {
+		if (inStr(toWhomInput, "Proj")) {
 			toWhom := "Projektleiter"
 			plus := ""
-		} else if (InStr(toWhomInput, "Head")) {
+		} else if (inStr(toWhomInput, "Head")) {
 			toWhom := "Head Admin"
-		} else if (InStr(toWhomInput, "Admin")) {
+		} else if (inStr(toWhomInput, "Admin")) {
 			toWhom := "Admin"
-		} else if (InStr(toWhomInput, "Mod")) {
+		} else if (inStr(toWhomInput, "Mod")) {
 			toWhom := "Moderator"
-		} else if (InStr(toWhomInput, "Sup")) {
+		} else if (inStr(toWhomInput, "Sup")) {
 			toWhom := "Supporter"
-		} else if (InStr(toWhomInput, "Community")) {
+		} else if (inStr(toWhomInput, "Community")) {
 			toWhom := "Communityhelfer"
 		} else {
 			SendInfo("Unbekannter Empfänger: " . csecond . toWhomInput)
@@ -10938,7 +11045,7 @@ return
 			}
 			
 			if (RegExMatch(dialog, statsFormat, dialog_)) {
-				SendClientMessage(prefix . title . " (ID " . A_Index . ") ist Level 1 mit " . dialog_4 . "/" . dialog_5 . " RP")
+				SendInfo(title . " (ID " . A_Index . ") ist Level 1 mit " . dialog_4 . "/" . dialog_5 . " RP")
 				players++
 			}
 		}
@@ -11140,32 +11247,16 @@ HackerFinder:
 			SendInput, {ESC}
 			
 			if (RegExMatch(dialog, "", dialog_)) {
-				SendClientMessage(prefix . title . " (ID " . hackerID . ") ist Level " . dialog_3 . " mit " . dialog_4 . "/" . dialog_5 . " RP")
+				SendInfo(title . " (ID " . hackerID . ") ist Level " . dialog_3 . " mit " . dialog_4 . "/" . dialog_5 . " RP")
 			}
 			
 			Sleep, 5000
 		} else {
-			SendClientMessage(prefix . csecond . getFullname(hackerID) . cwhite . " (ID: " . csecond . hackerID . cwhite . ") - Level: " . csecond getPlayerScoreById(hackerID))
+			SendInfo(csecond . getFullname(hackerID) . cwhite . " (ID: " . csecond . hackerID . cwhite . ") - Level: " . csecond getPlayerScoreById(hackerID))
 		}
 	}
 	
 	hackerID++
-}
-return
-/*
-UpdateStatus:
-{
-	Loop % trashcan.MaxIndex() {
-		if (trashcan[A_Index][5] > 0) {
-			trashcan[A_Index][5]--
-		}
-	}
-}
-return
-
-UpdateRestTimer:
-{
-	UpdateRest()
 }
 return
 
@@ -11182,7 +11273,7 @@ SpamProtection:
 	SetTimer, SpamProtection, Off
 }
 return
-*/
+
 SyncTimer:
 {	
 	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
@@ -11202,7 +11293,7 @@ SyncTimer:
 		
 		getItems()
 		
-		SendClientMessage(prefix . "Das Synchronisieren ist " . cgreen . "abgeschlossen" . cwhite . ".")
+		SendInfo("Das Synchronisieren ist " . cgreen . "abgeschlossen" . cwhite . ".")
 		SetTimer, SyncTimer, 600000
 	} else {
 		SetTimer, SyncTimer, off
@@ -11254,7 +11345,7 @@ ArrestTimer:
 				SendChat("/arrest " . arrestName)
 				Sleep, 200
 
-				if (InStr(readChatLine(0) . readChatLine(1) . readChatLine(2), "Du bist nicht in der Nähe eines Gefängnisses.")) {
+				if (inStr(readChatLine(0) . readChatLine(1) . readChatLine(2), "Du bist nicht in der Nähe eines Gefängnisses.")) {
 					SendChat("/arrest " . arrestName)
 				}
 				
@@ -11471,7 +11562,7 @@ SecondTimer:
 	if (!healTimeout_) {
 		healTimeout ++
 		
-		if (healTimeout >= 15) {
+		if (healTimeout >= 5) {
 			healTimeout_ := true
 		}
 	}
@@ -11495,7 +11586,7 @@ SecondTimer:
 	if (!jailgateTimeout_) {
 		jailgateTimeout ++
 		
-		if (jailgateTimeout >= 5) {
+		if (jailgateTimeout >= 4) {
 			jailgateTimeout_ := true 
 		}
 	}
@@ -11537,6 +11628,20 @@ SecondTimer:
 		
 		if (fishSellTimeout >= 15) {
 			fishSellTimeout_ := true
+		}
+	}
+	
+	if (repairTimeout_) {
+		repairTimeout ++
+		
+		if (repairTimeout_ >= 10) {
+			repairTimeout_ := true
+		}
+	}
+	
+	Loop % array_array_Trashcan.MaxIndex() {
+		if (array_Trashcan[A_Index][5] > 0) {
+			array_Trashcan[A_Index][5] --
 		}
 	}
 }
@@ -11836,13 +11941,13 @@ return
 handleChatMessage(message, index, arr) {
 	global
 	
-	if (RegExMatch(message, "^Hurensohn$") || RegExMatch(message, "^Huso$")) {
-		if (getUserName() != "Jens") {
-			IniRead, huso, ini/stats.ini, Stats, huso, 0
-			huso ++
-			IniWrite, % huso, ini/stats.ini, Stats, huso
-			
-			SendInfo("Huso-Counter: " . cSecond . formatNumber(huso))
+	if (RegExMatch(message, "^\* (.*) hat die Gesundheit regeneriert\.", message_)) {
+		if (RegExMatch(message_1, "^Agent (\d+)$", agent_)) {
+			agent_ID := agent_1
+		}
+		
+		if (message_1 == getUserName() || agent_ID == agentID) {
+			healcooldown := 60
 		}
 	} else if (RegExMatch(message, "^Leerfahrt$")) {
 		start := -1
@@ -12069,10 +12174,8 @@ handleChatMessage(message, index, arr) {
 		SendChat("/f Agent " . agentID . " meldet sich vom Dienst ab!")
 		agentID := -1
 	} else if (RegExMatch(message, "\*\* Diese Mülltonne wurde bereits durchsucht. Versuche es erneut in (\d+) Minuten.$", message_)) {
-		/*
-		SetTrashTime(line)
+		SetTrashTime(message)
 		DisableCheckpoint()
-		*/
 	} else if (RegExMatch(message, "^Du beginnst in einer Mülltonne rumzuschnüffeln\.$", message_)) {
 		trashs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trash&value=1")
 		iniWrite, %trashs%, ini/Stats.ini, Mülltonnen, trashs
@@ -12080,30 +12183,24 @@ handleChatMessage(message, index, arr) {
 		SendInfo("Du hast bereits " . cSecond . formatNumber(trashs) . cwhite . " Mülltonnen durchwühlt.")
 	} else if (RegExMatch(message, "^Du (.*) in der Mülltonne gefunden.$", message_)) {
 		if (RegExMatch(message_1, "^hast nichts$", msg_)) {
-			/*
-			Loop % trashcan.MaxIndex() {
-				if (IsPlayerInRangeOfPoint(trashcan[A_Index][1], trashcan[A_Index][2], trashcan[A_Index][3], 5)) {
-					trashcan[A_Index][5] := 15 * 60
-					SendToRest(trashcan[A_Index][6], 15)
-					SendInfo("Die Zeit von Mülltonne " . cSecond . trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "15 Minuten" . cWhite . " gesetzt!")
+			Loop % array_Trashcan.MaxIndex() {
+				if (IsPlayerInRangeOfPoint(array_Trashcan[A_Index][1], array_Trashcan[A_Index][2], array_Trashcan[A_Index][3], 5)) {
+					array_Trashcan[A_Index][5] := 15 * 60
+					SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "15 Minuten" . cWhite . " gesetzt!")
 				}
 			}		
-			*/			
 			
 			nothing := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashNothing&value=1")
 			iniWrite, %nothing%, ini/Stats.ini, Mülltonnen, nothing
 			
 			SendInfo("Du hast bereits " . cSecond . formatNumber(nothing) . cwhite . " nichts in Mülltonnen gefunden.")
 		} else if (RegExMatch(message_1, "^hast ein Lagerfeuer$", msg_)) {
-			/*
-			Loop % trashcan.MaxIndex() {
-				if(IsPlayerInRangeOfPoint(trashcan[A_Index][1], trashcan[A_Index][2], trashcan[A_Index][3], 5)) {
-					trashcan[A_Index][5] := 30 * 60
-					SendToRest(trashcan[A_Index][6], 30)
-					SendInfo("Die Zeit von Mülltonne " . cSecond . trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
+			Loop % array_Trashcan.MaxIndex() {
+				if (IsPlayerInRangeOfPoint(array_Trashcan[A_Index][1], array_Trashcan[A_Index][2], array_Trashcan[A_Index][3], 5)) {
+					array_Trashcan[A_Index][5] := 30 * 60
+					SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
 				}
 			}				
-			*/
 			
 			campfire:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashCampfire&value=1")
 			iniWrite, %campfire%, ini/Stats.ini, Mülltonnen, campfire
@@ -12111,30 +12208,24 @@ handleChatMessage(message, index, arr) {
 			SendInfo("Du hast bereits " . cSecond . formatNumber(campfire) . cwhite . " Lagerfeuer in Mülltonnen gefunden.")
 			getItems()
 		} else if (RegExMatch(message_1, "^hast (.*)\$$", msg_)) {
-			/*
-			Loop % trashcan.MaxIndex() {
-				if(IsPlayerInRangeOfPoint(trashcan[A_Index][1], trashcan[A_Index][2], trashcan[A_Index][3], 5)) {
-					trashcan[A_Index][5] := 30 * 60
-					SendToRest(trashcan[A_Index][6], 30)
-					SendInfo("Die Zeit von Mülltonne " . cSecond . trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
+			Loop % array_Trashcan.MaxIndex() {
+				if (IsPlayerInRangeOfPoint(array_Trashcan[A_Index][1], array_Trashcan[A_Index][2], array_Trashcan[A_Index][3], 5)) {
+					array_Trashcan[A_Index][5] := 30 * 60
+					SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
 				}
-			}				
-			*/
+			}	
 			
 			money := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashMoney&value=" . numberFormat(msg_1))
 			iniWrite, %money%, ini/Stats.ini, Mülltonnen, money
 			
 			SendInfo("Du hast bereits $" . cSecond . formatNumber(money) . cwhite . " in Mülltonnen gefunden.")
 		} else if (RegExMatch(message_1, "^hast (\d+) Stunden (\S+)$", msg_)) {
-			/*
-			Loop % trashcan.MaxIndex() {
-				if(IsPlayerInRangeOfPoint(trashcan[A_Index][1], trashcan[A_Index][2], trashcan[A_Index][3], 5)) {
-					trashcan[A_Index][5] := 30 * 60
-					SendToRest(trashcan[A_Index][6], 30)
-					SendInfo("Die Zeit von Mülltonne " . cSecond . trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
+			Loop % array_Trashcan.MaxIndex() {
+				if (IsPlayerInRangeOfPoint(array_Trashcan[A_Index][1], array_Trashcan[A_Index][2], array_Trashcan[A_Index][3], 5)) {
+					array_Trashcan[A_Index][5] := 30 * 60
+					SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
 				}
-			}				
-			*/			
+			}			
 		
 			if (RegExMatch(msg_2, "VIP")) {
 				vip := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashVIP&value=" . numberFormat(msg_1))
@@ -12146,30 +12237,24 @@ handleChatMessage(message, index, arr) {
 				SendInfo("Du hast bereits " . cSecond . formatNumber(prem) . cwhite . " Stunden Premium in Mülltonnen gefunden.")
 			}
 		} else if (RegExMatch(message_1, "^hast (\d+) Respektpunkte$", msg_)) {
-			/*
-			Loop % trashcan.MaxIndex() {
-				if(IsPlayerInRangeOfPoint(trashcan[A_Index][1], trashcan[A_Index][2], trashcan[A_Index][3], 5)) {
-					trashcan[A_Index][5] := 30 * 60
-					SendToRest(trashcan[A_Index][6], 30)
-					SendInfo("Die Zeit von Mülltonne " . cSecond . trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
+			Loop % array_Trashcan.MaxIndex() {
+				if (IsPlayerInRangeOfPoint(array_Trashcan[A_Index][1], array_Trashcan[A_Index][2], array_Trashcan[A_Index][3], 5)) {
+					array_Trashcan[A_Index][5] := 30 * 60
+					SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
 				}
-			}				
-			*/			
+			}			
 		
 			respect:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashRespect&value=" . numberFormat(msg_1))
 			iniWrite, %respect%, ini/Stats.ini, Mülltonnen, respect
 			
 			SendInfo("Du hast bereits " . cSecond . formatNumber(respect) . cwhite . " Respektpunkte in Mülltonnen gefunden.")
 		} else if (RegExMatch(message_1, "^hast (\d+)g Marihuana$", msg_)) {
-			/*
-			Loop % trashcan.MaxIndex() {
-				if(IsPlayerInRangeOfPoint(trashcan[A_Index][1], trashcan[A_Index][2], trashcan[A_Index][3], 5)) {
-					trashcan[A_Index][5] := 30 * 60
-					SendToRest(trashcan[A_Index][6], 30)
-					SendInfo("Die Zeit von Mülltonne " . cSecond . trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
+			Loop % array_Trashcan.MaxIndex() {
+				if (IsPlayerInRangeOfPoint(array_Trashcan[A_Index][1], array_Trashcan[A_Index][2], array_Trashcan[A_Index][3], 5)) {
+					array_Trashcan[A_Index][5] := 30 * 60
+					SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
 				}
-			}				
-			*/			
+			}		
 		
 			drugs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashDrugs&value=" . numberFormat(msg_1))
 			iniWrite, %drugs%, ini/Stats.ini, Mülltonnen, drugs
@@ -12178,45 +12263,36 @@ handleChatMessage(message, index, arr) {
 			
 			getItems()
 		} else if (RegExMatch(message_1, "hast (\d+) Materialien$", msg_)) {
-			/*
-			Loop % trashcan.MaxIndex() {
-				if(IsPlayerInRangeOfPoint(trashcan[A_Index][1], trashcan[A_Index][2], trashcan[A_Index][3], 5)) {
-					trashcan[A_Index][5] := 30 * 60
-					SendToRest(trashcan[A_Index][6], 30)
-					SendInfo("Die Zeit von Mülltonne " . cSecond . trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
+			Loop % array_Trashcan.MaxIndex() {
+				if (IsPlayerInRangeOfPoint(array_Trashcan[A_Index][1], array_Trashcan[A_Index][2], array_Trashcan[A_Index][3], 5)) {
+					array_Trashcan[A_Index][5] := 30 * 60
+					SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
 				}
-			}				
-			*/			
+			}			
 		
 			mats := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashMats&value=" . numberFormat(msg_1))
 			iniWrite, %mats%, ini/Stats.ini, Mülltonnen, mats
 			
 			SendInfo("Du hast bereits " . cSecond . formatNumber(mats) . cwhite . " Materialien in Mülltonnen gefunden.")
 		} else if (RegExMatch(message_1, "^hast eine Schlagwaffe \((.*)\)$", msg_)) {
-			/*
-			Loop % trashcan.MaxIndex() {
-				if(IsPlayerInRangeOfPoint(trashcan[A_Index][1], trashcan[A_Index][2], trashcan[A_Index][3], 5)) {
-					trashcan[A_Index][5] := 30 * 60
-					SendToRest(trashcan[A_Index][6], 30)
-					SendInfo("Die Zeit von Mülltonne " . cSecond . trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
+			Loop % array_Trashcan.MaxIndex() {
+				if (IsPlayerInRangeOfPoint(array_Trashcan[A_Index][1], array_Trashcan[A_Index][2], array_Trashcan[A_Index][3], 5)) {
+					array_Trashcan[A_Index][5] := 30 * 60
+					SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
 				}
-			}				
-			*/			
+			}			
 		
 			weaps := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashWeapon&value=1")
 			iniWrite, %weaps%, ini/Stats.ini, Mülltonnen, weaps
 			
 			SendInfo("Du hast bereits " . cSecond . formatNumber(weaps) . cwhite . " Waffen in Mülltonnen gefunden.")
 		} else {
-			/*
-			Loop % trashcan.MaxIndex() {
-				if(IsPlayerInRangeOfPoint(trashcan[A_Index][1], trashcan[A_Index][2], trashcan[A_Index][3], 5)) {
-					trashcan[A_Index][5] := 30 * 60
-					SendToRest(trashcan[A_Index][6], 30)
-					SendInfo("Die Zeit von Mülltonne " . cSecond . trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
+			Loop % array_Trashcan.MaxIndex() {
+				if (IsPlayerInRangeOfPoint(array_Trashcan[A_Index][1], array_Trashcan[A_Index][2], array_Trashcan[A_Index][3], 5)) {
+					array_Trashcan[A_Index][5] := 30 * 60
+					SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
 				}
-			}				
-			*/				
+			}					
 		}
 	} else if (RegExMatch(message, "^Der Spieler befindet sich in Gebäudekomplex (.*)$", message_)) {
 		if (getOldKomplex != message_1) {
@@ -12288,7 +12364,7 @@ handleChatMessage(message, index, arr) {
 		}
 	} else if (RegExMatch(message, "^\* (\S+) hat seine Kevlarweste (.*)$", message_)) {
 		if (getUserName() == message_1) {			
-			if (InStr(message, "abgelegt")) {
+			if (inStr(message, "abgelegt")) {
 				isZivil := 1
 				
 				SendInfo("Du bist nun Zivil.")
@@ -12305,13 +12381,13 @@ handleChatMessage(message, index, arr) {
 	} else if (RegExMatch(message, "^(\S+) sagt: (.+)", message_)) {
 		if (!tv) {
 			if (message_1 != getUserName()) {	
-				if (InStr(message_2, "ticket") || InStr(message_2, "tkt") || InStr(message_2, "tigget")) {
+				if (inStr(message_2, "ticket") || inStr(message_2, "tkt") || inStr(message_2, "tigget")) {
 					requestName := message_1
 					
 					SetTimer, RequestTimer, 1
 				}
 					
-				if (InStr(message_2, "sucht") && InStr(message_2, "member") || InStr(message_2, "invite") && !InStr(message_2, "uninvite")) {
+				if (inStr(message_2, "sucht") && inStr(message_2, "member") || inStr(message_2, "invite") && !inStr(message_2, "uninvite")) {
 					if (oldInviteAsk != message_1) {
 						oldInviteAsk := message_1
 						
@@ -12488,22 +12564,22 @@ handleChatMessage(message, index, arr) {
 		Loop {
 			chat := arr[index - A_Index]
 			
-			if (InStr(chat, "KFZ Steuer:")) {
+			if (inStr(chat, "KFZ Steuer:")) {
 				RegExMatch(chat, "KFZ Steuer: -(\d*)\$", car)
 				IsPayday ++
 			}
 			
-			if (InStr(chat, "Lohn: ")) {
+			if (inStr(chat, "Lohn: ")) {
 				RegExMatch(chat, "Lohn: (.*)\$ \(davon (.*)\$ durch Upgrade und (.*)\$ durch Segnung\)     Miete: -(.*)\$     Lohnsteuer: -(.*)\$", general)
 				IsPayday ++
 			}
 			
-			if (InStr(chat, "Stromrechnung: ")) {
+			if (inStr(chat, "Stromrechnung: ")) {
 				RegExMatch(chat, "Stromrechnung: -(.*)\$", electricity)
 				IsPayday ++
 			}
 			
-			if (InStr(chat, "|================| Gehalts-Check |================|")) {
+			if (inStr(chat, "|================| Gehalts-Check |================|")) {
 				IsPayday ++
 				
 				break
@@ -13265,9 +13341,9 @@ handleChatMessage(message, index, arr) {
 			}	
 		}
 	} else if (RegExMatch(message, "^Du hast dein Handy (\S+)\.$", message_)) {
-		if (InStr(message_1, "abgeschaltet")) {
+		if (inStr(message_1, "abgeschaltet")) {
 			IniWrite, 0, ini/Settings.ini, items, mobilePhone
-		} else if (InStr(message_1, "angeschaltet")) {
+		} else if (inStr(message_1, "angeschaltet")) {
 			IniWrite, 1, ini/Settings.ini, items, mobilePhone
 		}
 		
@@ -13369,7 +13445,7 @@ KillTimer:
 				dkd := round(dkills/ddeaths, 2)
 				mkd := round(mkills/mdeaths, 2)
 	
-				SendInfo("DKD: " . cSecond . kd . cWhite . " - MKD: " . cSecond . mkd . cWhite . " - KD: " . cSecond . kd)
+				SendInfo("DKD: " . cSecond . dkd . cWhite . " - MKD: " . cSecond . mkd . cWhite . " - KD: " . cSecond . kd)
 			
 				if (bk) {
 					if (getFullName(killName)) {
@@ -13448,7 +13524,11 @@ KillTimer:
 					mkd := mkills . ".00"
 				}
 	
-				SendInfo("DKD: " . cSecond . kd . cWhite . " - MKD: " . cSecond . mkd . cWhite . " - KD: " . cSecond . kd)				
+				SendInfo("DKD: " . cSecond . dkd . cWhite . " - MKD: " . cSecond . mkd . cWhite . " - KD: " . cSecond . kd)			
+
+				if (killText) {
+					SendToHotkey(killMessage)
+				}
 			}
 		}
 	}
@@ -13467,7 +13547,7 @@ MainTimer:
 		firstStart := true 
 		
 		SendInfo("Keybinder (Version " . csecond . version . cwhite . ") wurde gestartet!")
-		SendInfo("Willkommen, " . csecond . username . cwhite . "! Fraktion: " . getFractionName() . ", Rang: " . rank)
+		SendInfo("Willkommen, " . csecond . username . cwhite . "! Fraktion: " . getFactionName() . ", Rang: " . rank)
 	}
 	
 	if (spotifytrack != oldSpotifyTrack) {
@@ -13557,15 +13637,14 @@ MainTimer:
 				
 				if (RegExMatch(o, "Tank: (\S+)\/(\d+) L", tank_)) {
 					if (tank_1 <= 5 && oldTank != Ceil(tank_1)) {
-						SoundBeep
-						
+						SoundBeep, 500, 250
 						SendInfo(csecond . "WARNUNG: Dein Tank ist fast leer, es befinde" . (tank_1 == 1 ? "t" : "n") . " sich nur noch " . tank_1 . " Liter darin.")
+						
 						oldTank := Ceil(tank_1)
 						break
 					}
 				} else if (RegExMatch(o, "Tank:  Leer")) {
-					SoundBeep
-					
+					SoundBeep, 500, 250
 					SendInfo("WARNUNG: Dein Tank ist leer, du kannst mit '" . cSecond . "X" . cwhite . "' einen Kanister nutzen.")
 					
 					KeyWait, X, D, T10
@@ -13585,74 +13664,82 @@ MainTimer:
 		
 		healthOld := (getPlayerHealth() + getPlayerArmor())
 
-		if (damageInfo) {
-			if (!tv) {
-				if (damage > 5 && !isPaintball ) {
-					if (!gotPoisened) {
-						SendInfo("Du hast soeben (" . csecond . "-" . damage . cwhite . " HP) verloren (" . cRed getDamageWeapon(damage) . cwhite . "), Aktuelle HP: " . cGreen . (getPlayerHealth() + getPlayerArmor()))
-					} else {
-						SendInfo("Du hast soeben (" . csecond . "-" . damage . cwhite . " HP) verloren (" . cRed "Giftspritze" . cwhite . "),  Aktuelle HP: " . cGreen . (getPlayerHealth() + getPlayerArmor()))
-						gotPoisened := false 
-					}
-					
+		if (damage && !isPaintball) {
+			if (getAttacker() > -1) {
+				damageTime := getUnixTimestamp(A_Now) + 10
+				weaponName := getWeaponName(getAttackWeapon())
+				
+				if (damageInfo) {
+					SendInfo("Du hast soeben (" . csecond . "-" . damage . cwhite . " HP) verloren (" . cRed weaponName . cwhite . "), Aktuelle HP: " . cGreen . (getPlayerHealth() + getPlayerArmor()))
 					SoundBeep, 500, 250
+				}
+			} else {
+				if (damageInfo) {
+					if (gotPoisened) {
+						SendInfo("Du hast soeben (" . csecond . "-" . damage . cwhite . " HP) verloren (" . cRed "Giftspritze" . cwhite . "),  Aktuelle HP: " . cGreen . (getPlayerHealth() + getPlayerArmor()))
+						SoundBeep, 500, 250
+						gotPoisened := false
+					}
 				}
 			}
 		}
 	}
 	
 	if (isPlayerAtGasStation() && autoFill) {
-		if (fillTimeout_) {
-			if (isPlayerInAnyVehicle() && isPlayerDriver() && getVehicleType() != 6) {
-				if (isPlayerAtGasStation() == 2) {
-					if (getVehicleSpeed() >= 25) {
-						if (getVehicleHealth() < 900) {
-							SendChat("/fixveh")
-						}
-					}
-				}
+		if (repairTimeout_ && isPlayerAtFixVeh()) {			
+			if (isPlayerInAnyVehicle() && getVehicleHealth() < 1000) {						
+				repairTimeout_ := false 
+				repairTimeout := 0
 					
-				if (getVehicleSpeed() <= 25) {
-					SendInfo("Möchtest du dein Fahrzeug betanken? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
+				SendChat("/fixveh")
+				Sleep, 200
+			}
+		}
+		
+		if (fillTimeout_ && isPlayerInAnyVehicle()) {
+			if (isPlayerDriver() && getVehicleType() != 6) {
+				SendInfo("Möchtest du dein Fahrzeug betanken? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
 
-					KeyWait, X, D, T10
+				KeyWait, X, D, T5
 
-					if (!ErrorLevel && !isBlocked()) {
-						fillTimeout_ := false
-						refillCar()
-						fillTimeout := 0
-					} else {
-						fillTimeout_ := true
-					}
+				if (!ErrorLevel && !isBlocked()) {
+					fillTimeout_ := false
+					fillTimeout := 0
+					
+					refillCar()
+				} else {
+					fillTimeout_ := true
 				}
 			}
 		}
 
-		if (canisterTimeout_) {
-			if (!isPlayerInAnyVehicle()) {
+		if (canisterTimeout_ && !isPlayerInAnyVehicle()) {
+			if (!()) {
 				SendInfo("Möchtest du dir einen Kanister kaufen? Du kanst mit '" . csecond . "X" . cwhite . "' bestätigen!")
 
-				KeyWait, X, D, T10
+				KeyWait, X, D, T5
 
 				if (!ErrorLevel && !isBlocked()) {
 					canisterTimeout_ := false
-					SendChat("/kanister")
 					canisterTimeout := 0
+					
+					SendChat("/kanister")
 				} else {
 					canisterTimeout_ := true
 				}
 			}
 		}
-	} else if (isPlayerAtMaut() && autoCustoms) {
-		if (mautTimeout_) {
+	} else if (isPlayerAtCustom() && autoCustoms) {
+		if (mautTimeout_ && isPlayerInAnyVehicle()) {
 			SendInfo("Möchtest du den Zoll öffnen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
 
-			KeyWait, X, D, T10
+			KeyWait, X, D, T5
 
 			if (!ErrorLevel && !isBlocked()) {
 				mautTimeout_ := false
-				openMaut()
 				mautTimeout := 0
+				
+				openMaut()
 			} else {
 				mautTimeout_ := true
 			}
@@ -13660,14 +13747,23 @@ MainTimer:
 	} else if (isPlayerAtHeal() && autoHeal) {
 		if (healTimeout_) {
 			if (getPlayerHealth() < 100 || getPlayerArmor() < 100) {
+				if (healcooldown) {
+					SendInfo("Du kannst dich erst in " . cSecond . formatTime(healcooldown) . cWhite . " heilen.")
+					
+					healTimeout_ := false
+					healTimeout := 0
+					return
+				}
+				
 				SendInfo("Möchtest du dich heilen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
 
-				KeyWait, X, D, T10
+				KeyWait, X, D, T5
 
 				if (!ErrorLevel && !isBlocked()) {
 					healTimeout_ := false
-					healPlayer()
 					healTimeout := 0
+					
+					healPlayer()
 				} else {
 					healTimeout_ := true
 				}
@@ -13677,12 +13773,13 @@ MainTimer:
 		if (cookTimeout_) {
 			SendInfo("Möchtest du deine Fische kochen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
 
-			KeyWait, X, D, T10
+			KeyWait, X, D, T5
 
 			if (!ErrorLevel && !isBlocked()) {
 				cookTimeout_ := false
-				cookFish()
 				cookTimeout := 0
+				
+				cookFish()
 			} else {
 				cookTimeout_ := true
 			}
@@ -13691,12 +13788,13 @@ MainTimer:
 		if (localTimeout_) {
 			SendInfo("Möchtest du die Kette einnehmen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
 
-			KeyWait, X, D, T10
+			KeyWait, X, D, T5
 
 			if (!ErrorLevel && !isBlocked()) {
 				localTimeout_ := false
-				addLocalToStats()
 				localTimeout := 0
+				
+				addLocalToStats()
 			} else {
 				localTimeout_ := true
 			}
@@ -13706,25 +13804,13 @@ MainTimer:
 			if (equipTimeout_) {
 				SendInfo("Möchtest du dich ausrüsten? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
 				
-				KeyWait, X, D, T10
+				KeyWait, X, D, T5
 				
 				if (!ErrorLevel && !isBlocked()) {
 					equipTimeout_ := false
-					
-					equipment := ""
-					
-					Loop, 6 {
-						if (profile1_%A_Index% != "") {
-							equipment .= " " . profile1_%A_Index%
-						}
-					}
-					
-					SendChat("/ausruesten" . equipment)
-					Sleep, 250
-					
-					healPlayer()
-
 					equipTimeout := 0
+					
+					equipProfile(1)
 				} else {
 					equipTimeout_ := true
 				}
@@ -13734,12 +13820,13 @@ MainTimer:
 				if (getPlayerHealth() < 100 || getPlayerArmor() < 100) {
 					SendInfo("Möchtest du dich heilen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen!")
 					
-					KeyWait, X, D, T10
+					KeyWait, X, D, T5
 					
 					if (!ErrorLevel && !isBlocked()) {
 						healTimeout_ := false
-						healPlayer()
 						healTimeout := 0
+						
+						healPlayer()
 					} else {
 						healTimeout_ := true
 					}
@@ -13750,12 +13837,13 @@ MainTimer:
 		if (jailgateTimeout_) {
 			SendInfo("Möchtest du ins Staatsgefängnis? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
 			
-			KeyWait, X, D, T10
+			KeyWait, X, D, T5
 				
 			if (!ErrorLevel && !isBlocked()) {
 				jailgateTimeout_ := false
-				openGate()
 				jailgateTimeout := 0
+				
+				SendChat("/auf")
 			} else {
 				jailgateTimeout_ := true
 			}
@@ -13764,12 +13852,13 @@ MainTimer:
 		if (gateTimeout_) {
 			SendInfo("Möchtest du das Tor öffnen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
 			
-			KeyWait, X, D, T10
+			KeyWait, X, D, T5
 				
 			if (!ErrorLevel && !isBlocked()) {
 				gateTimeout_ := false
-				openGate()
 				gateTimeout := 0
+				
+				SendChat("/auf")
 			} else {
 				gateTimeout_ := true
 			}
@@ -13778,12 +13867,13 @@ MainTimer:
 		if (fishTimeout_) {
 			SendInfo("Möchtest du fischen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
 				
-			KeyWait, X, D, T10
+			KeyWait, X, D, T5
 			
 			if (!ErrorLevel && !isBlocked()) {
 				fishTimeout_ := false
-				startFish()
 				fishTimeout := 0
+				
+				startFish()
 			} else {
 				fishTimeout_ := true
 			}
@@ -13792,12 +13882,13 @@ MainTimer:
 		if (fishSellTimeout_) {
 			SendInfo("Möchtest du deine Fische verkaufen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
 			
-			KeyWait, X, D, T10
+			KeyWait, X, D, T5
 			
 			if (!ErrorLevel && !isBlocked()) {
 				fishSellTimeout_ := false 
-				sellFish()
 				fishSellTimeout := 0
+				
+				sellFish()
 			} else {
 				fishSellTimeout_ := true
 			}
@@ -13944,43 +14035,43 @@ WantedIATimer:
 		KeyWait, X, D, T10
 		
 		if (!ErrorLevel) {
-			if (InStr(wantedIAReason, "entführt mich")) {
+			if (inStr(wantedIAReason, "entführt mich")) {
 				if (giveWanteds(wantedIA, "Entführung eines Staatsbeamten (" . wantedContracter . ")", 4)) {
 					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Entführng eingetragen!")
 				}
-			} else if (InStr(wantedIAReason, "begeht eine Verweigerung")) {
+			} else if (inStr(wantedIAReason, "begeht eine Verweigerung")) {
 				if (giveWanteds(wantedIA, "Verweigerung i.A. " . wantedContracter, 1)) {
 					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Verweigerung eingetragen!")
 				}
-			} else if (InStr(wantedIAReason, "versuchte mich zu bestechen")) {
+			} else if (inStr(wantedIAReason, "versuchte mich zu bestechen")) {
 				if (giveWanteds(wantedIA, "Beamtenbestechung i.A. " . wantedContracter, 1)) {
 					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Beamtenbestechung eingetragen!")
 				}
-			} else if (InStr(wantedIAReason, "verwendet seine Schlag/Schusswaffen")) {
+			} else if (inStr(wantedIAReason, "verwendet seine Schlag/Schusswaffen")) {
 				if (giveWanteds(wantedIA, "Waffengebrauch i.d.Ö. i.A. " . wantedContracter, 2)) {
 					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Waffengebrauch i.d.Ö. eingetragen!")
 				}
-			} else if (InStr(wantedIAReason, "ist nicht im Besitz eines Waffenschein")) {
+			} else if (inStr(wantedIAReason, "ist nicht im Besitz eines Waffenschein")) {
 				if (giveWanteds(wantedIA, "Illegaler Waffenbesitz i.A. " . wantedContracter, 2)) {
 					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " illegaler Waffenbesitz eingetragen!")
 				}
-			} else if (InStr(wantedIAReason, "hat ein Unbrechtigtes Fahrzeug/Gelände")) {
+			} else if (inStr(wantedIAReason, "hat ein Unbrechtigtes Fahrzeug/Gelände")) {
 				if (giveWanteds(wantedIA, "Unautorisiertes Betreten i.A. " . wantedContracter, 2)) {
 					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Einbruch eingetragen!")
 				}
-			} else if (InStr(wantedIAReason, "Behindert die Justiz")) {
+			} else if (inStr(wantedIAReason, "Behindert die Justiz")) {
 				if (giveWanteds(wantedIA, "Behinderung der Justiz i.A. " . wantedContracter, 1)) {
 					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Behinderung der Justiz eingetragen!")
 				}
-			} else if (InStr(wantedIAReason, "begeht einen Angriff / Beschuss")) {
+			} else if (inStr(wantedIAReason, "begeht einen Angriff / Beschuss")) {
 				if (giveWanteds(wantedIA, "Angriff/Beschuss i.A. " . wantedContracter, 2)) {
 					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Angriff/Beschuss eingetragen!")
 				}
-			} else if (InStr(wantedIAReason, "Materialien")) {
+			} else if (inStr(wantedIAReason, "Materialien")) {
 				if (giveWanteds(wantedIA, "Besitz von Materialien i.A. " . wantedContracter, 2)) {
 					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Besitz von Materialien eingetragen!")
 				}
-			} else if (InStr(wantedIAReason, "Drogen")) {
+			} else if (inStr(wantedIAReason, "Drogen")) {
 				if (giveWanteds(wantedIA, "Besitz von Drogen i.A. " . wantedContracter, 2)) {
 					SendChat("/d HQ: Habe den Auftrag ausgeführt und " . getFullName(wantedIA) . " Besitz von Drogen eingetragen!")
 				}
@@ -14121,7 +14212,7 @@ AlertOverlayTimer:
 		}
 		
 		if (alertActive) {
-			alertString .= getFractionName() . " - Alarm:`n"
+			alertString .= getFactionName() . " - Alarm:`n"
 		}			
 		
 		for index, entry in outbreaks {
@@ -14426,7 +14517,7 @@ AutoFindTimer:
 	adrGTA2 := getModuleBaseAddress("gta_sa.exe", hGTA)
 	cText := readString(hGTA, adrGTA2 + 0x7AAD43, 512)
 	
-	if (InStr(cText, "Handy aus")) {
+	if (inStr(cText, "Handy aus")) {
 		return
 	}
 	
@@ -14529,62 +14620,9 @@ DeathArrestTimer:
 }
 return
 
-findPlayer() {
-	global
-	
-	if (showDriver) {
-		passengers := getSeatIDs()
-		
-		if (passengers) {
-			driver := passengers[1]
-			
-			if (driver == -1 || driver == getId()) {
-				autoFindMode := 1
-			} else {
-				autoFindMode := 2
-			}
-		} else {
-			if (playerToShowTo == "") {
-				autoFindMode := 1
-			} else {
-				autoFindMode := 2
-			}
-		}
-	} else if (autoFindMode == 0) {
-		autoFindMode := 1
-	}
-	
-	GoSub, AutoFindTimer
-	SetTimer, AutoFindTimer, 5500
-	
-	if (showDriver && autoFindMode == 2) {
-		passengers := getSeatIDs()
-		
-		if (passengers) {
-			driver := passengers[1]
-			
-			if (driver == -1) {
-				driver := "niemand"
-			} else {
-				driver := getFullName(driver)
-			}
-		}
-	}
-}
-
-findInfo(name) {
-	global 
-	
-	player := getFullName(name)
-	playerID := getPlayerIdByName(player)
-	playerScore := getPlayerScoreById(playerID)
-	
-	SendInfo("Die Suche nach " . player . " (ID: " . playerID . ") wurde gestartet.")
-	Sleep, 200
-	
-	SendChat("/mdc " . player)
-}
-
+; --------------------- ;
+;      AdminStuff       ;
+; --------------------- ;
 closeTicket(ticketID) {
 	farewell := ""
 	
@@ -14605,7 +14643,7 @@ closeTicket(ticketID) {
 	
 	Sleep, 200
 
-	if (InStr(readChatLine(0), "Dieses Ticket wurde nicht erstellt.") || InStr(readChatLine(0), "Du bearbeitest dieses Ticket nicht.")) {
+	if (inStr(readChatLine(0), "Dieses Ticket wurde nicht erstellt.") || inStr(readChatLine(0), "Du bearbeitest dieses Ticket nicht.")) {
 		return
 	}
 	
@@ -14696,20 +14734,25 @@ saveTicket(name) {
 }
 return
 
-checkHealMessage() {
-	global healcooldown
+; --------------------- ;
+;       Aktionen        ;
+; --------------------- ;
+findInfo(name) {
+	global 
 	
-	Loop, 5 {	
-		if (InStr(readChatLine(A_Index - 1), "* " . getUserName() . " hat die Gesundheit regeneriert.")) {
-			healcooldown := 60
-			
-			Sleep, 200
-			break
-		}
-	}
+	player := getFullName(name)
+	playerID := getPlayerIdByName(player)
+	playerScore := getPlayerScoreById(playerID)
+	
+	SendInfo("Die Suche nach " . player . " (ID: " . playerID . ") wurde gestartet.")
+	Sleep, 200
+	
+	SendChat("/mdc " . player)
 }
 
 stopFinding(key = 0) {
+	global
+	
 	if (autoFindMode > 0) {
 		SetTimer, AutoFindTimer, Off
 		
@@ -14725,178 +14768,46 @@ stopFinding(key = 0) {
 	}
 }
 
-utf8toansi(string) {
-	FileAppend, %string%, conv.txt
-	FileRead, UTF, *P65001 conv.txt
-	FileDelete, conv.txt
-	return UTF
-}
-
-/*
-createText(id) {
+findPlayer() {
 	global
 	
-	if (id == 1) {
-		armour := getPlayerArmor()
+	if (showDriver) {
+		passengers := getSeatIDs()
 		
-		if (armour <= 1) {
-			armour := "_"
-		}
-		
-		hpText := createTextDraw(getTextDrawColor(hpTextColor) . getPlayerHealth(), hpTextPosX, hpTextPosY, 0xFFFFFFFF, hpTextFont, hpTextFontSize, hpTextFontSize * 3)
-		armourText := createTextDraw(getTextDrawColor(armourTextColor) . armour, armourTextPosX, armourTextPosY, 0xFFFFFFFF, hpTextFont, hpTextFontSize, hpTextFontSize * 3)
-		
-		SetTimer, HealthTextDrawTimer, 500
-	} else if (id == 3) {
-		fpsText := createTextDraw(getTextDrawColor(fpsTextColor) . getFPS(), fpsTextPosX, fpsTextPosY, 0xFFFFFFFF, fpsTextFont, fpsTextFontSize, fpsTextFontSize * 3)
-		
-		SetTimer, FPSTextDrawTimer, 500
-	}
-}
-
-updateText(id) {
-	global
-	
-	if (id == 1) {
-		if (hpText != -1) {
-			moveTextDraw(hpText, hpTextPosX, hpTextPosY)
-		}
-	} else if (id == 2) {
-		if (armourText != -1) {
-			moveTextDraw(armourText, armourTextPosX, armourTextPosY)
-		}
-	} else if (id == 3) {
-		if (fpsText != -1) {
-			moveTextDraw(fpsText, fpsTextPosX, fpsTextPosY)
-		}
-	}
-}
-
-getTextDrawColor(id) {
-	color := ""
-	
-	if (id == 1) {
-		color := "~w~"
-	} else if (id == 2) {
-		color := "~l~"
-	} else if (id == 3) {
-		color := "~r~"
-	} else if (id == 4) {
-		color := "~g~"
-	} else if (id == 5) {
-		color := "~b~"
-	} else if (id == 6) {
-		color := "~y~"
-	} else if (id == 7) {
-		color := "~p~"
-	}
-	
-	return color
-}
-*/
-
-ownHotkey(id) {
-	global
-	
-	if (isInChat() || isDialogOpen() || !ownHotkey%id%Active || ownHotkey%id%Text == "") {
-		return
-	}
-	
-	chatActionsArray := StrSplit(ownHotkey%id%Text, "`n")
-	
-	Loop % chatActionsArray.MaxIndex() {
-		sendLine(chatActionsArray[A_Index])
-	}
-}
-
-sendLine(line, local := false) {
-	IniRead, fishcooldown, ini/Settings.ini, Cooldown, fishcooldown, 0
-	IniRead, pakcooldown, ini/Settings.ini, Cooldown, pakcooldown, 0
-	
-	line := StrReplace(line, "[name]", getUsername())
-	line := StrReplace(line, "[id]", getId())
-	line := StrReplace(line, "[ping]", getPlayerPingById(getId()))
-	line := StrReplace(line, "[fps]", getPlayerFps())
-	line := StrReplace(line, "[zone]", getPlayerZone())
-	line := StrReplace(line, "[city]", getPlayerCity())
-	line := StrReplace(line, "[location]", getLocation())
-	line := StrReplace(line, "[hp]", getPlayerHealth())
-	line := StrReplace(line, "[armour]", getPlayerArmor())
-	line := StrReplace(line, "[money]", formatNumber(getPlayerMoney()))
-	line := StrReplace(line, "[skin]", getPlayerSkinId())
-	line := StrReplace(line, "[weaponid]", getPlayerWeaponId())
-	line := StrReplace(line, "[weapon]", getPlayerWeaponName())
-	line := StrReplace(line, "[freezed]", (IsPlayerFreezed() ? "ja" : "nein"))
-	line := StrReplace(line, "[vhealth]", getVehicleHealth())
-	line := StrReplace(line, "[vmodelid]", getVehicleModelId())
-	line := StrReplace(line, "[vmodel]", getVehicleModelName())
-	line := StrReplace(line, "[vspeed]", round(getVehicleSpeed()))
-	line := StrReplace(line, "[fishtime]", formatTime(fishcooldown))
-	line := StrReplace(line, "[pakettime]", formatTime(pakcooldown))
-	
-	if (RegExMatch(line, "(.*)\[sleep (\d+)\](.*)", line_)) {
-		if (line_1 != "")
-			sendLine(line_1, local)
-		
-		Sleep, %line_2%
-		
-		if (line_3 != "")
-			sendLine(line_3, local)
-	} else if (RegExMatch(line, "(.*)\[local\](.*)", line_)) {
-		if (line_1 != "")
-			sendLine(line_1, local)
-		
-		if (line_2 != "")
-			sendLine(line_2, true)
-	} else if (RegExMatch(line, "(.*)\[usepak\](.*)", line_)) {
-		if (line_1 != "")
-			sendLine(line_1, local)
-		
-		GoSub, firstAidLabel
-		
-		if (line_2 != "")
-			sendLine(line_2, local)
-	} else if (RegExMatch(line, "(.*)\[eatfish\](.*)", line_)) {
-		if (line_1 != "")
-			sendLine(line_1, local)
-		
-		GoSub, eatFishLabel
-		
-		if (line_2 != "")
-			sendLine(line_2, local)
-	} else if (RegExMatch(line, "(.*)\[motor\](.*)", line_)) {
-		if (line_1 != "")
-			sendLine(line_1, local)
-		
-		GoSub, motorSystemLabel
-		
-		if (line_2 != "")
-			sendLine(line_2, local)
-	} else {
-		if (local) {
-			SendInfo(line)
+		if (passengers) {
+			driver := passengers[1]
+			
+			if (driver == -1 || driver == getId()) {
+				autoFindMode := 1
+			} else {
+				autoFindMode := 2
+			}
 		} else {
-			SendChat(line)
+			if (playerToShowTo == "") {
+				autoFindMode := 1
+			} else {
+				autoFindMode := 2
+			}
 		}
-	}
-}
-
-removeFromWanted(name) {
-	global wantedPlayers
-	
-	indexToRemove := -1
-	
-	for index, entry in wantedPlayers {
-		if (entry["name"] == name) {
-			indexToRemove := index
-		}
+	} else if (autoFindMode == 0) {
+		autoFindMode := 1
 	}
 	
-	if (indexToRemove != -1) {
-		wantedPlayers.RemoveAt(indexToRemove)
-		return removeFromWanted(name) + 1
-	} else {
-		return 0
+	GoSub, AutoFindTimer
+	SetTimer, AutoFindTimer, 5500
+	
+	if (showDriver && autoFindMode == 2) {
+		passengers := getSeatIDs()
+		
+		if (passengers) {
+			driver := passengers[1]
+			
+			if (driver == -1) {
+				driver := "niemand"
+			} else {
+				driver := getFullName(driver)
+			}
+		}
 	}
 }
 
@@ -14941,7 +14852,7 @@ giveWanteds(suspect, reason, amount) {
 		suspectLine0 := readChatLine(0)
 		suspectLine1 := readChatLine(1)
 		
-		if (inStr(suspectLine0 . suspectLine1, "Du kannst Beamte keine Wanteds eintrragen.") || InStr(suspectLine0 . suspectLine1, "Der Spieler befindet sich im Gefängnis.")) {
+		if (inStr(suspectLine0 . suspectLine1, "Du kannst Beamte keine Wanteds eintrragen.") || inStr(suspectLine0 . suspectLine1, "Der Spieler befindet sich im Gefängnis.")) {
 			return false
 		}
 		
@@ -14992,7 +14903,7 @@ givePoints(suspect, reason, amount, extra := "") {
 		pointsLine0 := readChatLine(0)
 		pointsLine1 := readChatLine(1)
 		
-		if (InStr(pointsLine0 . pointsLine1, "Du kannst dir keine Punkte geben.")) {
+		if (inStr(pointsLine0 . pointsLine1, "Du kannst dir keine Punkte geben.")) {
 			return false
 		}
 		
@@ -15057,11 +14968,6 @@ payPartnerMoney(money, stat) {
 		IniWrite, %statMoney%, ini/Stats.ini, Tickets, Money
 		SendInfo("Du hast bereits $" . csecond . formatNumber(statMoney) . cwhite . " durch Tickets verdient.")
 	} 
-	/*else if (stat == "plants_money") {
-		IniWrite, %statMoney%, ini/Stats.ini, Marihuana, Money
-		SendInfo("Du hast bereits $" . csecond . formatNumber(statMoney) . cwhite . " durch Marihuana-Pflanzen verdient.")
-	}	
-	*/
 	
 	indexRemove := -1
 	
@@ -15096,19 +15002,17 @@ cookFish() {
 			SendChat("/campfire")
 			Sleep, 200
 		} 
-					
+		
 		Loop, 5 {
 			SendChat("/cook fish " . A_Index)
-			Sleep, 650
 		}			
 	} else {
 		if (isPlayerAtCookPoint()) {
 			Loop, 5 {
 				SendChat("/cook fish " . A_Index)
-				Sleep, 650
 			}	
 		} else {
-			SendInfo("Du kannst hier nicht kochen.")
+			SendError("Du kannst hier nicht kochen.")
 		}
 	}
 	
@@ -15123,17 +15027,12 @@ sellFish() {
 	
 	Loop, 5 {
 		SendChat("/sell fish " . A_Index)
-		
-		Sleep, 200
+		Sleep, 250
 	
 		chat := readChatLine(0)
 		
 		if (RegExMatch(chat, "Du hast deinen (.+) \((\d+) LBS\) für (\d+)\$ verkauft.", chat_)) {
 			sellFishMoney += numberFormat(chat_3)
-		}
-		
-		if (!admin) {
-			Sleep, 500 
 		}
 	}
 	
@@ -15166,8 +15065,7 @@ startFish() {
 			
 			Loop {
 				SendChat("/fish")
-				
-				Sleep, 200
+				Sleep, 100
 				
 				fishing := readChatLine(0)
 				
@@ -15208,7 +15106,7 @@ startFish() {
 					aFishHP -= cheapestFishHP
 					
 					SendChat("/releasefish " . cheapestFish)
-					Sleep, 200
+					Sleep, 100
 					
 					if (fishMode)  {
 						SendInfo(cscond . cheapestFishName . cWhite . ": " . cheapestFish . cwhite . " im Wert von $" . csecond . formatNumber(cheapestFishValue) . cwhite . " weggeworfen")
@@ -15226,7 +15124,7 @@ startFish() {
 					attempt ++
 				} else if (RegExMatch(fishing, "Du kannst erst in (\d+) (\S+) wieder angeln\.", ftime_)) {
 					if (aFishMoney + aFishHP > 0) {
-						Sleep, 500
+						Sleep, 100
 						
 						checkFish()
 						
@@ -15383,12 +15281,12 @@ check(name) {
 	return [drugsFound, seedsFound, matsFound, packetsFound, bombsFound]
 }
 
-readCarInfos() { ; Anpassen
+readCarInfos() {
 	global
 	
 	dialog := getDialogText()
 	
-	if (InStr(dialog, "Allgemeines")) {
+	if (inStr(dialog, "Allgemeines")) {
 		RegExMatch(dialog, "Besitzer: (\S+)", owner)
 		RegExMatch(dialog, "Letzter Fahrer: (\S+) \(ID: (\d+), Level: (\d+)\)", driver)
 		id := getPlayerIdByName(owner1, true)
@@ -15600,28 +15498,271 @@ useMegaphone(type) {
 	}
 }
 
-getFishValue(fishName, fishWeight) {
-	global 
+checkFish() {
+	global
+
+	fishHP := 0 
+	fishMoney := 0
+	allFishHP := 0
+	allFishMoney := 0
 	
-	if (fishName == "Bernfisch" || fishName == "Blauer Fächerfisch") {
-		value := fishWeight * 1
-	} else if (fishName == "Roter Schnapper" || fishName == "Schwertfisch" || fishName == "Zackenbarsch") {
-		value := fishWeight * 2
-	} else if (fishName == "Katzenfisch" || fishName == "Forelle") {
-		value := fishWeight * 3
-	} else if (fishName == "Delphin" || fishName == "Hai" || fishName == "Segelfisch") {
-		value := fishWeight * 4
-	} else if (fishName == "Makrele") {
-		value := fishWeight * 5
-	} else if (fishName == "Aal" || fishName == "Hecht") {
-		value := fishWeight * 6
-	} else if (fishName == "Schildkröte" || fishName == "Thunfisch" || fishName == "Wolfbarsch") {
-		value := fishWeight * 8
-	} else {
-		value := 0
+	SendChat("/fishes")
+	Sleep, 200
+	
+	Loop, 15 {
+		if (RegExMatch(readChatLine(A_Index), "^\*\* \((\d+)\) Fisch: (.+) \((\d+) LBS\)$", fish_)) {
+			fishMoney := getFishValue(fish_2, fish_3)
+			fishHP := Floor(fish_3 * 0.3)
+			allFishHP += fishHP
+			allFishMoney += fishMoney
+			
+			fishName%fish_1% := fish_2
+			fishLBS%fish_1% := fish_3
+			fishHP%fish_1% := fishHP
+			fishPrice%fish_1% := fishMoney
+			
+			message%fish_1% := prefix . "(" . fish_1 . ") " . cSecond . fishName%fish_1% . cWhite . ": " . cSecond . fishHP%fish_1% . cWhite . " HP | $" . csecond . fishPrice%fish_1% . cWhite . " | " . cSecond . fishLBS%fish_1% . cWhite . " LBS"
+		}
 	}
 	
-	return value
+	fishes := 5
+	
+	Loop, 5 {
+		setChatLine(fishes, message%A_Index%)
+		fishes -= 1
+	}	
+	
+	SendInfo("Gesamt HP: " . cSecond . formatNumber(allFishHP) . cwhite . " HP | Gesamt Wert: $" . cSecond . formatNumber(allFishMoney))
+	
+	if (infoOvEnabled) {
+		ov_Info(0)
+		ov_Info()
+	}	
+	
+	return allHP
+}
+
+checkCook() {
+	global
+	
+	fishHP := 0
+	allHP := 0
+	
+	SendChat("/cooked")
+	Sleep, 200
+	
+	Loop, 15 {
+		if (RegExMatch(readChatLine(A_Index), "^\*\* \((\d+)\) Hergestellt: (.+) \((\d+) LBS\)$", fish_)) {
+			fishHP := floor(fish_3 / 3)
+			allHP += fishHP
+			
+			fishName_%fish_1% := fish_2
+			fishLBS_%fish_1% := fish_3
+			fishHP_%fish_1% := fishHP
+			
+			message%fish_1% := prefix . "(" . fish_1 . ") " . cSecond . fishName_%fish_1% . cWhite . ": " . cSecond . fishLBS_%fish_1% . cWhite . " LBS | " . csecond . fishHP_%fish_1% . cWhite . " HP"
+		}
+	}
+	
+	fishes := 5
+	
+	Loop, 5 {
+		setChatLine(fishes, message%A_Index%)
+		fishes -= 1
+	}	
+	
+	SendInfo("Gesamt HP: " . cSecond . formatNumber(allHP) . cwhite . " HP.")
+	
+	if (infoOvEnabled) {
+		ov_Info(0)
+		ov_Info()
+	}	
+	
+	return allHP
+}	
+
+addLocalToStats() {	
+	global
+	
+	SendChat("/robres")
+	
+	Sleep, 200
+	
+	Loop, 5 { 
+		if (RegExMatch(readChatLine(A_Index - 1), "HQ: Die Restaurant-Kette (.+) wurde von Staat San Andreas eingenommen\.", output1_)) {
+			if (output1_1 != oldLocal) {
+				SendChat("/d HQ: Ich habe die Kette " . output1_1 . " von ihrem Erpresser befreit!")
+				Restaurants := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=restaurants&value=1")
+				IniWrite, %Restaurants%, ini/Stats.ini, Übernahmen, Restaurants
+			
+				SendInfo("Du hast bereits " . csecond . formatNumber(Restaurants) . cwhite . " Restaurants übernommen.")
+				
+				oldLocalTime := 180
+				oldLocal := output1_1
+			}
+			
+			break
+		}
+	}
+}
+
+addControlsToStats(frisk_name) {
+	global
+		
+	Loop, 5 {
+		chat := readChatLine(A_Index - 1)
+	
+		if (inStr(chat, "* " . getUserName() . " hat " . frisk_name . " nach Waffen durchsucht.")) {
+			if (frisk_name != oldFrisk) {
+				controls := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=controls&value=1")
+				IniWrite, %controls%, ini/Stats.ini, Kontrollen, controls
+		
+				SendInfo("Du hast bereits " . csecond . formatNumber(controls) . cwhite . " Kontrollen durchgeführt.")
+
+				oldFriskTime := 180 
+				oldFrisk := frisk_name
+				
+				break
+			}
+		}
+	}
+}
+
+getItems() {
+	global
+	
+	forceStats()
+	
+	if (RegExMatch(getDialogText(), "(.*)Drogen: (\d+)g(.*)", drugs_)) {
+		IniWrite, % drugs_2, ini/Settings.ini, Items, drugs
+	}
+	
+	if (inStr(getDialogText(), "Erste-Hilfe-Paket")) {
+		IniWrite, 1, ini/Settings.ini, Items, firstaid
+	} else {
+		IniWrite, 0, ini/Settings.ini, Items, firstaid	
+	}
+	
+	if (inStr(getDialogText(), "Benzin Kanister")) {
+		IniWrite, 1, ini/Settings.ini, Items, canister
+	} else {
+		IniWrite, 0, ini/Settings.ini, Items, canister	
+	}
+	
+	if (inStr(getDialogText(), "Lagerfeuer")) {	
+		if (RegExMatch(getDialogText(), "(.*)Lagerfeuer \((\d+)\)(.*)", campfire_)) {
+			iniWrite, % campfire_2, ini/Settings.ini, Items, campfire
+		}
+	} else {
+		iniWrite, 0, ini/Settings.ini, Items, campfire	
+	}
+	
+	if (infoOvEnabled) {
+		ov_Info(0)
+		ov_Info()
+	}
+}
+
+reconnectRPG() {	
+	stopFinding()
+		
+	global tempo 				:= 80
+	
+	global giveMaxTicket		:= 3
+	
+	global currentTicket 		:= 1
+	global maxTickets 			:= 1
+	global currentFish 			:= 1
+	
+	global totalArrestMoney 	:= 0
+	global currentTicketMoney 	:= 0
+	global maumode				:= 0
+	global watermode 			:= 0
+	global airmode 				:= 0
+	global admission			:= 0
+	global deathArrested 		:= 0
+	global lastSpeed 			:= 0	
+	global hasEquip				:= 0
+	global isZivil				:= 0
+	global getOldKomplex		:= 0
+	global oldFriskTime			:= 0
+	global oldLocalTime			:= 0
+	global pbKillStreak 		:= 0
+	global currentSpeed 		:= 0
+	global countdownRunning 	:= 0
+	global autoFindMode		 	:= 0
+	global stopwatchTime 		:= 0
+	global IsPayday				:= 0
+	global drugcooldown			:= 0
+	global healcooldown			:= 0
+	global admincooldown		:= 0
+	global ooccooldown			:= 0
+	global findcooldown			:= 0
+	
+	global oldWanted            := -1
+	global agentID 				:= -1
+	global oldHour 				:= -1
+	global oldVehicle			:= -1
+	global targetid				:= -1
+	global wantedIA				:= -1
+	global wantedContracter		:= -1
+	
+	global wantedIAReason		:= ""
+	global oldInviteAsk			:= ""
+	global target				:= ""
+	global lastSpeedUser 		:= ""
+	global lastTicketReason 	:= ""
+	global lastTicketPlayer 	:= ""
+	global requestName			:= ""
+	global oldFrisk				:= ""
+	global oldLocal				:= ""
+	global cooldownString		:= ""
+	
+	global repairTimeout_		:= true
+	global fillTimeout_ 		:= true
+	global canisterTimeout_ 	:= true
+	global mautTimeout_ 		:= true
+	global healTimeout_ 		:= true
+	global cookTimeout_ 		:= true
+	global equipTimeout_ 		:= true
+	global jailgateTimeout_ 	:= true 
+	global GateTimeout_ 		:= true
+	global fishTimeout_ 		:= true
+	global localTimeout_ 		:= true
+	global garbageTimeout_		:= true 
+	global fishSellTimeout_		:= true
+
+	global overlayEnabled		:= false
+	global spotifyOvEnabled		:= false 
+	global cooldownOvEnabled 	:= false
+	global pingOvEnabled 		:= false
+	global infoOvEnabled 		:= false
+	global alertOvEnabled 		:= false
+	global partnerOvEnabled		:= false
+	global isInVehicle			:= false
+	global agentTog				:= false
+	global startOverlay			:= false
+	global pauseOverlay			:= false
+	global isArrested			:= false
+	global isCuffed				:= false
+	global firstStart			:= false
+	global isPaintball			:= false
+	global hackerFinder 		:= false
+	global rewantedting			:= false
+	global tempomat 			:= false
+	global tv 					:= false
+	global gotPoisened			:= false
+	
+	global ovMoveMode			:= false
+	global alertActive  		:= false
+	
+	global alertString 			:= ""
+	global oldSpotifyTrack		:= ""
+	global oldVehicleName		:= "none"
+		
+	SendChat("/me verbindet sich neu zum Server.")
+
+	restart()	
 }
 
 gk(id, store := "", showGK := false) {
@@ -15758,1043 +15899,6 @@ showGK(gk, ignoreExisting := false) {
     }
 }
 
-checkFish() {
-	global
-
-	fishHP := 0 
-	fishMoney := 0
-	allFishHP := 0
-	allFishMoney := 0
-	
-	SendChat("/fishes")
-	Sleep, 200
-	
-	Loop, 15 {
-		if (RegExMatch(readChatLine(A_Index), "^\*\* \((\d+)\) Fisch: (.+) \((\d+) LBS\)$", fish_)) {
-			fishMoney := getFishValue(fish_2, fish_3)
-			fishHP := Floor(fish_3 * 0.3)
-			allFishHP += fishHP
-			allFishMoney += fishMoney
-			
-			fishName%fish_1% := fish_2
-			fishLBS%fish_1% := fish_3
-			fishHP%fish_1% := fishHP
-			fishPrice%fish_1% := fishMoney
-			
-			message%fish_1% := prefix . "(" . fish_1 . ") " . cSecond . fishName%fish_1% . cWhite . ": " . cSecond . fishHP%fish_1% . cWhite . " HP | $" . csecond . fishPrice%fish_1% . cWhite . " | " . cSecond . fishLBS%fish_1% . cWhite . " LBS"
-		}
-	}
-	
-	fishes := 5
-	
-	Loop, 5 {
-		setChatLine(fishes, message%A_Index%)
-		fishes -= 1
-	}	
-	
-	SendInfo("Gesamt HP: " . cSecond . formatNumber(allFishHP) . cwhite . " HP | Gesamt Wert: $" . cSecond . formatNumber(allFishMoney))
-	
-	if (infoOvEnabled) {
-		ov_Info(0)
-		ov_Info()
-	}	
-	
-	return allHP
-}
-
-checkCook() {
-	global
-	
-	fishHP := 0
-	allHP := 0
-	
-	SendChat("/cooked")
-	Sleep, 200
-	
-	Loop, 15 {
-		if (RegExMatch(readChatLine(A_Index), "^\*\* \((\d+)\) Hergestellt: (.+) \((\d+) LBS\)$", fish_)) {
-			fishHP := floor(fish_3 / 3)
-			allHP += fishHP
-			
-			fishName_%fish_1% := fish_2
-			fishLBS_%fish_1% := fish_3
-			fishHP_%fish_1% := fishHP
-			
-			message%fish_1% := prefix . "(" . fish_1 . ") " . cSecond . fishName_%fish_1% . cWhite . ": " . cSecond . fishLBS_%fish_1% . cWhite . " LBS | " . csecond . fishHP_%fish_1% . cWhite . " HP"
-		}
-	}
-	
-	fishes := 5
-	
-	Loop, 5 {
-		setChatLine(fishes, message%A_Index%)
-		fishes -= 1
-	}	
-	
-	SendInfo("Gesamt HP: " . cSecond . formatNumber(allHP) . cwhite . " HP.")
-	
-	if (infoOvEnabled) {
-		ov_Info(0)
-		ov_Info()
-	}	
-	
-	return allHP
-}
-
-addLocalToStats() {	
-	global
-	
-	SendChat("/robres")
-	
-	Sleep, 200
-	
-	Loop, 5 { 
-		if (RegExMatch(readChatLine(A_Index - 1), "HQ: Die Restaurant-Kette (.+) wurde von Staat San Andreas eingenommen\.", output1_)) {
-			if (output1_1 != oldLocal) {
-				SendChat("/d HQ: Ich habe die Kette " . output1_1 . " von ihrem Erpresser befreit!")
-				Restaurants := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=restaurants&value=1")
-				IniWrite, %Restaurants%, ini/Stats.ini, Übernahmen, Restaurants
-			
-				SendInfo("Du hast bereits " . csecond . formatNumber(Restaurants) . cwhite . " Restaurants übernommen.")
-				
-				oldLocalTime := 180
-				oldLocal := output1_1
-			}
-			
-			break
-		}
-	}
-}	
-
-addControlsToStats(frisk_name) {
-	global
-	
-	Sleep, 200
-	
-	Loop, 5 {
-		chat := readChatLine(A_Index - 1)
-	
-		if (InStr(chat, "* " . getUserName() . " hat " . frisk_name . " nach Waffen durchsucht.")) {
-			if (frisk_name != oldFrisk) {
-				controls := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=controls&value=1")
-				IniWrite, %controls%, ini/Stats.ini, Kontrollen, controls
-		
-				SendInfo("Du hast bereits " . csecond . formatNumber(controls) . cwhite . " Kontrollen durchgeführt.")
-
-				oldFriskTime := 180 
-				oldFrisk := frisk_name
-				
-				break
-			}
-		}
-	}
-}
-
-updateKD() {
-	global
-	
-	IniRead, Kills, ini/Stats.ini, Stats, Kills, 0
-	IniRead, Deaths, ini/Stats.ini, Stats, Deaths, 0
-	
-	if (Kills != getKill()) {
-		Kills := getKill()
-		iniWrite, %Kills%, ini/Stats.ini, Stats, Kills
-		SendInfo("Deine Kills wurden auf " . cSecond . formatNumber(Kills) . cwhite . " aktuallisiert.")
-	}
-	
-	if (Deaths != getDeath()) {
-		Deaths := getDeath() 
-		iniWrite, %Deaths%, ini/Stats.ini, Stats, Deaths
-		SendInfo("Deine Toden wurden auf " . cSecond . formatNumber(Deaths) . cwhite . " aktuallisiert.")
-	}
-}
-
-getKill() {
-	global
-	
-	forceStats()
-
-	if (RegExMatch(getDialogText(), "(.*)Morde: (\d+)(.*)", kills_)) {
-		return kills_2
-	} else {
-		return -1
-	}
-}
-
-getDeath() {
-	global
-	
-	forceStats()
-
-	if (RegExMatch(getDialogText(), "(.*)Gestorben: (\d+)(.*)", deaths_)) {
-		return deaths_2
-	} else {
-		return -1
-	}
-}
-getItems() {
-	global
-	
-	forceStats()
-	
-	if (RegExMatch(getDialogText(), "(.*)Drogen: (\d+)g(.*)", drugs_)) {
-		IniWrite, % drugs_2, ini/Settings.ini, Items, drugs
-		
-		if (drugs_2 == 0) {
-			if (infoOvEnabled) {
-				imageDestroy(ov_Drugs)
-				textDestroy(ov_DrugsText)
-			}	
-		}
-	} else {
-		SendError("Beim Auslesen der Drogen ist ein Fehler aufgetreten.")
-	}
-	
-	if (InStr(getDialogText(), "Erste-Hilfe-Paket")) {
-		IniWrite, 1, ini/Settings.ini, Items, firstaid
-	} else {
-		IniWrite, 0, ini/Settings.ini, Items, firstaid
-	
-		if (infoOvEnabled) {
-			imageDestroy(ov_Firstaid)
-		}		
-	}
-	
-	if (InStr(getDialogText(), "Benzin Kanister")) {
-		IniWrite, 1, ini/Settings.ini, Items, canister
-	} else {
-		IniWrite, 0, ini/Settings.ini, Items, canister
-	
-		if (infoOvEnabled) {
-			imageDestroy(ov_Canister)
-		}		
-	}
-	
-	if (InStr(getDialogText(), "Lagerfeuer")) {	
-		if (RegExMatch(getDialogText(), "(.*)Lagerfeuer \((\d+)\)(.*)", campfire_)) {
-			iniWrite, % campfire_2, ini/Settings.ini, Items, campfire
-		}
-	} else {
-		iniWrite, 0, ini/Settings.ini, Items, campfire
-	
-		if (infoOvEnabled) {
-			imageDestroy(ov_Campfire)
-			textDestroy(ov_CampfireText)
-		}		
-	}
-	
-	if (infoOvEnabled) {
-		ov_Info(0)
-		ov_Info()
-	}
-}
-
-
-forceStats() {
-	global
-	
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP")) {
-		return
-	}
-	
-	blockDialog()
-	SendChat("/stats")
-	Sleep, 200
-	unblockDialog()
-}
-
-healPlayer() {
-	global healcooldown
-	
-	if (getPlayerHealth() >= 100 && getPlayerArmor() >= 100) {
-		SendError("Du kannst dich nicht mit voller HP/AM heilen.")
-	} else if (healcooldown) {
-		SendInfo("Du kannst dich erst in " . cSecond . formatTime(healcooldown) . cWhite . " wieder heilen.")
-	} else {
-		SendChat("/heal")
-		Sleep, 200
-	
-		checkHealMessage()
-	}
-}
-
-usePaket() {
-	global pakcooldown
-	
-	if (getPlayerArmor() > 30) {
-		SendError("Du kannst mit mehr als 30 AM kein Erste-Hilfe-Paket verwenden.")
-	} else if (75 < getPlayerHealth()) {
-		SendError("Du kannst erst unter 75 HP ein Erste-Hilfe-Paket nehmen, du hast " . getPlayerHealth() . " HP.")
-	} else if (pakcooldown) {
-		SendInfo("Du kannst erst in " . cSecond . formatTime(pakcooldown) . cWhite . " wieder ein Erste-Hilfe-Paket nutzen.")
-	} else {
-		SendChat("/erstehilfe")
-	}
-}
-
-useDrugs() {
-	global drugcooldown
-	
-	if (getPlayerArmor()) {
-		SendError("Du kannst mit Armor keine Drogen nehmen.")
-	} else if (94 < getPlayerHealth()) {
-		SendError("Du kannst erst unter 94 HP Drogen nehmen, du hast " . getPlayerHealth() . " HP.")
-	} else if (drugcooldown) {
-		SendInfo("Du kannst erst in " . cSecond . formatTime(drugcooldown) . cwhite . " Sekunden wieder Drogen nutzen.")
-	} else {
-		SendChat("/usedrugs")	
-	}
-}
-
-refillCar() {	
-	global
-	
-	if (isPlayerInAnyVehicle() && isPlayerDriver()) {
-		if (getVehicleEngineState()) {
-			SendChat("/motor")
-			
-			Sleep, 250
-			
-			if (InStr(readChatLine(0) . readChatLine(1), "Du fährst zu schnell, um den Motor abzustellen.")) {
-				Sleep, 1000
-				
-				SendChat("/motor")
-				Sleep, 250
-			
-				if (InStr(readChatLine(0) . readChatLine(1), "Du fährst zu schnell, um den Motor abzustellen.")) {
-					return
-				}
-			}
-		}
-		
-		Sleep, 100
-		
-		SendChat("/fill")
-		Sleep, 8800
-		
-		if (!getVehicleEngineState()) {
-			SendChat("/motor")
-			Sleep, 2000
-			
-			if (getVehicleLightState()) {
-				SendChat("/licht")
-			}
-		}
-	}
-}
-
-openGate() {	
-	global
-	
-	SendChat("/auf")
-}
-
-openMaut() {
-	global
-	
-	SendChat("/zoll")
-	Sleep, 200
-	
-	if (inStr(readChatLine(0) . readChatLine(1), "Es ist keine Zollstation in deiner Nähe.")) {
-		Sleep, 400
-		SendChat("/zoll")
-	}
-}
-
-getTaxes() {
-	global
-	
-	SendChat("/tax")
-	
-	Sleep, 250
-	
-	if (RegExMatch(readChatLine(4 - 4), "Steuerklasse 4: (\d*) Prozent", chat_)) {
-		taxes := (100 - chat_1) / 100
-		
-		IniWrite, %taxes%, ini/Settings.ini, settings, taxes
-		SendInfo("Der Steuersatz (Steuerklasse " . cSecond . "4" . cwhite . ") wurde auf " . cSecond . chat_1 . cwhite . " Prozent gesetzt.")
-		return 1
-	}
-	
-	return 0
-}
-
-getLocation() {
-	global
-	
-	zone := getPlayerZone()
-	city := getPlayerCity()
-	
-	if (!getPlayerInteriorID()) {
-		if (city == "" || city == "Unbekannt") {
-			return zone
-		} else {
-			return zone . ", " . city
-		}
-	} else {
-		return "Interior-ID " . getPlayerInteriorID()
-	}
-}
-
-getSkinFraction(id) {
-	global
-	
-    skins := {"LSPD": [260, 163, 164, 265, 266, 267, 280, 281, 283, 284, 288], "FBI": [165, 166, 240, 286, 294, 11, 172, 194, 211, 59], "Sanitäter": [70, 274, 275, 276, 308], "Feuerwehr": [255, 277, 278, 279, 191], "Russen": [43, 111, 112, 113, 124, 125, 126, 127, 258, 272, 40], "Yakuza": [121, 122, 123, 186, 203, 204, 228, 169, 224], "Hitman": [], "Wheelman": [], "San News": [60, 170, 188, 227, 250, 56, 226], "Grove Street": [105, 106, 107, 269, 271, 65], "Ballas": [102, 103, 104, 293, 13], "LCM": [46, 47, 48, 98, 185, 223, 249, 214], "Ordnungsamt": [8, 42, 50, 71, 233], "Transport GmbH": [34, 44, 132, 133, 202, 206, 261, 31, 131], "San Fierro Rifa": [], "Vagos": [108, 109, 110, 292, 91], "Triaden": [], "Biker": [100, 247, 248, 254, 131]}
-    fraction := ""
-  
-	for key, array in skins
-    {
-        for index2, value2 in array
-        {
-            if (value2 == id) {
-                fraction := key
-                Break, 2
-            }
-        }
-    }
-    if(fraction) {
-        return fraction
-    }
-    return "Zivilist"
-}
-
-getDamageWeapon(damage) {
-	global
-	
-	weap := {"Deagle": [46, 47], "UZI/Tec9": [6, 7], "MP5": [8], "AK47/M4": [9, 10], "Rifle": [24, 25], "Sniper": [41, 42]}
-
-	for key, array in weap {
-		for index2, value2 in array {
-			if (value2 == damage) {
-				weap := key 
-				Break, 2
-			} else {
-				weap := "Unbekannt" 
-			}
-		}
-	}
-	
-	if (weap) {
-		return weap
-	}
-}
-
-weaponShort(id) {
-	global
-	
-	short := {0: "meiner", 1: "einem", 2: "einem", 3: "einem", 4: "einem", 5: "einem", 6: "einer", 7: "einem", 8: "einem", 9: "einer", 10: "einem", 11: "einem", 12: "einem", 13: "einem", 14: "einer", 15: "einem", 16: "einer", 17: "", 18: "einem", 22: "einer", 23: "einem", 24: "einer", 25: "einer", 26: "einer", 27: "einer", 28: "einer", 29: "einer", 30: "einer", 31: "einer", 32: "einer", 33: "einer", 34: "einer", 35: "einer", 36: "einer", 37: "einem", 38: "einer", 39: "einem", 40: "einem", 41: "einer", 42: "einem", 43: "einer"}
-
-	if (short[id]) {
-		return short[id]
-	}
-	
-	return "einer"
-}
-
-isConnected() {
-	global
-	
-    coords := getCoordinates()
-   
-    if ((coords[1] == 384 && coords[2] == -1557 && coords[3] == 20) || (Round(coords[1]) == 1531 && Round(coords[2]) == -1734 && Round(coords[3]) == 13)) {
-        return false
-    }
-   
-    return true
-}
-
-isConnectedToRPG() {
-	global
-	
-	if (isSAMPAvailable()) {
-		if (inStr(getServerName(), "GTA-City") && InStr(getServerName(), "Reallife")) {
-			if (getServerIP() == "51.77.68.94" && getServerPort() == "7777") {
-				return true
-			}
-		}
-	}
-   
-    return true
-}
-
-isPlayerAtGasStation() {
-	global
-	
-	if (isPlayerInRangeOfPoint(700, -1930, 0, 30) || isPlayerInRangeOfPoint(1833, -2431, 14, 30)) { ; Verona Beach
-		return 2
-	} else if (isPlayerInRangeOfPoint(615, 1689, 7, 6)
-	|| isPlayerInRangeOfPoint(-1328, 2677, 40, 6) ; Tierra Robada
-	|| isPlayerInRangeOfPoint(1596, 2199, 11, 6) ; Redsands West
-	|| isPlayerInRangeOfPoint(2202, 2474, 11, 6) ; Emerald Isle
-	|| isPlayerInRangeOfPoint(2114, 920, 11, 6) ; The Strip
-	|| isPlayerInRangeOfPoint(-2408, 976, 45, 6) ; Juniper Hill
-	|| isPlayerInRangeOfPoint(-2029, 156, 29, 6) ; Doherty
-	|| isPlayerInRangeOfPoint(-1676, 414, 7, 6) ; Easter Basin
-	|| isPlayerInRangeOfPoint(1004, -939, 43, 6) ; Temple
-	|| isPlayerInRangeOfPoint(1944, -1773, 14, 6) ; Idlewood
-	|| isPlayerInRangeOfPoint(-90, -1169, 3, 6) ; Flint County
-	|| isPlayerInRangeOfPoint(-1605, -2714, 49, 6) ; Whetstone
-	|| isPlayerInRangeOfPoint(-2243, -2560, 32, 6) ; Angel Pine
-	|| isPlayerInRangeOfPoint(1381, 457, 20, 6) ; Montgomery
-	|| isPlayerInRangeOfPoint(70, 1218, 19, 6) ; Fort Carson
-	|| isPlayerInRangeOfPoint(1555, -1605, 14, 6)) { ; LSPD
-		return 1
-	} else {
-		return 0
-	}
-}
-
-isPlayerAtMaut() {
-	global
-	
-	if (isPlayerInRangeOfPoint(1733.47, 546.37, 26, 10) ; Zoll 1
-	|| isPlayerInRangeOfPoint(1741.11, 543.47, 26, 10) ; Zoll 1
-	|| isPlayerInRangeOfPoint(1744.03, 523.63, 27, 10) ; Zoll 1
-	|| isPlayerInRangeOfPoint(1752.71, 521.69, 27, 10) ; Zoll 1
-	|| isPlayerInRangeOfPoint(512.54, 476.62, 18, 10) ; Zoll 2
-	|| isPlayerInRangeOfPoint(529.22, 467.21, 18, 10) ; Zoll 2
-	|| isPlayerInRangeOfPoint(-159.79, 414.18, 11, 10) ; Zoll 3
-	|| isPlayerInRangeOfPoint(-157.44, 392.24, 11, 10) ; Zoll 3
-	|| isPlayerInRangeOfPoint(-1408.23, 824.19, 47, 10) ; Zoll 4
-	|| isPlayerInRangeOfPoint(-1414.77, 803.59, 47, 10) ; Zoll 4
-	|| isPlayerInRangeOfPoint(-2695.05, 1284.63, 55, 10) ; Zoll 5
-	|| isPlayerInRangeOfPoint(-2686.34, 1284.24, 55, 10) ; Zoll 5
-	|| isPlayerInRangeOfPoint(-2676.62, 1265.37, 55, 10) ; Zoll 5
-	|| isPlayerInRangeOfPoint(-2668.18, 1264.91, 55, 10) ; Zoll 5
-	|| isPlayerInRangeOfPoint(-963.08, -343.05, 36, 10) ; Zoll 6
-	|| isPlayerInRangeOfPoint(-968.00, -322.33, 36, 10) ; Zoll 6
-	|| isPlayerInRangeOfPoint(-71.76, -892.47, 15, 10) ; Zoll 7
-	|| isPlayerInRangeOfPoint(-68.74, -867.96, 15, 10) ; Zoll 7
-	|| isPlayerInRangeOfPoint(100.20, -1284.37, 14, 10) ; Zoll 8
-	|| isPlayerInRangeOfPoint(94.40, -1277.82, 14, 10) ; Zoll 8
-	|| isPlayerInRangeOfPoint(97.19, -1254.11, 14, 10) ; Zoll 8
-	|| isPlayerInRangeOfPoint(94.69, -1245.59, 14, 10) ; Zoll 8
-	|| isPlayerInRangeOfPoint(42.71, -1537.98, 5, 10) ; Zoll 9
-	|| isPlayerInRangeOfPoint(58.02, -1524.93, 5, 10)) { ; Zoll 9
-		return 1
-	} else {
-		return 0
-	}
-}
-
-isPlayerAtEquip() {
-	global
-	
-	if (IsPlayerInRangeOfPoint(225.5152, 121.3243, 999.0702, 4.0)
-	|| IsPlayerInRangeOfPoint(240.5149, 1878.7798, 11.4609, 4.0)
-	|| IsPlayerInRangeOfPoint(255.3406, 77.3936, 1003.6406, 4.0)
-	|| IsPlayerInRangeOfPoint(2317.0151, -2019.1134, 13.5528, 4.0)) {
-		return 1
-	} else {
-		return 0
-	}
-}
-
-isAtDepartmentSpawn() {
-	global
-	
-	if (IsPlayerInRangeOfPoint(-1617.6255, 676.5569, -4.9063, 3.0)
-	|| IsPlayerInRangeOfPoint(1530.8369, -1664.8872, 6.2188, 3.0)
-	|| IsPlayerInRangeOfPoint(224.1197, 1862.0314, 13.1470, 3.0)
-	|| IsPlayerInRangeOfPoint(2326.1082, -2038.6212, 13.5528, 3.0)) {
-		return 1
-	} else {
-		return 0
-	}
-}
-
-isPlayerAtHeal() {
-	global
-	
-	if (IsPlayerInRangeOfPoint(225, 121, 999, 5) 
-	|| IsPlayerInRangeOfPoint(197, 168, 1003, 5)
-	|| IsPlayerInRangeOfPoint(2316, -2019, 13, 5)
-	|| IsPlayerInRangeOfPoint(2324, -1148, 1050, 5)
-	|| IsPlayerInRangeOfPoint(418.7545, -83.8548, 1001, 5)
-	|| IsPlayerInRangeOfPoint(-794.9179, 490.1421, 1376, 5)
-	|| IsPlayerInRangeOfPoint(774.3298, -49.7077, 1000, 5)) {
-		return 1
-	} else {
-		return 0
-	}
-}
-
-isPlayerAtLocal() {
-	global
-	
-	if (IsPlayerInRangeOfPoint(792.6970, -1626.2189, 13.3906, 3.1)
-		|| IsPlayerInRangeOfPoint(2412.0930, -1491.2977, 24.0000, 3.1)
-		|| IsPlayerInrangeOfPoint(2113.6445, -1788.6113, 13.5608, 3.1) 
-		|| IsPlayerInrangeOfPoint(1026.6838, -1350.2480, 13.7266, 3.1)) {
-		return 1
-	} else {
-		return 0
-	}
-}
-
-isPlayerAtJailGate() {
-	global
-	
-	if (IsPlayerInRangeOfPoint(2325.9573, -2010.4614, 13.5528, 6.0)
-	|| IsPlayerInRangeOfPoint(2292.4316, -2028.8600, 13.5469, 6.0)
-	|| IsPlayerInRangeOfPoint(2349.7400, -2006.9121, 13.5433, 6.0)
-	|| IsPlayerInRangeOfPoint(2350.1248, -1985.2939, 13.3828, 6.0)
-	|| IsPlayerInRangeOfPoint(2345.8162, -1979.7006, 13.4098, 6.0)
-	|| IsPlayerInRangeOfPoint(2345.8069, -1999.7858, 13.3766, 6.0)) {
-		return 1
-	} else {
-		return 0
-	}
-}
-
-isPlayerAtPDGate() {
-	global
-	
-	if (IsPlayerInRangeOfPoint(239.4568, 117.5778, 1003.2188, 6.0)
-	|| IsPlayerInRangeOfPoint(252.6459, 109.0739, 1003.2188, 6.0)
-	|| IsPlayerInRangeOfPoint(-1632.6377, 688.2757, 7.1875, 10.0)
-	|| IsPlayerInRangeOfPoint(-1572.1520, 662.2211, 7.1875, 10.0)
-	|| IsPlayerInRangeOfPoint(-1701.6948, 684.0962, 24.8906, 10.0)
-	|| IsPlayerInRangeOfPoint(214.1250, 1875.7494, 13.1470, 10.0)
-	|| IsPlayerInRangeOfPoint(135.1927, 1941.3784, 19.3160, 10.0)
-	|| IsPlayerInRangeOfPoint(246.3796, 72.4658, 1003.6406, 6.0)
-	|| IsPlayerInRangeOfPoint(1588.5104, -1638.0930, 13.4157, 10.0)
-	|| IsPlayerInRangeOfPoint(1544.6460, -1626.9393, 13.3835, 10.0)) {
-		return 1
-	} else {
-		return 0
-	}
-}
-
-isPlayerAtCookPoint() {
-	global
-	
-	if (IsPlayerInRangeOfPoint(376.3651, -61.0868, 1001.5078, 3) 
-	|| IsPlayerInRangeOfPoint(377.7927, -57.4440, 1001.5078, 3)
-	|| IsPlayerInRangeOfPoint(369.5478, -6.0176, 1001.8589, 3)
-	|| IsPlayerInRangeOfPoint(374.0126, -113.5144, 1001.4922, 3)) {
-		return 1
-	} else {
-		return 0
-	}
-}
-
-isPlayerAtFishPoint() {
-	global
-	
-	if (IsPlayerInRangeOfPoint(1610.3545, 599.4703, 7.7813, 2)
-		|| IsPlayerInRangeOfPoint(1606.8572, 599.4689, 7.7802, 2)
-		|| IsPlayerInRangeOfPoint(1603.3273, 599.4689, 7.7802, 2)
-		|| IsPlayerInRangeOfPoint(1599.8569, 599.8057, 7.7802, 2)
-		|| IsPlayerInRangeOfPoint(1596.3372, 599.7783, 7.7813, 2)
-		|| IsPlayerInRangeOfPoint(1592.8359, 599.4689, 7.7813, 2)
-		|| IsPlayerInRangeOfPoint(1589.3557, 599.4712, 7.7813, 2)
-		|| IsPlayerInRangeOfPoint(1585.8787, 599.4683, 7.7802, 2)
-		|| IsPlayerInRangeOfPoint(403.8053, -2088.7981, 7.8359, 2)
-		|| IsPlayerInRangeOfPoint(398.7274, -2088.7927, 7.8359, 2)
-		|| IsPlayerInRangeOfPoint(396.1470, -2088.7983, 7.8359, 2)
-		|| IsPlayerInRangeOfPoint(391.0635, -2088.7979, 7.8359, 2)
-		|| IsPlayerInRangeOfPoint(383.3910, -2088.6040, 7.8359, 2)
-		|| IsPlayerInRangeOfPoint(374.9511, -2088.6829, 7.8359, 2)
-		|| IsPlayerInRangeOfPoint(369.8314, -2088.7937, 7.8359, 2)
-		|| IsPlayerInRangeOfPoint(367.2829, -2088.7981, 7.8359, 2)
-		|| IsPlayerInRangeOfPoint(362.2083, -2088.7891, 7.8359, 2)
-		|| IsPlayerInRangeOfPoint(354.5507, -2088.7954, 7.8359, 2)
-		|| IsPlayerInRangeOfPoint(-2091.2231, 1436.5226, 7.1016, 2)
-		|| IsPlayerInRangeOfPoint(-2086.6912, 1436.4066, 7.1016, 2)
-		|| IsPlayerInRangeOfPoint(-2082.6958, 1436.1895, 7.1016, 2)
-		|| IsPlayerInRangeOfPoint(-2078.2371, 1436.4476, 7.1016, 2)
-		|| IsPlayerInRangeOfPoint(-2073.6873, 1436.2191, 7.1016, 2)
-		|| IsPlayerInRangeOfPoint(-2069.6814, 1436.1677, 7.1007, 2)
-		|| IsPlayerInRangeOfPoint(-2065.1917, 1436.3531, 7.1007, 2)) {
-		return 1
-	} else {
-		return 0
-	}
-}
-
-getFractionName() {
-	global
-	
-	if (userFraction == 1) {
-		return "LSPD"
-	} else if (userFraction == 2) {
-		return "FBI"
-	} else if (userFraction == 3){ 
-		return "Army"
-	}
-	
-	return "LSPD"
-}
-
-getFractionTitle() {
-	global
-	
-	if (getFractionName() == "LSPD") {
-		return "Officer"
-	} else if (getFractionName() == "FBI") {
-		return "Agent"
-	} else if (getFractionName() == "Army") {
-		return "Soldat"
-	}
-	
-	return "Beamter"
-}
-
-isBlocked() {
-	global
-	
-	if (isInChat() || IsDialogOpen() || IsPlayerInMenu()) {
-		return 1 
-	} else {
-		return 0
-	}
-}
-
-sendToHotkey(text, check = 0) {
-	global
-
-	if (check == 1) {
-		text = /f %text%
-	}
-
-	String := checkVars(text)
-	StringReplace, String, String, &&, |, All
-
-	if (InStr(String, "|")) {
-		StringSplit, Splitted, String, |
-		Loop, %Splitted0% {
-			Value := Splitted%A_Index%
-
-			if (InStr(Value, "[SLEEP")) {
-				RegExMatch(Value, "\[SLEEP ([0-9]+)\]", sleepresult)
-				StringReplace, Value, Value, [SLEEP %sleepresult1%], , All
-				Sleep, %sleepresult1%
-			}
-
-			if (check == 1) {
-				SendInfo(Value)
-			} else {
-				if (InStr(Value, "[LOCAL]")) {
-					StringReplace, Value, Value, [LOCAL],, All
-					SendInfo(Value)
-				} else {
-					if (InStr(Value,"[ENTER]")) {
-						StringReplace, Value, Value, [ENTER], , All
-						SendChat(Value)
-					} else {
-						SendInput, t%Value%
-					}
-				}
-			}
-		}
-	} else {
-		if (InStr(String, "[SLEEP")) {
-			RegExMatch(String, "\[SLEEP ([0-9]+)\]", sleepresult)
-			StringReplace, String, String, [SLEEP %sleepresult1%], , All
-			sleep %sleepresult1%
-		}
-
-		if (check == 1) {
-			SendInfo(Value)
-		} else {
-			if (InStr(String,"[LOCAL]")) {
-				StringReplace, String, String, [LOCAL],, All
-				SendInfo(String)
-			} else {
-				if (InStr(String,"[ENTER]")) {
-					StringReplace, String, String, [ENTER], , All
-					SendChat(String)
-				} else {
-					SendInput, t%String%
-				}
-			}
-		}
-	}
-
-	return
-}
-
-checkVars(String) {
-	global
-
-	if (InStr(String, "[NAME]")) {
-		MyName := getUserName()
-		StringReplace, String, String, [NAME], %MyName%,
-	}
-
-	if (InStr(String, "[ID]")) {
-		MyId := GetId()
-		StringReplace, String, String, [ID], %MyId%, All
-	}
-
-	if (InStr(String, "[FPS]"))	{
-		Frames := GetFPS()
-		StringReplace, String, String, [FPS], %Frames%, All
-	}
-
-	if (InStr(String, "[PING]")) {
-		Ping := GetPlayerPingById(GetId())
-		StrinGreplace, String, String, [PING], %Ping%, All
-	}
-
-	if (InStr(String, "[SCORE]")) {
-		Score := getPlayerScoreById(GetId())
-		StringReplace, String, String, [SCORE], %Score%, All
-	}
-
-	if (InStr(String, "[CITY]")) {
-		City := getPlayerCity()
-		StringReplace, String, String, [CITY], %City%, All
-	}
-
-	if (InStr(String, "[ZONE]")) {
-		Zone := getPlayerZone()
-		StringReplace, String, String, [ZONE], %Zone%, All
-	}
-
-	if (InStr(String, "[POS]")) {
-		MyPos := getPlayerZone() ", " getPlayerCity()
-		StringReplace, String, String, [POS], %MyPos%, All
-	}
-
-	if (InStr(String, "[HP]")) {
-		Life := getPlayerHealth()
-		StringReplace, String, String, [HP], %Life%, All
-	}
-
-	if (Instr(String, "[VICTIM]")) {
-		IniRead, Victim, ini/Stats.ini, Stats, Victim, %A_Space%
-		StringReplace, String, String, [VICTIM], %Victim%, All
-	}
-
-	if (Instr(String, "[VICTIMFRAK]")) {
-		IniRead, VictimFaction, ini/Stats.ini, Stats, VictimFaction, %A_Space%
-		StringReplace, String, String, [VICTIMFRAK], %VictimFaction%, All
-	}
-
-	if (Instr(String, "[VICTIMWEAP]")) {
-		IniRead, VictimWeapon, ini/Stats.ini, Stats, VictimWeapon, %A_Space%
-		StringReplace, String, String, [VICTIMWEAP], %VictimWeapon%, All
-	}
-
-	if (Instr(String, "[VICTIMWEAPART]")) {
-		IniRead, VictimWeaponArt, ini/Stats.ini, Stats, VictimWeaponArt, %A_Space%
-		StringReplace, String, String, [VICTIMWEAPART], %VictimWeaponArt%, All
-	}
-
-	if (Instr(String, "[KILLPLACE]")) {
-		IniRead, KillPlace, ini/Stats.ini, Stats, KillPlace, %A_Space%
-		StringReplace, String, String, [KILLPLACE], %KillPlace%, All
-	}
-
-	if (Instr(String, "[KILLPLACEFULL]")) {
-		IniRead, KillPlaceFull, ini/Stats.ini, Stats, KillPlaceFull, %A_Space%
-		StringReplace, String, String, [KILLPLACEFULL], %KillPlaceFull%, All
-	}
-
-	if (Instr(String, "[MURDERER]")) {
-		IniRead, Murderer, ini/Stats.ini, Stats, Murderer, %A_Space%
-		StringReplace, String, String, [MURDERER], %Murderer%, All
-	}
-
-	if (Instr(String, "[MURDERERFRAK]")) {
-		IniRead, MurdererFaction, ini/Stats.ini, Stats, MurdererFaction, %A_Space%
-		StringReplace, String, String, [MURDERERFRAK], %MurdererFaction%, All
-	}
-
-	if (Instr(String, "[MURDERERWEAP]")) {
-		IniRead, MurdererWeapon, ini/Stats.ini, Stats, MurdererWeapon, %A_Space%
-		StringReplace, String, String, [MURDERERWEAP], %MurdererWeapon%, All
-	}
-
-	if (Instr(String, "[MURDERERWEAPART]")) {
-		IniRead, MurdererWeaponArt, ini/Stats.ini, Stats, MurdererWeaponArt, %A_Space%
-		StringReplace, String, String, [MURDERERWEAPART], %MurdererWeaponArt%, All
-	}
-
-	if (Instr(String, "[DEATHPLACE]")) {
-		IniRead, DeathPlace, ini/Stats.ini, Stats, DeathPlace, %A_Space%
-		StringReplace, String, String, [DEATHPLACE], %DeathPlace%, All
-	}
-
-	if (Instr(String, "[DEATHPLACEFULL]")) {
-		IniRead, DeathPlaceFull, ini/Stats.ini, Stats, DeathPlaceFull, %A_Space%
-		StringReplace, String, String, [DEATHPLACEFULL], %DeathPlaceFull%, All
-	}
-
-	if (InStr(String, "[DAYTIME]")) {
-		DayTime := getDayTime()
-		StringReplace, String, String, [DAYTIME], %DayTime%, All
-	}
-
-	if (InStr(String, "[KILLS]") || InStr(String, "[DEATHS]") || InStr(String, "[KD]")) {
-		IniRead, Kills, ini/Stats.ini, Stats, Kills, 0
-		IniRead, Deaths, ini/Stats.ini, Stats, Deaths, 0
-
-		KD := Round(Kills / Deaths, 3)
-
-		StringReplace, String, String, [KILLS], %Kills%, All
-		StringReplace, String, String, [DEATHS], %Deaths%, All
-		StringReplace, String, String, [KD], %KD%, All
-	}
-
-	if (InStr(String, "[DKILLS]") || InStr(String, "[DDEATHS]") || InStr(String, "[DKD]")) {
-		IniRead, DKills, ini/Stats.ini, Stats, Dkills[%A_DD%:%A_MM%:%A_YYYY%], 0
-		IniRead, DDeaths, ini/Stats.ini, Stats, DDeaths[%A_DD%:%A_MM%:%A_YYYY%], 0
-		DKD := Round(Dkills / DDeaths, 3)
-
-		StringReplace, String, String, [DKILLS], %Dkills%, All
-		StringReplace, String, String, [DDEATHS], %DDeaths%, All
-		StringReplace, String, String, [DKD], %DKD%, All
-	}
-
-	return string
-}
-
-removeTask(id) {
-	global tasks
-	
-	indexToRemove := -1
-	
-	for index, entry in tasks {
-		if (entry["id"] == id) {
-			indexToRemove := index
-		}
-	}
-	
-	if (indexToRemove != -1) {
-		tasks.RemoveAt(indexToRemove)
-		return removeTask(id) + 1
-	} else {
-		return 0
-	}
-}
-
-selectLine(busLine) {
-	line := busLine - 1
-	
-	BlockInput, On
-	SendChat("/linie")
-	
-	Sleep, 200
-	SendInput, {down %line%}{enter}
-	BlockInput, Off
-}
-
-findLinie() {
-	busLine := 0
-	distance := 10000000
-	coords := getCoordinates()
-	
-	global oTextLabelData
-	
-	if (!updateTextLabelData()) {
-		return
-	}
-	
-	vehicleID := getVehicleID()
-	
-	for i, o in oTextLabelData {
-		if (o.VEHICLEID == vehicleID) {
-			if (RegExMatch(o.TEXT, "Linie (\d+)\n(.+)", label_)) {
-				busLine := label_1
-			}
-			
-			break
-		}
-	}
-	
-	return busLine
-}
-
-reconnectRPG() {	
-	stopFinding()
-		
-	global giveMaxTicket		:= 3
-	
-	global currentTicket 		:= 1
-	global maxTickets 			:= 1
-	global currentFish 			:= 1
-	
-	global totalArrestMoney 	:= 0
-	global currentTicketMoney 	:= 0
-	global maumode				:= 0
-	global watermode 			:= 0
-	global airmode 				:= 0
-	global admission			:= 0
-	global deathArrested 		:= 0
-	global lastSpeed 			:= 0	
-	global hasEquip				:= 0
-	global isZivil				:= 0
-	global getOldKomplex		:= 0
-	global oldFriskTime			:= 0
-	global oldLocalTime			:= 0
-	global pbKillStreak 		:= 0
-	global currentSpeed 		:= 0
-	global countdownRunning 	:= 0
-	global autoFindMode		 	:= 0
-	global IsPayday				:= 0
-	global drugcooldown			:= 0
-	global healcooldown			:= 0
-	global admincooldown		:= 0
-	global ooccooldown			:= 0
-	global findcooldown			:= 0
-	
-	global oldWanted            := -1
-	global agentID 				:= -1
-	global oldVehicle			:= -1
-	global targetid				:= -1
-	global wantedIA				:= -1
-	global wantedContracter		:= -1
-	
-	global wantedIAReason		:= ""
-	global oldInviteAsk			:= ""
-	global target				:= ""
-	global lastSpeedUser 		:= ""
-	global lastTicketReason 	:= ""
-	global lastTicketPlayer 	:= ""
-	global requestName			:= ""
-	global oldFrisk				:= ""
-	global oldLocal				:= ""
-	global cooldownString		:= ""
-	
-	global fillTimeout_ 		:= true
-	global canisterTimeout_ 	:= true
-	global mautTimeout_ 		:= true
-	global healTimeout_ 		:= true
-	global cookTimeout_ 		:= true
-	global equipTimeout_ 		:= true
-	global jailgateTimeout_ 	:= true 
-	global GateTimeout_ 		:= true
-	global fishTimeout_ 		:= true
-	global localTimeout_ 		:= true
-	global garbageTimeout_		:= true 
-	global fishSellTimeout_		:= true
-
-	global agentTog				:= false
-	global startOverlay			:= false
-	global isArrested			:= false
-	global isCuffed				:= false
-	global isPaintball			:= false
-	global hackerFinder 		:= false
-	global rewantedting			:= false
-	global tempomat 			:= false
-	global tv 					:= false
-	global gotPoisened			:= false
-	
-	global ovMoveMode			:= false
-	global alertActive  		:= false
-	
-	global alertString 			:= ""
-	global oldSpotifyTrack		:= ""
-	global oldVehicleName		:= "none"
-		
-	SendChat("/me verbindet sich neu zum Server.")
-
-	restart()	
-}
-
 checkTrunk() {
 	global 
 	
@@ -16804,8 +15908,8 @@ checkTrunk() {
 	unblockDialog()
 	Sleep, 200
 
-	if (InStr(readChatLine(0) . readChatLine(1), "Fehler:")) {
-		if (InStr(readChatLine(0) . readChatLine(1), "Der Kofferraum ist nicht offen")) {
+	if (inStr(readChatLine(0) . readChatLine(1), "Fehler:")) {
+		if (inStr(readChatLine(0) . readChatLine(1), "Der Kofferraum ist nicht offen")) {
 			SendChat("/trunk open")
 			
 			blockDialog()
@@ -16814,7 +15918,7 @@ checkTrunk() {
 			unblockDialog()
 			Sleep, 200
 			
-			if (InStr(readChatLine(0) . readChatLine(1), "Fehler:")) {
+			if (inStr(readChatLine(0) . readChatLine(1), "Fehler:")) {
 				SendError("Versuche es erneut.")
 				return
 			}
@@ -16925,117 +16029,6 @@ checkTrunk() {
 	return 0
 }
 
-costumStation(id) {
-	global 
-	
-	if (id == 1) {
-		return "Los Santos - Las Venturas"
-	} else if (id == 2) {
-		return "Red County - Bone County"
-	} else if (id == 3) {
-		return "Blueberry - Bone County"
-	} else if (id == 4) {
-		return "San Fierro - Tierra Robada"
-	} else if (id == 5) {
-		return "San Fierro - Bayside"
-	} else if (id == 6) {
-		return "Flint County - Red County"
-	} else if (id == 7) {
-		return "Flint County - Red County"
-	} else if (id == 8) {
-		return "Los Santos - Flint County"
-	} else if (id == 9) {
-		return "Los Santos - Flint County"
-	} else if (id == 10) {
-		return "Los Santos"
-	} else if (id == 11) {
-		return "San Fierro"
-	} else if (id == 12) {
-		return "Las Venturas"
-	} else if (id == 13) {
-		return "San Andreas"
-	}
-}
-/*
-onDialogResponse() {
-	global
-	
-	if (GetDialogCaption() == "Übersicht der Mülltonnen") {
-		if (!IsDialogButton1Selected() && !doubleClick) {
-			doubleClick := true
-			SetTimer, DoubleClickTimer, 250
-			return
-		}
-		
-		SetCheckPoint(trashcan[GetDialogIndex()][1], trashcan[GetDialogIndex()][2], trashcan[GetDialogIndex()][3], 5)
-		SendInfo("Mülltonne " . cSecond . trashcan[GetDialogIndex()][6] . cWhite . " in " . cSecond . trashcan[GetDialogIndex()][4] . cWhite . " wurde markiert.")
-	}
-}
-
-updateRest() {
-	global
-	
-	/*
-	rest := ComObjCreate("WinHttp.WinHttpRequest.5.1")
-	rest.Open("GET", "http://leonprefix.net/trash/?mode=list", false)
-	rest.Send()
-	
-	split := StrSplit(rest.ResponseText, "#")
-	
-	Loop % split.maxIndex() {
-		split2 := StrSplit(split[A_Index], ";")
-		trash := split2[1]
-		sec := split2[2]
-		x := 0
-		
-		while (++x <= trashcan.MaxIndex()) {
-			if (trashcan[x][6] == trash) {
-				trashcan[x][5] := sec
-			}
-		}
-	}
-	
-}
-
-sendToRest(trash, min) {
-	global 
-	
-	if (!spamProtection) {
-		spamProtection := true
-		SetTimer, SpamProtection, 5000
-	} else {
-		return
-	}
-	
-	rest := ComObjCreate("WinHttp.WinHttpRequest.5.1")
-	rest.Open("GET", "http://leonprefix.net/trash/?mode=set&id=" . trash . "&min=" . min, false)
-	rest.Send()
-}
-
-setTrashTime(line) {
-	global
-	
-	Loop % trashcan.MaxIndex() {
-		if (isPlayerInRangeOfPoint(trashcan[A_Index][1], trashcan[A_Index][2], trashcan[A_Index][3], 5)) {
-			split := StrSplit(line, A_Space)
-			min := split[12]
-			
-			if (InStr(line, "Sekunden.")) {
-				min := 1
-			}
-			
-			trashcan[A_Index][5] := 60 * min
-			SendToRest(trashcan[A_Index][6], min)
-			
-			if (min == 1) {
-				SendInfo("Die Zeit von Mülltonne " . cSecond . trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "eine Minute" . cWhite . " gesetzt.")
-			} else {
-				SendInfo("Die Zeit von Mülltonne " . cSecond . trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . min . " Minuten" . cWhite . " gesetzt.")
-			}
-		}
-	}
-}
-*/
 shareKD(chat := "f") {
 	global 
 	
@@ -17068,6 +16061,948 @@ shareKD(chat := "f") {
 	SendChat("/" . chat . " DKD: " . kd . " - MKD: " . mkd . " - KD: " . kd)	
 }
 
+healPlayer() {
+	global healcooldown
+	
+	if (healcooldown) {
+		SendInfo("Du kannst dich erst in " . cSecond . formatTime(healcooldown) . cWhite . " wieder heilen.")
+	} else {
+		SendChat("/heal")
+	}
+}
+
+usePaket() {
+	global pakcooldown
+	
+	if (getPlayerArmor() > 30) {
+		SendError("Du kannst mit mehr als 30 AM kein Erste-Hilfe-Paket verwenden.")
+	} else if (75 < getPlayerHealth()) {
+		SendError("Du kannst erst unter 75 HP ein Erste-Hilfe-Paket nehmen, du hast " . getPlayerHealth() . " HP.")
+	} else if (pakcooldown) {
+		SendInfo("Du kannst erst in " . cSecond . formatTime(pakcooldown) . cWhite . " wieder ein Erste-Hilfe-Paket nutzen.")
+	} else {
+		SendChat("/erstehilfe")
+	}
+}
+
+useDrugs() {
+	global drugcooldown
+	
+	if (getPlayerArmor()) {
+		SendError("Du kannst mit Armor keine Drogen nehmen.")
+	} else if (94 < getPlayerHealth()) {
+		SendError("Du kannst erst unter 94 HP Drogen nehmen, du hast " . getPlayerHealth() . " HP.")
+	} else if (drugcooldown) {
+		SendInfo("Du kannst erst in " . cSecond . formatTime(drugcooldown) . cwhite . " Sekunden wieder Drogen nutzen.")
+	} else {
+		SendChat("/usedrugs")	
+	}
+}
+
+refillCar() {	
+	global
+	
+	if (isPlayerInAnyVehicle() && isPlayerDriver()) {
+		if (getVehicleEngineState()) {
+			SendChat("/motor")
+			Sleep, 250
+			
+			if (inStr(readChatLine(0) . readChatLine(1), "Du fährst zu schnell, um den Motor abzustellen.")) {
+				Sleep, 1000
+				
+				SendChat("/motor")
+				Sleep, 250
+			
+				if (inStr(readChatLine(0) . readChatLine(1), "Du fährst zu schnell, um den Motor abzustellen.")) {
+					return
+				}
+			}
+		}
+		
+		Sleep, 100
+		
+		SendChat("/fill")
+		Sleep, 8800
+		
+		if (!getVehicleEngineState()) {
+			SendChat("/motor")
+			Sleep, 2000
+			
+			if (getVehicleLightState()) {
+				SendChat("/licht")
+			}
+		}
+	}
+}
+
+openMaut() {
+	global
+	
+	SendChat("/zoll")
+	Sleep, 200
+	
+	Loop, 5 {
+		chat := readChatLine(A_Index - 1)
+	
+		if (inStr(chat, "Es ist keine Zollstation in deiner Nähe.")) {
+			Sleep, 400
+			SendChat("/zoll")
+			break
+		}
+	}
+}
+
+getTaxes() {
+	global
+	
+	SendChat("/tax")
+	Sleep, 250
+	
+	if (RegExMatch(readChatLine(4 - 4), "Steuerklasse 4: (\d*) Prozent", chat_)) {
+		taxes := (100 - chat_1) / 100
+		
+		IniWrite, %taxes%, ini/Settings.ini, settings, taxes
+		SendInfo("Der Steuersatz (Steuerklasse " . cSecond . "4" . cwhite . ") wurde auf " . cSecond . chat_1 . cwhite . " Prozent gesetzt.")
+		return 1
+	}
+	
+	return 0
+}
+
+equipProfile(profile := 1) {
+	global
+	
+	equipment := ""
+
+	Loop, 6 {
+		if (profile%profile%_%A_Index% != "") {
+			equipment .= " " . profile%profile%_%A_Index%
+		}
+	}
+	
+	SendChat("/ausruesten" . equipment)
+	
+	if (profile >= 1 && profile <= 2) {
+		Sleep, 100
+		healPlayer()
+	} else if (profile == 3) {
+		if (equipArmour) {
+			SendChat("/undercover " . ucSkin)
+			Sleep, 100
+			healPlayer()
+		} else {
+			SendChat("/heal")
+			Sleep, 100
+			SendChat("/undercover " . ucSkin)
+		}
+	}
+}
+
+; --------------------- ;
+;       Abfragen        ;
+; --------------------- ;
+isBlocked() {
+	global
+	
+	if (isInChat() || isDialogOpen() || isPlayerInMenu()) {
+		return 1
+	}
+	
+	return 0
+}
+
+isConnected() {
+	global
+	
+    coords := getCoordinates()
+   
+    if ((coords[1] == 384 && coords[2] == -1557 && coords[3] == 20) || (Round(coords[1]) == 1531 && Round(coords[2]) == -1734 && Round(coords[3]) == 13)) {
+        return false
+    }
+   
+    return true
+}
+
+isConnectedToRPG() {
+	global
+	
+	if (isSAMPAvailable()) {
+		if (inStr(getServerName(), "GTA-City") && inStr(getServerName(), "Reallife")) {
+			if (getServerIP() == "51.77.68.94" && getServerPort() == "7777") {
+				return true
+			}
+		}
+	}
+   
+    return true
+}
+
+isPlayerAtFishPoint() {
+	global
+	
+	Loop % array_Fish.MaxIndex() {
+		if (isPlayerInRangeOfPoint(array_Fish[A_Index][1], array_Fish[A_Index][2], array_Fish[A_Index][3], array_Fish[A_Index][4])) {
+			return true
+		}
+	}	
+	
+	return false
+}	
+
+isPlayerAtCookPoint() {
+	global
+	
+	Loop % array_Cook.MaxIndex() {
+		if (isPlayerInRangeOfPoint(array_Cook[A_Index][1], array_Cook[A_Index][2], array_Cook[A_Index][3], array_Cook[A_Index][4])) {
+			return true
+		}
+	}	
+	
+	return false
+}	
+
+isPlayerAtJailGate() {
+	global
+	
+	Loop % array_Gate.MaxIndex() {
+		if (isPlayerInRangeOfPoint(array_Gate[A_Index][1], array_Gate[A_Index][2], array_Gate[A_Index][3], array_Gate[A_Index][4])) {
+			if (array_Gate[A_Index][5]) {
+				return true
+			}
+		}
+	}	
+	
+	return false
+}
+
+isPlayerAtPDGate() {
+	global
+	
+	Loop % array_Gate.MaxIndex() {
+		if (isPlayerInRangeOfPoint(array_Gate[A_Index][1], array_Gate[A_Index][2], array_Gate[A_Index][3], array_Gate[A_Index][4])) {
+			if (!array_Gate[A_Index][5]) {
+				return true
+			}
+		}
+	}	
+	
+	return false
+}
+
+isPlayerAtLocal() {
+	global
+	
+	Loop % array_Local.MaxIndex() {
+		if (isPlayerInRangeOfPoint(array_Local[A_Index][1], array_Local[A_Index][2], array_Local[A_Index][3], array_Local[A_Index][4])) {
+			return true
+		}
+	}	
+	
+	return false
+}
+
+isPlayerAtEquip() {
+	global
+	
+	Loop % array_Heal.MaxIndex() {
+		if (isPlayerInRangeOfPoint(array_Heal[A_Index][1], array_Heal[A_Index][2], array_Heal[A_Index][3], array_Heal[A_Index][4])) {
+			if (array_Heal[A_Index][5]) {
+				return true
+			}
+		}
+	}	
+	
+	return false
+}
+
+isPlayerAtHeal() {
+	global
+	
+	Loop % array_Heal.MaxIndex() {
+		if (isPlayerInRangeOfPoint(array_Heal[A_Index][1], array_Heal[A_Index][2], array_Heal[A_Index][3], array_Heal[A_Index][4])) {
+			if (!array_Heal[A_Index][5]) {
+				return true
+			}
+		}
+	}	
+	
+	return false
+}
+
+isPlayerAtCustom() {
+	global
+	
+	Loop % array_Custom.MaxIndex() {
+		if (isPlayerInRangeOfPoint(array_Custom[A_Index][1], array_Custom[A_Index][2], array_Custom[A_Index][3], array_Custom[A_Index][4])) {
+			return true
+		}
+	}	
+	
+	return false
+}
+
+isPlayerAtGasStation() {
+	global
+	
+	Loop % array_Gas.MaxIndex() {
+		if (isPlayerInRangeOfPoint(array_Gas[A_Index][1], array_Gas[A_Index][2], array_Gas[A_Index][3], array_Gas[A_Index][4])) {
+			return true
+		}
+	}	
+	
+	return false
+}
+
+isPlayerAtFixVeh() {
+	global
+	
+	Loop % array_Gas.MaxIndex() {
+		if (isPlayerInRangeOfPoint(array_Gas[A_Index][1], array_Gas[A_Index][2], array_Gas[A_Index][3], array_Gas[A_Index][4])) {
+			if (array_Gas[A_Index][6]) {
+				return true
+			}
+		}
+	}	
+	
+	return false
+}
+
+getFactionTitle() {
+	global
+	
+	Loop % array_Faction.MaxIndex() {
+		if (userFraction == array_Faction[A_Index][1]) {
+			return array_Faction[A_Index][4] 
+		}
+	}	
+	
+	return "Unbekannt"
+}
+
+getFactionName() {
+	global
+	
+	Loop % array_Faction.MaxIndex() {
+		if (userFraction == array_Faction[A_Index][1]) {
+			return array_Faction[A_Index][2] 
+		}
+	}	
+	
+	return "Unbekannt"
+}
+
+getFullFactionName() {
+	global
+	
+	Loop % array_Faction.MaxIndex() {
+		if (userFraction == array_Faction[A_Index][1]) {
+			return array_Faction[A_Index][3] 
+		}
+	}	
+	
+	return "Unbekannt"
+}
+
+getFishValue(fishName, fishWeight) {
+	global 
+	
+	if (fishName == "Bernfisch" || fishName == "Blauer Fächerfisch") {
+		value := fishWeight * 1
+	} else if (fishName == "Roter Schnapper" || fishName == "Schwertfisch" || fishName == "Zackenbarsch") {
+		value := fishWeight * 2
+	} else if (fishName == "Katzenfisch" || fishName == "Forelle") {
+		value := fishWeight * 3
+	} else if (fishName == "Delphin" || fishName == "Hai" || fishName == "Segelfisch") {
+		value := fishWeight * 4
+	} else if (fishName == "Makrele") {
+		value := fishWeight * 5
+	} else if (fishName == "Aal" || fishName == "Hecht") {
+		value := fishWeight * 6
+	} else if (fishName == "Schildkröte" || fishName == "Thunfisch" || fishName == "Wolfbarsch") {
+		value := fishWeight * 8
+	} else {
+		value := 0
+	}
+	
+	return value
+}
+
+getSkinFraction(id) {
+	global
+	
+    skins := {"LSPD": [260, 163, 164, 265, 266, 267, 280, 281, 283, 284, 288], "FBI": [165, 166, 240, 286, 294, 11, 172, 194, 211, 59], "Sanitäter": [70, 274, 275, 276, 308], "Feuerwehr": [255, 277, 278, 279, 191], "Russen": [43, 111, 112, 113, 124, 125, 126, 127, 258, 272, 40], "Yakuza": [121, 122, 123, 186, 203, 204, 228, 169, 224], "Hitman": [], "Wheelman": [], "San News": [60, 170, 188, 227, 250, 56, 226], "Grove Street": [105, 106, 107, 269, 271, 65], "Ballas": [102, 103, 104, 293, 13], "LCM": [46, 47, 48, 98, 185, 223, 249, 214], "Ordnungsamt": [8, 42, 50, 71, 233], "Transport GmbH": [34, 44, 132, 133, 202, 206, 261, 31, 131], "San Fierro Rifa": [], "Vagos": [108, 109, 110, 292, 91], "Triaden": [], "Biker": [100, 247, 248, 254, 131]}
+    fraction := ""
+  
+	for key, array in skins
+    {
+        for index2, value2 in array
+        {
+            if (value2 == id) {
+                fraction := key
+                Break, 2
+            }
+        }
+    }
+    if (fraction) {
+        return fraction
+    }
+    return "Zivilist"
+}
+
+weaponShort(id) {
+	global
+	
+	short := {0: "meiner", 1: "einem", 2: "einem", 3: "einem", 4: "einem", 5: "einem", 6: "einer", 7: "einem", 8: "einem", 9: "einer", 10: "einem", 11: "einem", 12: "einem", 13: "einem", 14: "einer", 15: "einem", 16: "einer", 17: "", 18: "einem", 22: "einer", 23: "einem", 24: "einer", 25: "einer", 26: "einer", 27: "einer", 28: "einer", 29: "einer", 30: "einer", 31: "einer", 32: "einer", 33: "einer", 34: "einer", 35: "einer", 36: "einer", 37: "einem", 38: "einer", 39: "einem", 40: "einem", 41: "einer", 42: "einem", 43: "einer"}
+
+	if (short[id]) {
+		return short[id]
+	}
+	
+	return "einer"
+}
+
+getLocation() {
+	global
+	
+	zone := getPlayerZone()
+	city := getPlayerCity()
+	
+	if (!getPlayerInteriorID()) {
+		if (city == "" || city == "Unbekannt") {
+			return zone
+		} else {
+			return zone . ", " . city
+		}
+	} else {
+		return "Interior-ID " . getPlayerInteriorID()
+	}
+}
+
+forceStats() {
+	global
+
+	blockDialog()
+	SendChat("/stats")
+	Sleep, 200
+	unblockDialog()
+}
+
+setTrashTime(line) {
+	global
+	
+	Loop % array_Trashcan.MaxIndex() {
+		if (isPlayerInRangeOfPoint(array_Trashcan[A_Index][1], array_Trashcan[A_Index][2], array_Trashcan[A_Index][3], 5)) {
+			split := StrSplit(line, A_Space)
+			min := split[12]
+			
+			if (inStr(line, "Sekunden.")) {
+				min := 1
+			}
+			
+			array_Trashcan[A_Index][5] := 60 * min
+			
+			if (min == 1) {
+				SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "eine Minute" . cWhite . " gesetzt.")
+			} else {
+				SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . min . " Minuten" . cWhite . " gesetzt.")
+			}
+		}
+	}
+}
+
+onDialogResponse() {
+	global
+	
+	if (GetDialogCaption() == "Übersicht der Mülltonnen") {
+		if (!IsDialogButton1Selected() && !doubleClick) {
+			doubleClick := true
+			SetTimer, DoubleClickTimer, 250
+			return
+		}
+		
+		SetCheckPoint(array_Trashcan[GetDialogIndex()][1], array_Trashcan[GetDialogIndex()][2], array_Trashcan[GetDialogIndex()][3], 5)
+		SendInfo("Mülltonne " . cSecond . array_Trashcan[GetDialogIndex()][6] . cWhite . " in " . cSecond . array_Trashcan[GetDialogIndex()][4] . cWhite . " wurde markiert.")
+	}
+}
+
+costumStation(id) {
+	global 
+	
+	if (id == 1) {
+		return "Los Santos - Las Venturas"
+	} else if (id == 2) {
+		return "Red County - Bone County"
+	} else if (id == 3) {
+		return "Blueberry - Bone County"
+	} else if (id == 4) {
+		return "San Fierro - Tierra Robada"
+	} else if (id == 5) {
+		return "San Fierro - Bayside"
+	} else if (id == 6) {
+		return "Flint County - Red County"
+	} else if (id == 7) {
+		return "Flint County - Red County"
+	} else if (id == 8) {
+		return "Los Santos - Flint County"
+	} else if (id == 9) {
+		return "Los Santos - Flint County"
+	} else if (id == 10) {
+		return "Los Santos"
+	} else if (id == 11) {
+		return "San Fierro"
+	} else if (id == 12) {
+		return "Las Venturas"
+	} else if (id == 13) {
+		return "San Andreas"
+	}
+	
+	return "Unbekannt"
+}
+
+removeFromWanted(name) {
+	global wantedPlayers
+	
+	indexToRemove := -1
+	
+	for index, entry in wantedPlayers {
+		if (entry["name"] == name) {
+			indexToRemove := index
+		}
+	}
+	
+	if (indexToRemove != -1) {
+		wantedPlayers.RemoveAt(indexToRemove)
+		return removeFromWanted(name) + 1
+	} else {
+		return 0
+	}
+}
+
+removeTask(id) {
+	global tasks
+	
+	indexToRemove := -1
+	
+	for index, entry in tasks {
+		if (entry["id"] == id) {
+			indexToRemove := index
+		}
+	}
+	
+	if (indexToRemove != -1) {
+		tasks.RemoveAt(indexToRemove)
+		return removeTask(id) + 1
+	} else {
+		return 0
+	}
+}
+
+updateKD() {
+	global
+	
+	IniRead, Kills, ini/Stats.ini, Stats, Kills, 0
+	IniRead, Deaths, ini/Stats.ini, Stats, Deaths, 0
+	
+	if (Kills != getKill()) {
+		Kills := getKill()
+		iniWrite, %Kills%, ini/Stats.ini, Stats, Kills
+		SendInfo("Deine Kills wurden auf " . cSecond . formatNumber(Kills) . cwhite . " aktuallisiert.")
+	}
+	
+	if (Deaths != getDeath()) {
+		Deaths := getDeath() 
+		iniWrite, %Deaths%, ini/Stats.ini, Stats, Deaths
+		SendInfo("Deine Toden wurden auf " . cSecond . formatNumber(Deaths) . cwhite . " aktuallisiert.")
+	}
+}
+
+getKill() {
+	global
+	
+	forceStats()
+
+	if (RegExMatch(getDialogText(), "(.*)Morde: (\d+)(.*)", kills_)) {
+		return kills_2
+	} else {
+		return -1
+	}
+}
+
+getDeath() {
+	global
+	
+	forceStats()
+
+	if (RegExMatch(getDialogText(), "(.*)Gestorben: (\d+)(.*)", deaths_)) {
+		return deaths_2
+	} else {
+		return -1
+	}
+}
+
+SendInfo(message) {
+	global
+	
+	SendClientMessage(prefix . message)
+}
+
+SendError(message) {
+	global
+	
+	SendClientMessage(prefix . cRed . "Fehler: " . message)
+}
+
+
+; --------------------- ;
+;         Jobs          ;
+; --------------------- ;
+selectLine(busLine) {
+	line := busLine - 1
+	
+	BlockInput, On
+	SendChat("/linie")
+	
+	Sleep, 200
+	SendInput, {down %line%}{enter}
+	BlockInput, Off
+}
+
+findLinie() {
+	busLine := 0
+	distance := 10000000
+	coords := getCoordinates()
+	
+	global oTextLabelData
+	
+	if (!updateTextLabelData()) {
+		return
+	}
+	
+	vehicleID := getVehicleID()
+	
+	for i, o in oTextLabelData {
+		if (o.VEHICLEID == vehicleID) {
+			if (RegExMatch(o.TEXT, "Linie (\d+)\n(.+)", label_)) {
+				busLine := label_1
+			}
+			
+			break
+		}
+	}
+	
+	return busLine
+}
+
+; --------------------- ;
+;       Variablen       ;
+; --------------------- ;
+ownHotkey(id) {
+	global
+	
+	if (isInChat() || isDialogOpen() || !ownHotkey%id%Active || ownHotkey%id%Text == "") {
+		return
+	}
+	
+	chatActionsArray := StrSplit(ownHotkey%id%Text, "`n")
+	
+	Loop % chatActionsArray.MaxIndex() {
+		sendLine(chatActionsArray[A_Index])
+	}
+}
+
+sendLine(line, local := false) {
+	IniRead, fishcooldown, ini/Settings.ini, Cooldown, fishcooldown, 0
+	IniRead, pakcooldown, ini/Settings.ini, Cooldown, pakcooldown, 0
+	
+	line := StrReplace(line, "[name]", getUsername())
+	line := StrReplace(line, "[id]", getId())
+	line := StrReplace(line, "[ping]", getPlayerPingById(getId()))
+	line := StrReplace(line, "[fps]", getPlayerFps())
+	line := StrReplace(line, "[zone]", getPlayerZone())
+	line := StrReplace(line, "[city]", getPlayerCity())
+	line := StrReplace(line, "[location]", getLocation())
+	line := StrReplace(line, "[hp]", getPlayerHealth())
+	line := StrReplace(line, "[armour]", getPlayerArmor())
+	line := StrReplace(line, "[money]", formatNumber(getPlayerMoney()))
+	line := StrReplace(line, "[skin]", getPlayerSkinId())
+	line := StrReplace(line, "[weaponid]", getPlayerWeaponId())
+	line := StrReplace(line, "[weapon]", getPlayerWeaponName())
+	line := StrReplace(line, "[freezed]", (IsPlayerFreezed() ? "ja" : "nein"))
+	line := StrReplace(line, "[vhealth]", getVehicleHealth())
+	line := StrReplace(line, "[vmodelid]", getVehicleModelId())
+	line := StrReplace(line, "[vmodel]", getVehicleModelName())
+	line := StrReplace(line, "[vspeed]", round(getVehicleSpeed()))
+	line := StrReplace(line, "[fishtime]", formatTime(fishcooldown))
+	line := StrReplace(line, "[pakettime]", formatTime(pakcooldown))
+	
+	if (RegExMatch(line, "(.*)\[sleep (\d+)\](.*)", line_)) {
+		if (line_1 != "")
+			sendLine(line_1, local)
+		
+		Sleep, %line_2%
+		
+		if (line_3 != "")
+			sendLine(line_3, local)
+	} else if (RegExMatch(line, "(.*)\[local\](.*)", line_)) {
+		if (line_1 != "")
+			sendLine(line_1, local)
+		
+		if (line_2 != "")
+			sendLine(line_2, true)
+	} else if (RegExMatch(line, "(.*)\[usepak\](.*)", line_)) {
+		if (line_1 != "")
+			sendLine(line_1, local)
+		
+		GoSub, firstAidLabel
+		
+		if (line_2 != "")
+			sendLine(line_2, local)
+	} else if (RegExMatch(line, "(.*)\[eatfish\](.*)", line_)) {
+		if (line_1 != "")
+			sendLine(line_1, local)
+		
+		GoSub, eatFishLabel
+		
+		if (line_2 != "")
+			sendLine(line_2, local)
+	} else if (RegExMatch(line, "(.*)\[motor\](.*)", line_)) {
+		if (line_1 != "")
+			sendLine(line_1, local)
+		
+		GoSub, motorSystemLabel
+		
+		if (line_2 != "")
+			sendLine(line_2, local)
+	} else {
+		if (local) {
+			SendInfo(line)
+		} else {
+			SendChat(line)
+		}
+	}
+}
+
+sendToHotkey(text, check = 0) {
+	global
+
+	if (check == 1) {
+		text = /f %text%
+	}
+
+	String := checkVars(text)
+	stringReplace, String, String, &&, |, All
+
+	if (inStr(String, "|")) {
+		StringSplit, Splitted, String, |
+		Loop, %Splitted0% {
+			Value := Splitted%A_Index%
+
+			if (inStr(Value, "[SLEEP")) {
+				RegExMatch(Value, "\[SLEEP ([0-9]+)\]", sleepresult)
+				stringReplace, Value, Value, [SLEEP %sleepresult1%], , All
+				Sleep, %sleepresult1%
+			}
+
+			if (check == 1) {
+				SendInfo(Value)
+			} else {
+				if (inStr(Value, "[LOCAL]")) {
+					stringReplace, Value, Value, [LOCAL],, All
+					SendInfo(Value)
+				} else {
+					if (inStr(Value,"[ENTER]")) {
+						stringReplace, Value, Value, [ENTER], , All
+						SendChat(Value)
+					} else {
+						SendInput, t%Value%
+					}
+				}
+			}
+		}
+	} else {
+		if (inStr(String, "[SLEEP")) {
+			RegExMatch(String, "\[SLEEP ([0-9]+)\]", sleepresult)
+			stringReplace, String, String, [SLEEP %sleepresult1%], , All
+			sleep %sleepresult1%
+		}
+
+		if (check == 1) {
+			SendInfo(Value)
+		} else {
+			if (inStr(String,"[LOCAL]")) {
+				stringReplace, String, String, [LOCAL],, All
+				SendInfo(String)
+			} else {
+				if (inStr(String,"[ENTER]")) {
+					stringReplace, String, String, [ENTER], , All
+					SendChat(String)
+				} else {
+					SendInput, t%String%
+				}
+			}
+		}
+	}
+
+	return
+}
+
+checkVars(String) {
+	global
+	
+	_userName := getUserName()
+	_userID := getId()
+	_fps := getPlayerFPS()
+	_ping := getPlayerPingById(_userID)
+	_score := getPlayerScoreById(_userID)
+	_city := getPlayerCity()
+	_zone := getPlayerZone()
+	_pos := _zone . ", " . city
+	_hp := getPlayerHealth()
+	_am := getPlayerArmor()
+	_dt := getDayTime()
+	
+	IniRead, _v, ini/Stats.ini, Stats, Victim, %A_Space%
+	IniRead, _vw, ini/Stats.ini, Stats, VictimWeapon, %A_Space%
+	IniRead, _vf, ini/Stats.ini, Stats, VictimFaction, %A_Space%
+	IniRead, _vwp, ini/Stats.ini, Stats, VictimWeaponArt, %A_Space%
+	IniRead, _kp, ini/Stats.ini, Stats, KillPlace, %A_Space%
+	
+	IniRead, _m, ini/Stats.ini, Stats, Murderer, %A_Space%
+	IniRead, _mf, ini/Stats.ini, Stats, MurdererFaction, %A_Space%
+	IniRead, _mw, ini/Stats.ini, Stats, MurdererWeapon, %A_Space%
+	IniRead, _mwp, ini/Stats.ini, Stats, MurdererWeaponArt, %A_Space%
+	IniRead, _dp, ini/Stats.ini, Stats, DeathPlace, %A_Space%
+
+	IniRead, kills, ini/Stats.ini, Stats, kills, 0
+	IniRead, deaths, ini/Stats.ini, Stats, deaths, 0
+	IniRead, dkills, ini/Stats.ini, Stats, dkills[%A_DD%:%A_MM%:%A_YYYY%], 0
+	IniRead, ddeaths, ini/Stats.ini, Stats, ddeaths[%A_DD%:%A_MM%:%A_YYYY%], 0
+	IniRead, mkills, ini/Stats.ini, Stats, mkills[%A_MM%:%A_YYYY%], 0
+	IniRead, mdeaths, ini/Stats.ini, Stats, mdeaths[%A_MM%:%A_YYYY%], 0
+
+	kd := round(kills / deaths, 2)
+	if (deaths == 0) {
+		kd := kills . ".00"
+	}
+	
+	dkd := round(dkills / ddeaths, 2)
+	if (ddeaths == 0) {
+		dkd := dkills . ".00"
+	}
+	
+	mkd := round(mkills / mdeaths, 2)
+	if (mdeaths == 0) {
+		mkd := mkills . ".00"
+	}
+
+	if (inStr(string, "[NAME]")) {
+		stringReplace, string, string, [NAME], %_userName%, 
+	}
+
+	if (inStr(string, "[ID]")) {
+		stringReplace, string, string, [ID], %_userID%, All
+	}
+
+	if (inStr(string, "[FPS]"))	{
+		stringReplace, string, string, [FPS], %_fps%, All
+	}
+
+	if (inStr(string, "[PING]")) {
+		stringReplace, string, string, [PING], %_ping%, All
+	}
+
+	if (inStr(string, "[SCORE]")) {
+		stringReplace, string, string, [SCORE], %_score%, All
+	}
+
+	if (inStr(string, "[CITY]")) {
+		stringReplace, string, string, [CITY], %_city%, All
+	}
+
+	if (inStr(string, "[ZONE]")) {
+		stringReplace, string, string, [ZONE], %_zone%, All
+	}
+
+	if (inStr(string, "[POS]")) {
+		stringReplace, string, string, [POS], %_pos%, All
+	}
+
+	if (inStr(string, "[HP]")) {
+		stringReplace, string, string, [HP], %_hp%, All
+	}
+
+	if (inStr(string, "[AM]")) {
+		stringReplace, string, string, [AM], %_am%, All
+	}
+
+	if (inStr(string, "[VICTIM]")) {
+		stringReplace, string, string, [VICTIM], %_v%, All
+	}
+
+	if (inStr(string, "[VICTIMFRAK]")) {
+		stringReplace, string, string, [VICTIMFRAK], %_vf%, All
+	}
+
+	if (inStr(string, "[VICTIMWEAP]")) {
+		stringReplace, string, string, [VICTIMWEAP], %_vw%, All
+	}
+
+	if (inStr(string, "[VICTIMWEAPART]")) {
+		stringReplace, string, string, [VICTIMWEAPART], %_vwp%, All
+	}
+
+	if (inStr(string, "[KILLPLACE]")) {
+		stringReplace, string, string, [KILLPLACE], %_kp%, All
+	}
+
+	if (inStr(string, "[MURDERER]")) {
+		stringReplace, string, string, [MURDERER], %_m%, All
+	}
+
+	if (inStr(string, "[MURDERERFRAK]")) {
+		stringReplace, string, string, [MURDERERFRAK], %_mf%, All
+	}
+
+	if (inStr(string, "[MURDERERWEAP]")) {
+		stringReplace, string, string, [MURDERERWEAP], %_mw%, All
+	}
+
+	if (inStr(string, "[MURDERERWEAPART]")) {
+		stringReplace, string, string, [MURDERERWEAPART], %_mwp%, All
+	}
+
+	if (inStr(string, "[DEATHPLACE]")) {
+		stringReplace, string, string, [DEATHPLACE], %_dp%, All
+	}
+
+	if (inStr(String, "[DAYTIME]")) {
+		stringReplace, string, string, [DAYTIME], %_dt%, All
+	}
+
+	if (inStr(string, "[KILLS]") || inStr(string, "[DEATHS]") || inStr(string, "[KD]")) {
+		stringReplace, string, string, [KILLS], %kills%, All
+		stringReplace, string, string, [DEATHS], %deaths%, All
+		stringReplace, string, string, [KD], %kd%, All
+	}
+
+	if (inStr(string, "[DKILLS]") || inStr(string, "[DDEATHS]") || inStr(string, "[DKD]")) {
+		stringReplace, string, string, [DKILLS], %dkills%, All
+		stringReplace, string, string, [DDEATHS], %ddeaths%, All
+		stringReplace, string, string, [DKD], %dkd%, All
+	}
+
+	if (inStr(string, "[MKILLS]") || inStr(string, "[MDEATHS]") || inStr(string, "[MKD]")) {
+		stringReplace, string, string, [MKILLS], %mkills%, All
+		stringReplace, string, string, [MDEATHS], %mdeaths%, All
+		stringReplace, string, string, [MKD], %mkd%, All
+	}
+
+	return string
+}
+
+; --------------------- ;
+;      Overlay          ;
+; --------------------- ;
 ov_Spotify(create := 1) {
 	global
 		
@@ -17312,14 +17247,15 @@ destroyOverlay() {
 	destroyAllVisual()
 }
 
-SendInfo(message) {
-	global
-	
-	SendClientMessage(prefix . message)
-}
-
-SendError(message) {
-	global
-	
-	SendClientMessage(prefix . cRed . "Fehler: " . message)
-}
+/*
+- Das Overlay wird nun zerstört, wenn man den Keybinder startet (um doppel-Overlayanzeigen zu vermeiden).
+- Man kann sich mit '/heal' jetzt immer heilen, unabhängig davon, wie viel HP / AM man hat.
+- Wenn man sich nicht healen kann, wird dies am Healpoint direkt angezeigt. 
+- Wenn man nun an einer Tankstelle tankt, die ein Fixveh-Point hat, wird das Fahrzeug nun zusätzlich repariert.
+- Die Variable [AM] wurde hinzugefügt, welche die Armor des Spielers ausgibt.
+- Die Variable [MKILLS] wurde hinzugefügt, welche die Monats-Kills ausgibt.
+- Die Variable [MDEATHS] wurde hinzugefügt, welche die Monats-Tode ausgibt.
+- Die Variable [MKD] wurde hinzugefügt, welche die Monats-K/D ausgibt.
+- Die Variable [KILLPLACEFULL] wurde entfernt.
+- Die Variable [DEATHPLACEFULL] wurde entfernt.
+- Fehler behoben, dass die K/D falsch ausgerechnet wurde, wenn man 0 Tode hatte (Variablen [KD] & [DKD])
