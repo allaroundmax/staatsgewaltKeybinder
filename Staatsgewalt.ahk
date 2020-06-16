@@ -40,7 +40,7 @@ IfNotExist, bin/overlay.dll
 global projectName 			:= "Staatsgewalt"
 global fullProjectName 		:= "Staatsgewalt"
 
-global version 				:= "4.2.1"
+global version 				:= "4.2.3"
 global keybinderStart 		:= 0
 global rank					:= 0
 global userFraction			:= 1
@@ -392,9 +392,13 @@ Start:
 	IniRead, canister, ini/Settings.ini, Items, canister, 0
 	IniRead, campfire, ini/Settings.ini, Items, campfire, 0
 	IniRead, mobilePhone, ini/Settings.ini, Items, mobilePhone, 0
+	IniRead, coins, ini/settings.ini, Items, coins, 0
+	
+	IniRead, currentSpawn, ini/settings.ini, settings, currentSpawn, %A_Space%
 	
 	IniRead, fishcooldown, ini/Settings.ini, Cooldown, fishcooldown, 0
 	IniRead, pakcooldown, ini/Settings.ini, Cooldown, pakcooldown, 0
+	IniRead, deathcooldown, ini/Settings.ini, Cooldown, deathcooldown, 0
 	
 	IniRead, job, ini/Settings.ini, job, job, %A_Space%
 	IniRead, jobLine, ini/Settings.ini, job, jobLine, %A_Space%
@@ -700,9 +704,11 @@ Start:
 	global IsPayday				:= 0
 	global drugcooldown			:= 0
 	global healcooldown			:= 0
+	global grabcooldown			:= 0
 	global admincooldown		:= 0
 	global ooccooldown			:= 0
 	global findcooldown			:= 0
+	global getCoins				:= 0
 	
 	global oldWanted            := -1
 	global agentID 				:= -1
@@ -711,7 +717,10 @@ Start:
 	global targetid				:= -1
 	global wantedIA				:= -1
 	global wantedContracter		:= -1
+	global escaperName			:= -1
+	global hitmanName			:= -1
 	
+	global oldGameText			:= ""
 	global wantedIAReason		:= ""
 	global oldInviteAsk			:= ""
 	global target				:= ""
@@ -736,7 +745,9 @@ Start:
 	global localTimeout_ 		:= true
 	global garbageTimeout_		:= true 
 	global fishSellTimeout_		:= true
-
+	
+	global isDead				:= false
+	global findActive			:= false
 	global overlayEnabled		:= false
 	global spotifyOvEnabled		:= false 
 	global cooldownOvEnabled 	:= false
@@ -801,6 +812,10 @@ Start:
 		ov_Partner()
 		
 		partnerOvEnabled := true
+	}
+	
+	if (spotifyOv && cooldownOv && pingOv && infoOv && alertOv && partnerOv) {
+		overlayEnabled := true
 	}
 	
 	; Trashcan locations
@@ -997,7 +1012,7 @@ Start:
 	array_Faction[2] := [2, "FBI", "Federal Bureau of Investigation", "Agent"]
 	array_Faction[3] := [3, "Army", "Las Venturas Army", "Soldat"]
 	
-	Loop % array_array_Trashcan.MaxIndex() {
+	Loop % array_Trashcan.MaxIndex() {
 		array_Trashcan[A_Index][5] := 0
 	}	
 	
@@ -4881,6 +4896,7 @@ stopAutomaticSystemsLabel:
 		return
 	}
 	
+	findActive := false
 	stoppedAnything := false
 	
 	if (countdownRunning) {
@@ -5464,15 +5480,29 @@ pauseLabel:
 	}
 return
 
+:?:huso::
+:?:hund::
+:?:bastard::
+:?:wixxa::
+:?:wixxer::
+:?:opfer::
+:?:opfr::
+:?:opfa::
+:?:spast::
+:?:shrek::
+{
+	SendInfo("Hör doch auf zu beleidigen du Arschloch.")
+}
+return
+
 :?:/trash::
 :?:/trashs::
-SendInput, {Enter}
 {
 
 	dialog := ""
 	coords := getCoordinates()
 	
-	i := array_array_Trashcan.MaxIndex()
+	i := array_Trashcan.MaxIndex()
 	j := 0
 	
 	while (i > 1) {
@@ -5490,7 +5520,7 @@ SendInput, {Enter}
 		}
 	}
 	
-	Loop % array_array_Trashcan.MaxIndex() {
+	Loop % array_Trashcan.MaxIndex() {
 		if (array_Trashcan[A_Index][5] == -1) {
 			temp := "{C3C3C3}Unbekannt"
 		} else {
@@ -5521,35 +5551,18 @@ return
 	
 	if (RegExMatch(getDialogText(), "(.*)Drogen: (\d+)g(.*)", drugs_)) {
 		IniWrite, % drugs_2, ini/settings.ini, Items, drugs
-		
-		if (drugs_2 == 0) {
-			if (infoOvEnabled) {
-				imageDestroy(ov_Drugs)
-				textDestroy(ov_DrugsText)
-			}	
-		}
-	} else {
-		SendError("Beim Auslesen der Drogen ist ein Fehler aufgetreten.")
 	}
 	
 	if (inStr(getDialogText(), "Erste-Hilfe-Paket")) {
 		IniWrite, 1, ini/settings.ini, Items, firstaid
 	} else {
-		IniWrite, 0, ini/settings.ini, Items, firstaid
-	
-		if (infoOvEnabled) {
-			imageDestroy(ov_Firstaid)
-		}		
+		IniWrite, 0, ini/settings.ini, Items, firstaid	
 	}
 	
 	if (inStr(getDialogText(), "Benzin Kanister")) {
 		IniWrite, 1, ini/settings.ini, Items, canister
 	} else {
-		IniWrite, 0, ini/settings.ini, Items, canister
-	
-		if (infoOvEnabled) {
-			imageDestroy(ov_Canister)
-		}		
+		IniWrite, 0, ini/settings.ini, Items, canister	
 	}
 	
 	if (inStr(getDialogText(), "Lagerfeuer")) {	
@@ -5557,12 +5570,11 @@ return
 			iniWrite, % campfire_2, ini/settings.ini, Items, campfire
 		}
 	} else {
-		iniWrite, 0, ini/settings.ini, Items, campfire
+		iniWrite, 0, ini/settings.ini, Items, campfire	
+	}
 	
-		if (infoOvEnabled) {
-			imageDestroy(ov_Campfire)
-			textDestroy(ov_CampfireText)
-		}		
+	if (RegExMatch(getDialogText(), "(.*)Coins: (\d+)(.*)", coins_)) {
+		IniWrite, %coins_2%, ini/settings.ini, Items, coins
 	}
 	
 	if (infoOvEnabled) {
@@ -6014,6 +6026,8 @@ SendInput, {Enter}
 	if (RegExMatch(cText, "(.+)In Behandlung: (\d+)", cText_)) {
 		writeString(hGTA, adrGTA2 + 0x7AAD43, cText_1 . "Noch " . formatTime(cText_2) . " im KH")
 		SendInfo("Du bist noch " . csecond . formatTime(cText_2) . cwhite . " im Krankenhaus.")
+		
+		IniWrite, % cText_2, ini/Cooldown.ini, Cooldown, deathcooldown
 	} else if (RegExMatch(cText, "(.+)Knastzeit: (\d+)", cText_)) {
 		if (getPlayerInteriorId() == 1) {
 			writeString(hGTA, adrGTA2 + 0x7AAD43, cText_1 . "Noch " . formatTime(cText_2) . " im Prison")
@@ -8232,11 +8246,18 @@ return
 		SendError("Du kannst dich nicht selber finden.")
 		return
 	}
-
-	autoFindMode := 1
 	
-	findPlayer()
-	findInfo(playerToFind)
+	if (findActive) {
+		SendInfo("Deine Suche wurde auf " . getFullName(playerToFind) . " (ID: " . getPlayerIdbyName(getFullName(playerToFind)) . ") geändert.")
+		return
+	}
+
+	if (!findActive) {
+		autoFindMode := 1
+		
+		findPlayer()
+		findInfo(playerToFind)
+	}
 }
 return
 
@@ -11378,9 +11399,10 @@ SecondTimer:
 	
 	IniRead, fishcooldown, ini/Settings.ini, Cooldown, fishcooldown, 0
 	IniRead, pakcooldown, ini/Settings.ini, Cooldown, pakcooldown, 0
+	IniRead, deathcooldown, ini/Cooldown.ini, Cooldown, deathcooldown, 0
 	IniRead, commitmentUnix, ini/Settings.ini, UnixTime, commitmentUnix, 0
 	IniRead, commitmentTime, ini/Settings.ini, UnixTime, commitmentTime, 0
-		
+			
 	if (fishcooldown > 0) {
 		fishcooldown --
 		
@@ -11432,7 +11454,61 @@ SecondTimer:
 			SendInfo("Du kannst nun wieder Drogen konsumieren.")
 		}
 	}
-
+		
+	if (deathcooldown > 0) {
+		deathcooldown --
+		
+		IniRead, currentSpawn, ini/settings.ini, settings, currentSpawn, %A_Space%
+		
+		if (deathcooldown == 120 || deathcooldown == 60 || deathcooldown == 30 || deathcooldown == 15) {
+			SendInfo("Du sitzt noch " . cSecond . formatTime(deathcooldown) . cWhite . " im KH, Spawnpunkt: " . cSecond . currentSpawn)
+		} else if (deathcooldown == 10) {
+			SendChat("/f Ich werde in 10 Sekunden aus dem Krankenhaus entlassen, voraussichtlicher Spawn: " . currentSpawn)
+		} else if (deathcooldown == 0) {
+			isDead := false
+		
+			SoundBeep, 400, 250
+			SendInfo("Du wurdest aus dem Krankenhaus entlassen!")
+			
+			if (getPlayerInteriorId()) {
+				SendChat("/f Ich wurde soeben aus dem KH entlassen, befinde mich in einen Interior")
+				SendChat("/f Spawnpunkt: " . currentSpawn)	
+			} else {
+				SendChat("/f Ich wurde soeben aus dem KH entlassen, Standort: " . currentSpawn)
+			}
+			
+			if (!WinActive("GTA:SA:MP")) {
+				MsgBox, 64, Tot, Du bist nich mehr im Krankenhaus.
+			}
+		}
+		
+		IniWrite, %deathcooldown%, ini/cooldown.ini, cooldown, deathcooldown
+	}
+	
+	if (grabcooldown > 0) {
+		grabcooldown --
+		
+		if (grabcooldown != 0) {
+			SendInfo("Befreiung: »» " . grabcooldown . " ««")
+		}
+		
+		if (grabcooldown == 0) {
+			SendInfo("Befreiung: »» Letzte Sekunde! ««")
+		}
+		
+		if (grabcooldown == 4) {
+			SoundBeep, 400, 200
+		} else if (grabcooldown == 3) {
+			SoundBeep, 500, 200
+		} else if (grabcooldown == 2) {
+			SoundBeep, 780, 200
+		} else if (grabcooldown == 1) {
+			SoundBeep, 880, 200
+		} else if (grabcooldown == 0) {
+			SoundBeep, 1100, 950
+		}
+	}
+	
 	if (admincooldown > 0) {
 		admincooldown -- 
 		
@@ -11441,7 +11517,7 @@ SecondTimer:
 		} else if (admincooldown == 0) {
 			SendInfo("Du kannst nun wieder im Admin-Chat schreiben.")
 		}
-	}
+	}	
 	
 	if (ooccooldown > 0) {
 		ooccooldown -- 
@@ -11510,7 +11586,6 @@ SecondTimer:
 			}			
 		}
 	}
-	
 	
 	for index, partner_ in partners {
 		if (!getFullName(partner_)) {
@@ -11639,9 +11714,17 @@ SecondTimer:
 		}
 	}
 	
-	Loop % array_array_Trashcan.MaxIndex() {
+	Loop % array_Trashcan.MaxIndex() {
 		if (array_Trashcan[A_Index][5] > 0) {
 			array_Trashcan[A_Index][5] --
+		}
+	}
+	
+	if (getCoins >= 1) {
+		getCoins ++
+		
+		if (getCoins == 6) {
+			getCoins := 0
 		}
 	}
 }
@@ -11941,7 +12024,52 @@ return
 handleChatMessage(message, index, arr) {
 	global
 	
-	if (RegExMatch(message, "^\* (.*) hat die Gesundheit regeneriert\.", message_)) {
+	if (RegExMatch(message, "^Du spawnst ab sofort (.*)\.$", message_)) {
+		if (RegExMatch(message_1, "^am (.*)\.$", op_)) {
+			IniWrite, %op_1%, ini/settings.ini, settings, currentSpawn
+		} else if (RegExMatch(message_1, "^an (.*)$", op_)) {
+			IniWrite, %op_1%, ini/settings.ini, settings, currentSpawn
+		} else if (RegExMatch(message_1, "^in deiner Fraktionsbasis\.$", op_)) {
+			IniWrite, Fraktionsbasis, ini/settings.ini, settings, currentSpawn
+		} else if (RegExMatch(message_1, "^in im Staatsgefängnis\.$", op_)) {
+			IniWrite, Staatsgefängnis, ini/settings.ini, settings, currentSpawn
+		} else if (RegExMatch(message_1, "^in im LSPD\.$", op_)) {
+			IniWrite, LSPD, ini/settings.ini, settings, currentSpawn
+		} else if (RegExMatch(message_1, "^in an der Army Base\.$", op_)) {
+			IniWrite, Army-Basis, ini/settings.ini, settings, currentSpawn
+		} else if (RegExMatch(message_1, "^in im FBI\.$", op_)) {
+			IniWrite, FBI, ini/settings.ini, settings, currentSpawn
+		}
+		
+		IniRead, currentSpawn, ini/settings.ini, settings, currentSpawn, %A_Space%
+		
+		SendInfo("Dein Spawnpunkt wurde auf " . cSecond . currentSpawn . cWhite . " geändert.")		
+	} else if (RegExMatch(message, "^\* Jemand versucht (\S+) in sein Fahrzeug zu ziehen\.$", message_)) {
+		grabcooldown := 6
+		escaperName := message_1
+	
+		SendInfo("WARNUNG: Jemand versucht " . cSecond . message_1 . cWhite . " zu befreien!")
+		
+		SetTimer, EscapeTimer, 1
+	} else if (RegExMatch(message, "^\* (\S+) hat (\S+) in sein Fahrzeug gezogen\.$", message_)) {
+		hitmanName := message_1
+		
+		
+		SetTimer, HitmanTimer, 1
+	} else if (RegExMatch(message, "^\* Sanitäter (\S+) hat dich geheilt\.$", message_)) {
+		isDead := false 
+	
+		IniWrite, 0,  ini/cooldown.ini, cooldown, deathcooldown
+	
+		Sleep, 200
+		
+		if (getPlayerInteriorId()) {
+			SendChat("/f Ich wurde soeben aus dem KH entlassen, befinde mich in einen Interior")
+			SendChat("/f Spawnpunkt: " . currentSpawn)	
+		} else {
+			SendChat("/f Ich wurde soeben aus dem KH entlassen, Standort: " . currentSpawn)
+		}
+	} else if (RegExMatch(message, "^\* (.*) hat die Gesundheit regeneriert\.", message_)) {
 		if (RegExMatch(message_1, "^Agent (\d+)$", agent_)) {
 			agent_ID := agent_1
 		}
@@ -13341,6 +13469,7 @@ handleChatMessage(message, index, arr) {
 			}	
 		}
 	} else if (RegExMatch(message, "^Du hast dein Handy (\S+)\.$", message_)) {
+		SendChat("Ja")
 		if (inStr(message_1, "abgeschaltet")) {
 			IniWrite, 0, ini/Settings.ini, items, mobilePhone
 		} else if (inStr(message_1, "angeschaltet")) {
@@ -13561,7 +13690,7 @@ MainTimer:
 			SendChat("/l Spotify-Track wurde gewechselt: " . spotifytrack)
 		}
 	}
-	
+		
 	if (isPlayerInAnyVehicle()) {
 		if (oldVehicleName != getVehicleModelName()) {
 			oldVehicleName := getVehicleModelName()
@@ -13583,6 +13712,25 @@ MainTimer:
 				ov_Info(0)
 				ov_Info()
 			}
+		}
+	}
+	
+	if (RegExMatch(getGameText(), "^~w~In Behandlung~n~~y~(\d+) Sekunden$", death_)) {
+		if (!isDead) {
+			isDead := true
+			
+			SendInfo("Du bist nun für " . cSecond . death_1 . cWhite . " Sekunden im KH.")
+			IniWrite, % death_1, ini/Cooldown.ini, Cooldown, deathcooldown
+		}
+	} else if (RegExMatch(getGameText(), "+ (\d+) Coins", coins_)) {
+		if (!getCoins) {
+			getCoins := 1
+			
+			IniRead, coins, ini/settings.ini, Items, coins, 0
+			coins += coins_1
+			IniWrite, % coins, ini/settings.ini, Items, coins
+			
+			SendInfo("Du hast nun " . cSecond . formatNumber(coins) . cWhite . " Coins.")
 		}
 	}
 	
@@ -14083,6 +14231,46 @@ WantedIATimer:
 }
 return
 
+EscapeTimer:
+{
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}	
+	
+	if (escaperName != -1) {
+		SendInfo(cSecond . escaperName . cWhite . " wird befreit. Möchtest du ihm Wanteds mit '" . cSecond . "X" . cWhite . "' geben?")
+		
+		KeyWait, X, D, T10
+		
+		if (!ErrorLevel && !isBlocked()) {
+			giveWanteds(escaperName, "Flucht/Fluchtversuch", 2)
+		}
+	} 
+	
+	SetTimer, EscapeTimer, off
+}
+return
+
+HitmanTimer:
+{
+	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+		return
+	}	
+	
+	if (hitmanName != -1) {
+		SendInfo(cSecond . hitmanName . cWhite . " hat jemanden befreit. Möchtest du ihm Wanteds mit '" . cSecond . "X" . cWhite . "' geben?")
+		
+		KeyWait, X, D, T10
+		
+		if (!ErrorLevel && !isBlocked()) {
+			giveWanteds(hitmanName, "Beihilfe zur Flucht", 2)
+		}
+	}
+
+	SetTimer, HitmanTimer, off
+}
+return
+
 HelloTimer:
 {
 	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
@@ -14349,6 +14537,16 @@ CooldownOverlayTimer:
 			cooldownString .= "OOC-Chat: " . formatTime(ooccooldown) . "`n"
 		} 
 		
+		if (deathcooldown) {
+			cooldownsRunning := true
+			cooldownString .= "Krankenhaus: " . formatTime(deathcooldown) . "`n"
+		}		
+		
+		if (grabcooldown) {
+			cooldownsRunning := true
+			cooldownString .= "Befreiung: " . formatTime(grabcooldown) . "`n"
+		}
+		
 		textSetString(ov_Cooldown, cooldownString)
 	} else {
 		SetTimer, CooldownOverlayTimer, off
@@ -14482,6 +14680,10 @@ AutoFindTimer:
 		return
 	}	
 	
+	if (!findActive) {
+		findActive := true
+	}
+	
 	if (autoFindMode == 1) {
 		SendChat("/find " . playerToFind)
 	} else if (autoFindMode == 2) {
@@ -14532,24 +14734,36 @@ CountdownTimer:
 	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
 		return
 	}	
-	
-	if (cdTime == 0) {
+		
+	if (cdTime == 0) {		
 		SendChat("/" . cdChat . " " . cdGoMessage)
 		SetTimer, CountdownTimer, Off
 		
 		countdownRunning := 0
 		
 		if (cdGoMessage == "Letzte Warnung!") {
-			Sleep, 3000
+			Sleep, 1000
+			
+			SoundBeep, 1100, 950
 			SendInfo("Freigabe erhalten.")
 		}
 		
 		return
 	}
 	
-	SendChat("/" . cdChat . " << " . cdTime . " >>")
+	SendChat("/" . cdChat . " »» " . cdTime . " ««")
 	
-	cdTime--
+	if (cdTime == 4) {
+		SoundBeep, 400, 200
+	} else if (cdTime == 3) {
+		SoundBeep, 500, 200
+	} else if (cdTime == 2) {
+		SoundBeep, 780, 200
+	} else if (cdTime == 1) {
+		SoundBeep, 880, 200
+	}
+	
+	cdTime --
 }
 return
 
@@ -15655,6 +15869,10 @@ getItems() {
 		}
 	} else {
 		iniWrite, 0, ini/Settings.ini, Items, campfire	
+	}
+		
+	if (RegExMatch(getDialogText(), "(.*)Coins: (\d+)(.*)", coins_)) {
+		IniWrite, %coins_2%, ini/settings.ini, Items, coins
 	}
 	
 	if (infoOvEnabled) {
@@ -17081,30 +17299,30 @@ ov_Info(create := 1) {
 			IniRead, mobilePhone, ini/Settings.ini, Items, mobilePhone, 0
 					
 			if (mobilePhone) {
-				ov_Phone := imageCreate("images\Overlay\phoneOn.png", infoPhoneX, infoPhoneY, 0, true, true)
+				ov_Phone := imageCreate(A_ScriptDir . "\images\Overlay\phoneOn.png", infoPhoneX, infoPhoneY, 0, true, true)
 			} else {
-				ov_Phone := imageCreate("images\Overlay\phoneOff.png", infoPhoneX, infoPhoneY, 0, true, true)
+				ov_Phone := imageCreate(A_ScriptDir . "\images\Overlay\phoneOff.png", infoPhoneX, infoPhoneY, 0, true, true)
 			}
 			
 			if (firstaid) {
-				ov_Firstaid := imageCreate("images\Overlay\firstaid.png", infoFirstaidX, infoFirstaidY, 0, true, true)
+				ov_Firstaid := imageCreate(A_ScriptDir . "\images\Overlay\firstaid.png", infoFirstaidX, infoFirstaidY, 0, true, true)
 			}
 			
 			if (canister) {
 				if (isPlayerInAnyVehicle()) {
-					ov_Canister := imageCreate("images\Overlay\canister.png", infoCanisterX, infoCanisterY, 0, true, true)
+					ov_Canister := imageCreate(A_ScriptDir . "\images\Overlay\canister.png", infoCanisterX, infoCanisterY, 0, true, true)
 				} else {
 					imageDestroy(ov_Canister)
 				}
 			}
 			
 			if (campfire) {
-				ov_Campfire := imageCreate("images\Overlay\campfire.png", infoCampfireX, infoCampfireY, 0, true, true) 
+				ov_Campfire := imageCreate(A_ScriptDir . "\images\Overlay\campfire.png", infoCampfireX, infoCampfireY, 0, true, true) 
 				ov_CampfireText := textCreate("Arial", 9, true, false, infoCampfireX + 10, infoCampfireY + 14, 0xFFFFFFFF, campfire, true, true)
 			}		
 
 			if (drugs) {
-				ov_Drugs := imageCreate("images\Overlay\drugs.png", infoDrugsX, infoDrugsY, 0, true, true)
+				ov_Drugs := imageCreate(A_ScriptDir . "\images\Overlay\drugs.png", infoDrugsX, infoDrugsY, 0, true, true)
 				ov_DrugsText := textCreate("Arial", 9, true, false, infoDrugsX + 11, infoDrugsY + 14, 0xFFFFFFFF, drugs, true, true)
 			}
 			
@@ -17117,7 +17335,7 @@ ov_Info(create := 1) {
 			}
 			
 			if (hasCookedFish) {
-				ov_Fish := imageCreate("images\Overlay\fishCooked.png", infoFishCookedX, infoFishCookedY, 0, true, true)
+				ov_Fish := imageCreate(A_ScriptDir . "\images\Overlay\fishCooked.png", infoFishCookedX, infoFishCookedY, 0, true, true)
 				ov_FishText := textCreate("Arial", 9, true, false, infoFishCookedX + 8, infoFishCookedY + 8, 0xFFFFFFFF, hasCookedFish, true, true)
 			}
 
@@ -17130,7 +17348,7 @@ ov_Info(create := 1) {
 			}
 			
 			if (hasFish) {
-				ov_UncookedFish := imageCreate("images\Overlay\fishUncooked.png", infoFishUncookedX, infoFishUncookedY, 0, true, true)
+				ov_UncookedFish := imageCreate(A_ScriptDir . "\images\Overlay\fishUncooked.png", infoFishUncookedX, infoFishUncookedY, 0, true, true)
 				ov_UncookedFishText := textCreate("Arial", 9, true, false, infoFishUncookedX + 8, infoFishUncookedY + 8, 0xFFFFFFFF, hasFish, true, true)
 			}
 		}
@@ -17248,6 +17466,10 @@ destroyOverlay() {
 }
 
 /*
+- Wenn man jemanden findet und mit /afind direkt jemand neues Finden möchte hat mein nun keine Verzögerung mehr.
+- Wenn ein Hitman einen Verbrecher befreien möchte kann man dem flüchtigen nun Wanteds mit X ausstellen.
+- Wenn ein Hitman einen Verbrecher befreit hat kann man diesen Hitman Wanteds mit X ausstellen.
+- Wenn ein Hitman einen Verbrecher befreit erfolgt nun ein Countdown im Chat + SoundBeep
 - Das Overlay wird nun zerstört, wenn man den Keybinder startet (um doppel-Overlayanzeigen zu vermeiden).
 - Man kann sich mit '/heal' jetzt immer heilen, unabhängig davon, wie viel HP / AM man hat.
 - Wenn man sich nicht healen kann, wird dies am Healpoint direkt angezeigt. 
@@ -17259,3 +17481,4 @@ destroyOverlay() {
 - Die Variable [KILLPLACEFULL] wurde entfernt.
 - Die Variable [DEATHPLACEFULL] wurde entfernt.
 - Fehler behoben, dass die K/D falsch ausgerechnet wurde, wenn man 0 Tode hatte (Variablen [KD] & [DKD])
+- Weitere Fehler am Overlay behoben.
