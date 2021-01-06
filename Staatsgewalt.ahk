@@ -1,15 +1,57 @@
-﻿#IfWinActive, GTA:SA:MP
-#SingleInstance, force
-
+﻿#SingleInstance, force
+#MaxHotkeysPerInterval 500
 #Persistent
 #NoEnv
 
-#Include, include/UDF.ahk
+IfNotExist, dll
+{
+	FileCreateDir, dll
+}
+
+IfNotExist, dll/sampcac-loader.dll
+{
+	URLDownloadToFile, https://staatsgewalt.jameschans.de/keybinder/download/dll/sampcac-loader.dll, dll/sampcac-loader.dll
+}
+
+IfNotExist, dll/sampcac-loader.exe
+{
+	URLDownloadToFile, https://staatsgewalt.jameschans.de/keybinder/download/dll/sampcac-loader.exe, dll/sampcac-loader.exe
+}
+
+global sampcac_mode := false
+global sampdll_base_address := 0
+
+WinGetTitle, gta_title, ahk_exe gta_sa.exe
+global gta_title
+
+WinGet, gta_process, ProcessName, %gta_title%
+WinGet, gta_path, ProcessPath, %gta_title%
+WinGet, gta_pid, PID, %gta_title%
+gta_folder := StrReplace(gta_path, gta_process, "", "Off")
+Loop, Files, %gta_folder%*, F
+{
+    if (RegExMatch(A_LoopFileName, "sampcac") && A_LoopFileExt == "asi") {
+        init_sampcac()
+    }
+}
+
+init_sampcac() {
+    global
+    sampcac_mode := true
+    Run *RunAs %A_ScriptDir%\dll\sampcac-loader.exe
+    sleep 5000
+
+    FileReadLine, sampdll_base_address, %gta_folder%\samp.dat, 1
+}
+
+#If WinActive(gta_title)
+
+#Include, include/SAMP.ahk
 #Include, include/API.ahk
 #Include, include/JSON.ahk
 
 SetWorkingDir, %A_ScriptDir%
-/*
+
 if (!A_IsAdmin) {
 	try {
 		Run *RunAs "%A_ScriptFullPath%"
@@ -18,7 +60,7 @@ if (!A_IsAdmin) {
 		ExitApp
 	}
 }
-*/
+
 
 IfExist update.bat
 {
@@ -40,7 +82,7 @@ IfNotExist, bin/overlay.dll
 global projectName 			:= "Staatsgewalt"
 global fullProjectName 		:= "Staatsgewalt"
 
-global version 				:= "4.2.3"
+global version 				:= "4.4.2"
 global keybinderStart 		:= 0
 global rank					:= 0
 global userFraction			:= 1
@@ -768,6 +810,8 @@ Start:
 	global tempomat 			:= false
 	global tv 					:= false
 	global gotPoisened			:= false
+	global start						:= -1
+	global trashEnter				:= false
 	
 	global ovMoveMode			:= false
 	global alertActive  		:= false
@@ -819,6 +863,8 @@ Start:
 	}
 	
 	; Trashcan locations
+	loadTrashcans()
+	/*
 	array_Trashcan[1]  := [2058.767578, -1050.120239, 27.710558, "Las Colinas", -1, 1]
 	array_Trashcan[2]  := [2119.865479, -1062.000977, 25.857998, "Las Colinas", -1, 2]
 	array_Trashcan[3]  := [2246.809326, -1153.964966, 26.459375, "Las Colinas", -1, 3]
@@ -892,6 +938,11 @@ Start:
 	array_Trashcan[71] := [2547.7144, -1290.5468, 41.1641, "East Los Santos", -1, 71]
 	array_Trashcan[72] := [2281.9441, -2046.9819, 13.5469, "Willowfield", -1, 72]
 	array_Trashcan[73] := [2209.1743, -1343.6583, 23.9844, "Jefferson", -1, 73]
+	array_Trashcan[74] := [1424.5754,-1355.9629,13.5737, "Downtown", -1, 74]
+	array_Trashcan[75] := [1437.5161,-1324.5367,13.5475, "Downtown", -1, 75]
+	array_Trashcan[76] := [2123.5420,-1194.9662,23.9438, "Glen Park", -1, 76]
+	array_Trashcan[77] := [2209.1743, -1343.6583, 23.9844, "Jefferson", -1, 77]
+	*/
 	
 	; Fish points
 	array_Fish[1] := [1610.3545, 599.4703, 7.7813, 2.0]
@@ -1012,9 +1063,11 @@ Start:
 	array_Faction[2] := [2, "FBI", "Federal Bureau of Investigation", "Agent"]
 	array_Faction[3] := [3, "Army", "Las Venturas Army", "Soldat"]
 	
+	/*
 	Loop % array_Trashcan.MaxIndex() {
-		array_Trashcan[A_Index][5] := 0
+		array_Trashcan[A_Index]["blocked"] := 0
 	}	
+	*/
 	
 	Loop, 5 {
 		fishName_%A_Index% := "nichts"
@@ -1035,7 +1088,6 @@ Start:
 		global respawnCarsRunning := false
 	}
 	
-	SetTimer, ArrestTimer, 100
 	SetTimer, ChatTimer, 200	
 	SetTimer, MainTimer, 200
 	SetTimer, KillTimer, 500
@@ -1066,7 +1118,7 @@ Start:
 	}
 	
     SetParam("use_window", "1")
-    SetParam("window", "GTA:SA:MP")	
+    SetParam("window", gta_title)	
 	
 	Gui, Color, white
 	Gui, Font, s32 CDefault, Verdana
@@ -1089,6 +1141,7 @@ Start:
 	Gui, Add, Button, x12 y169 w170 h30 gNewsGUI, News
 	Gui, Add, Button, x12 y209 w170 h30 gHelpGUI, Hilfen
 	Gui, Add, Button, x12 y249 w170 h30 gSupport, Fehler melden
+	Gui, Add, Button, x12 y339 w170 h30 gReload, Keybinder Restart
 	Gui, Add, Button, x12 y379 w170 h30 gKeyControl, Keybinder CP
 	Gui, Add, Button, x12 y419 w170 h30 gRPGConnect, RPG - Connect
 	Gui, Add, Button, x12 y459 w170 h30 gTeamSpeak, FBI/LSPD - TS Connect
@@ -2802,8 +2855,8 @@ NewsGUI:
 	Gui, News: Add, Groupbox, x10 y10 w600 h430, Neuigkeiten und Informationen
 	Gui, News: Add, Edit, x20 y30 w580 h400 ReadOnly, 
 (
-23.05.2020
-Keybinder erst mal als offline Version in Betrieb genommen.
+01.01.2021
+Frohes neues ihr Säcke.
 )
 	Gui, News: Show, w620 h500, %projectName% - News - Version: %version%
 }
@@ -2812,6 +2865,12 @@ return
 NewsGuiClose:
 {
 	Gui, News: Destroy
+}
+return
+
+Reload: 
+{
+	Reload
 }
 return
 
@@ -3007,6 +3066,7 @@ return
 	}
 	
 	if (IsDialogOpen()) {
+		trashEnter := true
 		OnDialogResponse()
 	}	
 }
@@ -3024,10 +3084,10 @@ return
 	IniRead, firstaid, ini/Settings.ini, Items, firstaid, 0
 	IniRead, drugs, ini/Settings.ini, Items, drugs, 0
 	IniRead, pakcooldown, ini/Settings.ini, Cooldown, pakcooldown, 0
-	
 	if (damageTime > getUnixTimestamp(A_Now)) {
+		
 		if (getPlayerHealth() <= 75 && getPlayerArmor() < 30) {		
-			if (firstaid && !pakcooldown) {
+			if (!pakcooldown) {
 				usePaket()
 			}
 
@@ -3198,7 +3258,7 @@ govClosedCustomsLabel:
 		e := "sind"
 	} else if (zollID == 13) {
 		a := "Alle" 
-		b := "Zollstationen"
+		b := "Zollstationen "
 		c := ""
 		d := ""
 		e := "sind"
@@ -3244,7 +3304,7 @@ govOpenedCustomsLabel:
 		e := "sind"
 	} else if (zollID == 13) {
 		a := "Alle" 
-		b := "Zollstationen"
+		b := "Zollstationen "
 		c := ""
 		d := ""
 		e := "sind"
@@ -3925,7 +3985,7 @@ kidnapWantedsLabel:
 	if (name == "") {
 		SendError("Der angegebene Spieler ist offline.")
 		return
-	} else if (name == getUserName()) {
+	} else if (name == getUsername()) {
 		SendError("Du kannst dir selber keine Wanteds eintragen.")
 		return
 	}
@@ -4403,7 +4463,7 @@ checkLabel:
 		return
 	}
 	
-	if (getFullName(frisk_name) == getUserName()) {
+	if (getFullName(frisk_name) == getUsername()) {
 		SendError("Du kannst dich nicht selber durchsuchen.")
 		return
 	}
@@ -4479,7 +4539,7 @@ askPapersLabel:
 		return
 	}
 
-	id := getId()
+	id := getId() 
 	
 	if (getPlayerSkinID() == 285) {
 		SendError("Du kannst im SWAT Modus nicht deine Scheine anfordern.")
@@ -4487,7 +4547,7 @@ askPapersLabel:
 	}
 	
 	if (id == "-1") {
-		id := getUserName()
+		id := getUsername()
 	}
 	
 	SendChat("/l Bitte zeigen Sie mir Ihre Scheine (( /scheine " . id . " ))")
@@ -4786,6 +4846,7 @@ return
 		return	
 	
 	if (IsDialogOpen()) {
+		trashEnter := true
 		OnDialogResponse()
 	}
 }
@@ -4963,7 +5024,7 @@ acceptJobLabel:
 			SendChat("/d HQ: Wagen " . getVehicleModelId() . " übernimmt den Auftrag!")
 		}
 	} else {
-		SendChat("/d HQ: " . getFactionTitle() . " " . getUserName() . " übernimmt den Auftrag!")
+		SendChat("/d HQ: " . getFactionTitle() . " " . getUsername() . " übernimmt den Auftrag!")
 	}
 }
 return
@@ -4981,7 +5042,7 @@ doneJobLabel:
 			SendChat("/d HQ: Wagen " . getVehicleModelId() . " hat den Auftrag ausgeführt!")
 		}
 	} else {
-		SendChat("/d HQ: " . getFactionTitle() . " " . getUserName() . " hat den Auftrag ausgeführt!")
+		SendChat("/d HQ: " . getFactionTitle() . " " . getUsername() . " hat den Auftrag ausgeführt!")
 	}
 }
 return
@@ -5067,7 +5128,7 @@ giveQuickTicketLabel:
 		return
 	}
 	
-	if (getFullName(playerForTicket) == getUserName()) {
+	if (getFullName(playerForTicket) == getUsername()) {
 		SendError("Der angegebene Spieler ist nicht online.")
 		return
 	}
@@ -5152,7 +5213,7 @@ autoAcceptEmergencyLabel:
 					break
 				}
 			} else if (acceptedByPlayer == 1) {
-				if (takeowerName == getUserName()) {
+				if (takeowerName == getUsername()) {
 					SendError("Du hast diesen Notruf bereits übernommen.")
 				} else {
 					SendError("Dieser Notruf wurde bereits von " . takeowerName . " übernommen.")
@@ -5199,7 +5260,7 @@ acceptEmergencyLabel:
 	
 	if (serviceName != "") {
 		if (getFullName(serviceName) != "") {
-			if (getFullName(serviceName) != getUserName()) {
+			if (getFullName(serviceName) != getUsername()) {
 				SendChat("/notruf " . serviceName)
 				
 				Sleep, 200
@@ -5498,34 +5559,34 @@ return
 :?:/trash::
 :?:/trashs::
 {
-
+	loadTrashcans()
 	dialog := ""
 	coords := getCoordinates()
 	
-	i := array_Trashcan.MaxIndex()
-	j := 0
+	itrash := array_Trashcan.MaxIndex()
+	jtrash := 0
 	
-	while (i > 1) {
-		i := i - 1
-		j := 0
-		
-		while (j < i) {
-			j := j + 1
-		
-			if (Floor(GetDist(coords, array_Trashcan[j])) > Floor(GetDist(coords, array_Trashcan[j + 1]))) {
-				temp := array_Trashcan[j]
-				array_Trashcan[j] := array_Trashcan[j + 1]
-				array_Trashcan[j + 1] := temp
+	while (itrash > 1) {
+		itrash--
+		jtrash := 0
+		while (jtrash < itrash) {
+			jtrash := jtrash + 1
+			coordsTrash1 := [ array_Trashcan[jtrash]["posX"],array_Trashcan[jtrash]["posY"], array_Trashcan[jtrash]["posZ"] ]
+			coordsTrash2 := [ array_Trashcan[jtrash+1]["posX"],array_Trashcan[jtrash+1]["posY"], array_Trashcan[jtrash+1]["posZ"] ]
+			if (Floor(GetDist(coords, coordsTrash1)) > Floor(GetDist(coords, coordsTrash2))) {
+				temp := array_Trashcan[jtrash]
+				array_Trashcan[jtrash] := array_Trashcan[jtrash + 1]
+				array_Trashcan[jtrash + 1] := temp
 			}
 		}
 	}
 	
 	Loop % array_Trashcan.MaxIndex() {
-		if (array_Trashcan[A_Index][5] == -1) {
-			temp := "{C3C3C3}Unbekannt"
+		if(array_Trashcan[A_Index]["blocked"] == "no"){
+			temp := "{00FF00}Frei"
 		} else {
-			min := Floor(array_Trashcan[A_Index][5] / 60)
-			sec := mod(array_Trashcan[A_Index][5], 60)
+			min := Floor(array_Trashcan[A_Index]["blocked"] / 60)
+			sec := mod(array_Trashcan[A_Index]["blocked"], 60)
 			
 			if (min > 9) {
 				temp := "{FF0000}" min "min, " sec "s"
@@ -5535,15 +5596,16 @@ return
 				temp := "{00FF00}Frei"
 			}
 		}
-		
-		dialog .=  array_Trashcan[A_Index][6] "`t" array_Trashcan[A_Index][4] "`t" temp "`t" Floor(getDist(coords, array_Trashcan[A_Index])) "m`n"
+		coordsTrash := [array_Trashcan[A_Index]["posX"],array_Trashcan[A_Index]["posY"], array_Trashcan[A_Index]["posZ"]]
+		zone := calculateZone(array_Trashcan[A_Index]["posX"], array_Trashcan[A_Index]["posY"], array_Trashcan[A_Index]["posZ"])
+		dialog .=  array_Trashcan[A_Index]["id"] "`t" zone "`t" temp "`t" Floor(getDist(coords, coordsTrash)) "m`n"
 	}
 	
 	ShowDialog(5, "Übersicht der Mülltonnen", "ID`tOrt`tStatus`tEntfernung`n" dialog, "Markieren", "Abbrechen")
 }
 return
 
-:?:/stats::
+:?:/sstats::
 {
 	SendChat("/stats")
 	
@@ -5552,6 +5614,20 @@ return
 	if (RegExMatch(getDialogText(), "(.*)Drogen: (\d+)g(.*)", drugs_)) {
 		IniWrite, % drugs_2, ini/settings.ini, Items, drugs
 	}
+	
+	if (RegExMatch(getDialogText(), "(.*)Coins: (\d+)(.*)", coins_)) {
+		IniWrite, %coins_2%, ini/settings.ini, Items, coins
+	}
+	
+	if (infoOvEnabled) {
+		ov_Info(0)
+		ov_Info()
+	}
+	
+	Sleep, 200
+	SendInput, {Enter}
+	SendChat("/inventory")
+	Sleep, 200
 	
 	if (inStr(getDialogText(), "Erste-Hilfe-Paket")) {
 		IniWrite, 1, ini/settings.ini, Items, firstaid
@@ -5563,24 +5639,17 @@ return
 		IniWrite, 1, ini/settings.ini, Items, canister
 	} else {
 		IniWrite, 0, ini/settings.ini, Items, canister	
-	}
+	} 
 	
 	if (inStr(getDialogText(), "Lagerfeuer")) {	
-		if (RegExMatch(getDialogText(), "(.*)Lagerfeuer \((\d+)\)(.*)", campfire_)) {
-			iniWrite, % campfire_2, ini/settings.ini, Items, campfire
+		if (RegExMatch(getDialogText(), "(.*)Lagerfeuer(\s+)(\d+)", campfire_)) {
+			iniWrite, %campfire_3%, ini/settings.ini, Items, campfire
 		}
 	} else {
 		iniWrite, 0, ini/settings.ini, Items, campfire	
 	}
-	
-	if (RegExMatch(getDialogText(), "(.*)Coins: (\d+)(.*)", coins_)) {
-		IniWrite, %coins_2%, ini/settings.ini, Items, coins
-	}
-	
-	if (infoOvEnabled) {
-		ov_Info(0)
-		ov_Info()
-	}
+	Sleep, 200
+	SendInput, {Enter}
 }
 return
 
@@ -5912,7 +5981,7 @@ return
 
 :?:/messer::
 {
-	SendChat("/sellgun " . getUserName() . " messer 1")
+	SendChat("/sellgun " . getUsername() . " messer 1")
 }
 return
 
@@ -6181,6 +6250,7 @@ return
 	global tempomat 			:= false
 	global tv 					:= false
 	global gotPoisened			:= false
+	global trashEnter			:= false
 	
 	global ovMoveMode			:= false
 	global alertActive  		:= false
@@ -6215,7 +6285,7 @@ return
 	if (name == "") {
 		SendError("Der angegebene Spieler ist offline.")
 		return
-	} else if (name == getUserName()) {
+	} else if (name == getUsername()) {
 		SendError("Du kannst dir selber keine Wanteds eintragen.")
 		return
 	}
@@ -6242,7 +6312,7 @@ return
 	if (name == "") {
 		SendError("Der angegebene Spieler ist offline.")
 		return
-	} else if (name == getUserName()) {
+	} else if (name == getUsername()) {
 		SendError("Du kannst dir selber keine Wanteds eintragen.")
 		return
 	}
@@ -6261,7 +6331,7 @@ return
 	} else if (getFullName(reInput) == "") {
 		SendError("Der Spieler ist nicht online.")
 		return
-	} else if (getFullName(reInput) == getUserName()) {
+	} else if (getFullName(reInput) == getUsername()) {
 		SendError("Du kannst dir selbst keine Wanteds eintragen.")
 		return
 	}
@@ -6288,7 +6358,7 @@ return
 		}
 	}
 		
-	if (inStr(readChatLine(0) . readChatLine(1) . readChatLine(2), "HQ: Verbrechen: Re-Wanted, Zeuge: " . getUserName() . ", Verdächtiger: " . getFullName(reInput))) {
+	if (inStr(readChatLine(0) . readChatLine(1) . readChatLine(2), "HQ: Verbrechen: Re-Wanted, Zeuge: " . getUsername() . ", Verdächtiger: " . getFullName(reInput))) {
 		if (givedRewanted > 0) {
 			wanteds := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=wanteds&value=" . wanteds)
 			IniWrite, %wanteds%, ini/Stats.ini, Vergaben, Wanteds
@@ -6516,7 +6586,7 @@ return
 	} else if (getFullName(playerID) == "") {
 		SendError("Der Spieler ist nicht online.")
 		return
-	} else if (getFullName(playerID) == getUserName()) {
+	} else if (getFullName(playerID) == getUsername()) {
 		SendError("Du kannst dich nicht selbst melden.")
 		return
 	}
@@ -6529,6 +6599,7 @@ return
 
 :?:/tasks::
 {
+	loadTasks()
 	taskCount := tasks.Length()
 	
 	if (taskCount == 0) {
@@ -7103,31 +7174,11 @@ return
 }
 return
 
-:?:/label::
-SendInput, {Enter}
-{
-	if (getuserName() != "jacob.tremblay") {
-		SendInfo("Du kannst diesen Befehl nicht verwenden.")
-		return
-	}	
-	
-	if (!updateTextLabelData()) {
-		return
-	}	
-
-	for i, o in oTextLabelData {
-		if (o.PLAYERID == 65535 && o.VEHICLEID == 65535) {	
-			SendClientMessage(o.TEXT)
-		}
-	}
-}
-return
-
 :?:/gkadd::
 :?:/addgk::
 SendInput, {Enter}
 {
-	if (getuserName() != "jacob.tremblay") {
+	if (getUsername() != "John_Reese") {
 		SendInfo("Du kannst diesen Befehl nicht verwenden.")
 		return
 	}
@@ -7137,7 +7188,7 @@ SendInput, {Enter}
 	Sleep, 250
 	
 	Loop, 15 {
-		if (RegExMatch(readChatLine(A_Index), "" . getUserName() . "(.*), GK (\d+)\.(\d+)", gk_)) {
+		if (RegExMatch(readChatLine(A_Index), "" . getUsername() . "(.*), GK (\d+)\.(\d+)", gk_)) {
 			gk := gk_2 . "." . gk_3
 			break
 		}
@@ -7859,7 +7910,7 @@ return
 	} else if (getFullName(partner) == "") {
 		SendError("Der Spieler ist offline.")
 		return
-	} else if (getFullName(partner) == getUserName()) {
+	} else if (getFullName(partner) == getUsername()) {
 		SendInfo("Halts Maul.")
 		return
 	}
@@ -8180,7 +8231,7 @@ return
 				Sleep, 750
 			}		
 			
-			SendChat("/l Hiermit biete ich Ihnen einen Freikauf für Ihr" . (wantedCount == 1 ? " Wanted" : "e zwei Wanteds") . " an.")
+			SendChat("/l Hiermit biete ich Ihnen einen Freikauf für Ihr" . (wantedCount == 1 ? " Wanted" : "e " . wantedCount . " Wanteds") . " an.")
 			
 			if (!admin) {
 				Sleep, 750
@@ -8242,13 +8293,17 @@ return
 		return
 	}
 
-	if (getFullName(playerToFind) == getUserName()) {
+	if (getFullName(playerToFind) == getUsername()) {
 		SendError("Du kannst dich nicht selber finden.")
 		return
 	}
 	
 	if (findActive) {
-		SendInfo("Deine Suche wurde auf " . getFullName(playerToFind) . " (ID: " . getPlayerIdbyName(getFullName(playerToFind)) . ") geändert.")
+		SendInfo("Deine Suche wurde auf " . getFullName(playerToFind) . " (ID: " . getPlayerIdByName(getFullName(playerToFind)) . ") geändert.")
+		SetTimer, AutoFindTimer, Off
+		autoFindMode := 1
+		findPlayer()
+		findInfo(playerToFind)
 		return
 	}
 
@@ -8277,7 +8332,7 @@ return
 			return
 		}
 
-		if (getFullName(playerToShowToInput) == getUserName()) {
+		if (getFullName(playerToShowToInput) == getUsername()) {
 			SendError("Du kannst dir selbst niemanden anzeigen, nutze /af[ind]")
 			return
 		}
@@ -8290,7 +8345,7 @@ return
 		} else if (!getFullName(playerToFindInput)) {
 			SendError("Der gesuchte Spieler ist offline.")
 			return
-		} else if (getFullName(playerToFindInput) == getUserName()) {
+		} else if (getFullName(playerToFindInput) == getUsername()) {
 			SendError("Du kannst dich nicht selbst finden.")
 			return
 		} else {
@@ -8333,7 +8388,7 @@ SendInput, {Enter}
 			SendChat("/d HQ: Wagen " . getVehicleModelId() . " hat verstanden und bestätigt!")
 		}
 	} else {
-		SendChat("/d HQ: " . getFactionTitle() . " " . getUserName() . " hat verstanden und bestätigt!")
+		SendChat("/d HQ: " . getFactionTitle() . " " . getUsername() . " hat verstanden und bestätigt!")
 	}
 }
 return
@@ -8348,7 +8403,7 @@ SendInput, {Enter}
 			SendChat("/f HQ: Wagen " . getVehicleModelId() . " hat verstanden und bestätigt!")
 		}
 	} else {
-		SendChat("/f HQ: " . getFactionTitle() . " " . getUserName() . " hat verstanden und bestätigt!")
+		SendChat("/f HQ: " . getFactionTitle() . " " . getUsername() . " hat verstanden und bestätigt!")
 	}
 }
 return
@@ -8363,7 +8418,7 @@ SendInput, {Enter}
 			SendChat("/r HQ: Wagen " . getVehicleModelId() . " hat verstanden und bestätigt!")
 		}
 	} else {
-		SendChat("/r HQ: " . getFactionTitle() . " " . getUserName() . " hat verstanden und bestätigt!")
+		SendChat("/r HQ: " . getFactionTitle() . " " . getUsername() . " hat verstanden und bestätigt!")
 	}
 }
 return
@@ -8384,7 +8439,7 @@ return
 	} else if (getFUllName(playerID) == "") {
 		SendError("Der Spieler ist nicht online.")
 		return
-	} else if (getFullName(playerID) == getUserName()) {
+	} else if (getFullName(playerID) == getUsername()) {
 		SendError("Du kannst dich nicht selbst melden.")
 		return
 	}
@@ -9130,7 +9185,7 @@ SendInput, {Enter}
 		
 		SendChat("/lotto " . randomNumber)
 	} else if (lottoNumber > 100) {
-		SendChat("/lotto " . getId())
+		SendChat("/lotto " . getId() )
 	} else {
 		SendChat("/lotto " . lottoNumber)
 	}
@@ -9290,7 +9345,7 @@ return
 		}
 	}
 	
-	if (ad_2 != "" || ad_2 != getUserName()) {
+	if (ad_2 != "" || ad_2 != getUsername()) {
 		SendInfo("Letzte Werbung (von " . ad_2 . "):")
 		SendInfo(csecond . ad_1)
 		
@@ -9313,7 +9368,7 @@ return
 		return
 	}
 	
-	if (getFullName(name) == getUserName()) {
+	if (getFullName(name) == getUsername()) {
 		SendError("Du kannst dich selbst nicht anrufen.")
 		return
 	}
@@ -9343,7 +9398,7 @@ return
 		return
 	}
 
-	if (getFullName(name) == getUserName()) {
+	if (getFullName(name) == getUsername()) {
 		SendError("Du kannst dir selbst keine SMS senden.")
 		return
 	}
@@ -9373,7 +9428,7 @@ return
 		return
 	}
 
-	if (getFullName(name) == getUserName()) {
+	if (getFullName(name) == getUsername()) {
 		SendError("Du kannst dir selbst keine SMS senden.")
 		return
 	}
@@ -11095,6 +11150,19 @@ return
 }
 return
 
+:?:/rc::
+{
+	if (!admin) {
+		SendError("Du bist kein Team-Mitglied.")
+		return
+	}
+	rc := PlayerInput("CarID: ")
+	if rc is number
+	{
+		SendChat("/respawncar " . rc)
+	}
+}
+
 :?:/level::
 {
 	tmp_lvl := PlayerInput("Level: ")
@@ -11297,7 +11365,7 @@ return
 
 SyncTimer:
 {	
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}	
 	
@@ -11315,7 +11383,7 @@ SyncTimer:
 		getItems()
 		
 		SendInfo("Das Synchronisieren ist " . cgreen . "abgeschlossen" . cwhite . ".")
-		SetTimer, SyncTimer, 600000
+		SetTimer, SyncTimer, 1800000
 	} else {
 		SetTimer, SyncTimer, off
 	}
@@ -11324,7 +11392,7 @@ return
 
 TempoTimer:
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}		
 	
@@ -11349,37 +11417,9 @@ TempoTimer:
 }
 return
 
-ArrestTimer:
-{
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
-		return
-	}		
-	
-	if ((IsPlayerInRangeOfPoint(2341.6477, -2028.5807, 13.5331, 4) || IsPlayerInRangeOfPoint(2322.9871, -1995.6251, 21.1276, 4)) && (getUserName() == "jacob.tremblay" || getUserName() == "Jaden." || getUserName() == "Jannek_Zockt" || getUserName() == "Ness.")) {
-		
-		indexRemove := -1
-		
-		for index, arrestName in arrestList {
-			suspectID := getPlayerIdByName(getFullName(arrestName), true)
-			
-			if (suspectID != -1) {
-				SendChat("/arrest " . arrestName)
-				Sleep, 200
-
-				if (inStr(readChatLine(0) . readChatLine(1) . readChatLine(2), "Du bist nicht in der Nähe eines Gefängnisses.")) {
-					SendChat("/arrest " . arrestName)
-				}
-				
-				arrestList.RemoveAt(index)
-			}
-		}
-	}
-}
-return
-
 ResetChatBlock:
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}		
 	
@@ -11393,7 +11433,7 @@ return
 
 SecondTimer:
 {
-	if (!WinExist("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}		
 	
@@ -11409,7 +11449,7 @@ SecondTimer:
 		if (fishcooldown == 600 || fishcooldown == 300 || fishcooldown == 120 || fishcooldown == 60) {
 			SendInfo("Du kannst in " . cSecond . formatTime(fishcooldown) . cwhite . " wieder angeln.")
 		} else if (fishcooldown == 0) {
-			if (!WinActive("GTA:SA:MP")) {
+			if (!WinActive(gta_title)) {
 				MsgBox, 64, Fischen, Du kannst nun wieder fischen
 			}
 		
@@ -11477,7 +11517,7 @@ SecondTimer:
 				SendChat("/f Ich wurde soeben aus dem KH entlassen, Standort: " . currentSpawn)
 			}
 			
-			if (!WinActive("GTA:SA:MP")) {
+			if (!WinActive(gta_title)) {
 				MsgBox, 64, Tot, Du bist nich mehr im Krankenhaus.
 			}
 		}
@@ -11715,8 +11755,8 @@ SecondTimer:
 	}
 	
 	Loop % array_Trashcan.MaxIndex() {
-		if (array_Trashcan[A_Index][5] > 0) {
-			array_Trashcan[A_Index][5] --
+		if (array_Trashcan[A_Index]["blocked"] > 0 && array_Trashcan[A_Index]["blocked"] != "no") {
+			array_Trashcan[A_Index]["blocked"] --
 		}
 	}
 	
@@ -11732,11 +11772,19 @@ return
 
 TaskCheckTimer:
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}		
 	
 	if (taskInfo) {
+		loadTasks()
+	} else {
+		SetTimer, TaskCheckTimer, off
+	}
+}
+return
+
+loadTasks(){
 		tasksResult := UrlDownloadToVar(baseURL . "api/tasks?username=" . username . "&password=" . password . "&action=get")
 		
 		if (tasksResult == "ERROR_BAD_LINK") {
@@ -11803,16 +11851,12 @@ TaskCheckTimer:
 				task["online"] := true
 			}
 		}
-	} else {
-		SetTimer, TaskCheckTimer, off
-	}
 }
-return
 
 /* #BAUM
 UpdateComplexTimer:
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !updateTextLabelData()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !updateTextLabelData()) {
 		return
 	}
 	
@@ -11895,7 +11939,7 @@ return
 
 CloseZollTimer:
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}		
 	
@@ -11917,7 +11961,7 @@ return
 
 OpenZollTimer:
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}		
 	
@@ -11939,7 +11983,7 @@ return
 
 RefillTimer: 
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}		
 	
@@ -11957,7 +12001,7 @@ return
 
 RequestTimer:
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}		
 	
@@ -11992,7 +12036,7 @@ return
 
 ChatTimer:
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}		
 	
@@ -12025,19 +12069,21 @@ handleChatMessage(message, index, arr) {
 	global
 	
 	if (RegExMatch(message, "^Du spawnst ab sofort (.*)\.$", message_)) {
-		if (RegExMatch(message_1, "^am (.*)\.$", op_)) {
+		if (RegExMatch(message_1, "^am (.*)$", op_)) {
 			IniWrite, %op_1%, ini/settings.ini, settings, currentSpawn
 		} else if (RegExMatch(message_1, "^an (.*)$", op_)) {
 			IniWrite, %op_1%, ini/settings.ini, settings, currentSpawn
-		} else if (RegExMatch(message_1, "^in deiner Fraktionsbasis\.$", op_)) {
+		} else if (RegExMatch(message_1, "^in deiner Fraktionsbasis$", op_)) {
 			IniWrite, Fraktionsbasis, ini/settings.ini, settings, currentSpawn
-		} else if (RegExMatch(message_1, "^in im Staatsgefängnis\.$", op_)) {
+		} else if (RegExMatch(message_1, "^in im Staatsgefängnis$", op_)) {
 			IniWrite, Staatsgefängnis, ini/settings.ini, settings, currentSpawn
-		} else if (RegExMatch(message_1, "^in im LSPD\.$", op_)) {
+		} else if (RegExMatch(message_1, "^in deiner Crewbasis$", op_)) {
+			IniWrite, Crewbasis, ini/settings.ini, settings, currentSpawn
+		} else if (RegExMatch(message_1, "^in im LSPD$", op_)) {
 			IniWrite, LSPD, ini/settings.ini, settings, currentSpawn
-		} else if (RegExMatch(message_1, "^in an der Army Base\.$", op_)) {
+		} else if (RegExMatch(message_1, "^in an der Army Base$", op_)) {
 			IniWrite, Army-Basis, ini/settings.ini, settings, currentSpawn
-		} else if (RegExMatch(message_1, "^in im FBI\.$", op_)) {
+		} else if (RegExMatch(message_1, "^in im FBI$", op_)) {
 			IniWrite, FBI, ini/settings.ini, settings, currentSpawn
 		}
 		
@@ -12074,7 +12120,7 @@ handleChatMessage(message, index, arr) {
 			agent_ID := agent_1
 		}
 		
-		if (message_1 == getUserName() || agent_ID == agentID) {
+		if (message_1 == getUsername() || agent_ID == agentID) {
 			healcooldown := 60
 		}
 	} else if (RegExMatch(message, "^Leerfahrt$")) {
@@ -12196,20 +12242,20 @@ handleChatMessage(message, index, arr) {
 			; SendInfo("Arrest-Limit-Daten wurden angepasst.")
 		}
 	} else if (RegExMatch(message, "^\*\*\(\( (.+) (\S+): HQ: Guten Tag! Arrest-Limit: (\d+) Sekunden! \)\)\*\*$", message_)) {
-		if (message_2 != getUserName()) {
+		if (message_2 != getUsername()) {
 			arrestLimitUnix := getUnixTimestamp(A_Now) + message_3
 			IniWrite, %arrestLimitUnix%, ini/Settings.ini, UnixTime, arrestLimitUnix
 			
 			; SendInfo("Arrest-Limit-Daten wurden angepasst.")
 		}
 	} else if (RegExMatch(message, "^\* Spieler \[(\d+)\](\S+): (.*)$", message_)) {
-		if (getId() == message_1 && message_2 == getUserName() && !admin) {
+		if (getId()  == message_1 && message_2 == getUsername() && !admin) {
 			admincooldown := 30
 		}
 	} else if (RegExMatch(message, "^Der Spieler befindet sich in (.*)$", message_)) {
 		findcooldown := 5
 	} else if (RegExMatch(message, "^\(\( (\S+): (.+) \)\)$", message_)) {
-		if (message_1 == getUserName()) {
+		if (message_1 == getUsername()) {
 			ooccooldown := 5
 		}
 	} else if (RegExMatch(message, "^Es befindet sich zu wenig Kraftstoff im Fahrzeug, um den Motor zu starten\.$", message_)) {
@@ -12219,20 +12265,33 @@ handleChatMessage(message, index, arr) {
 			garbageTimeout_ := true
 		}
 	} else if (RegExMatch(message, "^Paintball: (\S+) hat die Arena betreten\.$", message_)) {
-		if (message_1 == getUserName()) {
+		if (message_1 == getUsername()) {
 			isPaintball := true 
 			SendInfo("Der Paintball-Modus wurde " . cgreen . "angeschaltet" . cwhite . ".")
 		}
 	} else if (RegExMatch(message, "^Du hast bereits einen Spritkanister !$", message_)) {
 		getItems()
 	} else if (RegExMatch(message, "^\* (\S+) nimmt seinen Kanister und füllt das Fahrzeug auf\.$", message_)) {
-		if (message_1 == getUserName()) {
+		if (message_1 == getUsername()) {
 			getItems()
 		}
 	} else if (RegExMatch(message, "^Du hast ein Kanister gekauft und kannst ihn mit \/fillcar verwenden\. Kosten: \$(\d+)$", message_)) {
 		getItems()
 	} else if (RegExMatch(message, "^Du hast eine infizierte Spritze gefunden und dich gestochen\.$", message_)) {
+		Loop % array_Trashcan.MaxIndex() {
+			trashCanFound = updateTrashcan(A_Index, 15*60)
+		}
+		poisonedNeedle := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=poisonedNeedle&value=1")
+		iniWrite, %poisonedNeedle%, ini/Stats.ini, Mülltonnen, poisonedNeedle
+		SendInfo("Du hast bereits " . cSecond . formatNumber(poisonedNeedle) . cwhite . " infizierte Spritzen in Mülltonnen gefunden.")
 		gotPoisened := true
+	} else if (RegExMatch(message, "^Du hast einen Snack gefunden und hast nun (\d+) HP\.$", message_)) {
+		Loop % array_Trashcan.MaxIndex() {
+			updateTrashcan(A_Index, 30*60)
+		}
+		snack:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=snack&value=1")
+		iniWrite, %snack%, ini/Stats.ini, Mülltonnen, snack
+		SendInfo("Du hast bereits " . cSecond . formatNumber(snack) . cwhite . " Snacks in Mülltonnen gefunden.")
 	} else if (RegExMatch(message, "^Du hast ein Lagerfeuer gesetzt, dieses brennt ca\. 40 Sekunden\.$", message_)) {
 		getItems()
 	} else if (RegExMatch(message, "^Du hast dir ein Lagerfeuer gekauft\.$", message_)) {
@@ -12240,19 +12299,20 @@ handleChatMessage(message, index, arr) {
 	} else if (RegExMatch(message, "^Du hast ein Erstehilfe-Paket erworben \(-(\d+)\$\)\.$")) {
 		getItems()
 	} else if (RegExMatch(message, "^Du besitzt kein Erste-Hilfe-Paket\.$", message_)) {
-		getItems()
+		IniWrite, 0, ini/Settings.ini, Items, firstaid
  	} else if (RegExMatch(message, "^Du hast ein Erstehilfe-Paket erworben \(-(.*)$\).$", message_)) {
 		getItems()
 	} else if (RegExMatch(message, "^Du hast ein Erste-Hilfe-Paket im Müll gefunden\.$", message_)) {
 		getItems()
  	} else if (RegExMatch(message, "\* Du hast für \$(.*) ein Erste-Hilfe-Paket von (\S+) gekauft\.$", message_)) {
 		getItems()
-	} else if (RegExMatch(message, "^\* " . getUserName() . " benutzt ein Erste-Hilfe-Paket und versorgt die Wunden\.$", message_)) {
+	} else if (RegExMatch(message, "^\* " . getUsername() . " benutzt ein Erste-Hilfe-Paket und versorgt die Wunden\.$", message_)) {
 		IniWrite, 600, ini/Settings.ini, Cooldown, pakcooldown
-	
-		getItems()
-	} else if (RegExMatch(message, "^\* " . getUserName() . " hat Drogen konsumiert.$", message_)) {
-		getItems()
+		IniWrite, 0, ini/Settings.ini, Items, firstaid	
+	} else if (RegExMatch(message, "^\* " . getUsername() . " hat Drogen konsumiert.$", message_)) {
+		IniRead, tmpDrugs, ini/Settings.ini, Items, drugs, 0
+		tmpDrugs--
+		IniWrite, %tmpDrugs%, ini/Settings.ini, Items, drugs
 		drugcooldown := 30
 	} else if (RegExMatch(message, "^(.*)g Drogen aus den Safe geholt\.$", message_)) {
 		getItems()
@@ -12263,7 +12323,7 @@ handleChatMessage(message, index, arr) {
 	} else if (RegExMatch(message, "^\* Du hast (.*)g für (.*)$ von (\S+) gekauft\.$", message_)) {
 		getItems()
 	} else if (RegExMatch(message, "^\[ AIRDROP \] (\S+) hat den Airdrop abgegeben und (.*)\.$", message_)) {
-		if (message_1 == getUserName()) {
+		if (message_1 == getUsername()) {
 			getItems()	
 		}
 	} else if (RegExMatch(message, "^Du hast (.*)g Drogen ausgelagert\.$", message_)) {
@@ -12302,7 +12362,7 @@ handleChatMessage(message, index, arr) {
 		SendChat("/f Agent " . agentID . " meldet sich vom Dienst ab!")
 		agentID := -1
 	} else if (RegExMatch(message, "\*\* Diese Mülltonne wurde bereits durchsucht. Versuche es erneut in (\d+) Minuten.$", message_)) {
-		SetTrashTime(message)
+		setTrashTime(message, message_1) 
 		DisableCheckpoint()
 	} else if (RegExMatch(message, "^Du beginnst in einer Mülltonne rumzuschnüffeln\.$", message_)) {
 		trashs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trash&value=1")
@@ -12312,22 +12372,14 @@ handleChatMessage(message, index, arr) {
 	} else if (RegExMatch(message, "^Du (.*) in der Mülltonne gefunden.$", message_)) {
 		if (RegExMatch(message_1, "^hast nichts$", msg_)) {
 			Loop % array_Trashcan.MaxIndex() {
-				if (IsPlayerInRangeOfPoint(array_Trashcan[A_Index][1], array_Trashcan[A_Index][2], array_Trashcan[A_Index][3], 5)) {
-					array_Trashcan[A_Index][5] := 15 * 60
-					SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "15 Minuten" . cWhite . " gesetzt!")
-				}
+				updateTrashcan(A_Index,  15*60)
 			}		
-			
 			nothing := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashNothing&value=1")
 			iniWrite, %nothing%, ini/Stats.ini, Mülltonnen, nothing
-			
 			SendInfo("Du hast bereits " . cSecond . formatNumber(nothing) . cwhite . " nichts in Mülltonnen gefunden.")
 		} else if (RegExMatch(message_1, "^hast ein Lagerfeuer$", msg_)) {
 			Loop % array_Trashcan.MaxIndex() {
-				if (IsPlayerInRangeOfPoint(array_Trashcan[A_Index][1], array_Trashcan[A_Index][2], array_Trashcan[A_Index][3], 5)) {
-					array_Trashcan[A_Index][5] := 30 * 60
-					SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
-				}
+				updateTrashcan(A_Index, 30*60)
 			}				
 			
 			campfire:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashCampfire&value=1")
@@ -12337,10 +12389,7 @@ handleChatMessage(message, index, arr) {
 			getItems()
 		} else if (RegExMatch(message_1, "^hast (.*)\$$", msg_)) {
 			Loop % array_Trashcan.MaxIndex() {
-				if (IsPlayerInRangeOfPoint(array_Trashcan[A_Index][1], array_Trashcan[A_Index][2], array_Trashcan[A_Index][3], 5)) {
-					array_Trashcan[A_Index][5] := 30 * 60
-					SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
-				}
+				updateTrashcan(A_Index, 30*60)
 			}	
 			
 			money := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashMoney&value=" . numberFormat(msg_1))
@@ -12349,10 +12398,7 @@ handleChatMessage(message, index, arr) {
 			SendInfo("Du hast bereits $" . cSecond . formatNumber(money) . cwhite . " in Mülltonnen gefunden.")
 		} else if (RegExMatch(message_1, "^hast (\d+) Stunden (\S+)$", msg_)) {
 			Loop % array_Trashcan.MaxIndex() {
-				if (IsPlayerInRangeOfPoint(array_Trashcan[A_Index][1], array_Trashcan[A_Index][2], array_Trashcan[A_Index][3], 5)) {
-					array_Trashcan[A_Index][5] := 30 * 60
-					SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
-				}
+				updateTrashcan(A_Index, 30*60)
 			}			
 		
 			if (RegExMatch(msg_2, "VIP")) {
@@ -12366,10 +12412,7 @@ handleChatMessage(message, index, arr) {
 			}
 		} else if (RegExMatch(message_1, "^hast (\d+) Respektpunkte$", msg_)) {
 			Loop % array_Trashcan.MaxIndex() {
-				if (IsPlayerInRangeOfPoint(array_Trashcan[A_Index][1], array_Trashcan[A_Index][2], array_Trashcan[A_Index][3], 5)) {
-					array_Trashcan[A_Index][5] := 30 * 60
-					SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
-				}
+				updateTrashcan(A_Index, 30*60)
 			}			
 		
 			respect:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashRespect&value=" . numberFormat(msg_1))
@@ -12378,48 +12421,30 @@ handleChatMessage(message, index, arr) {
 			SendInfo("Du hast bereits " . cSecond . formatNumber(respect) . cwhite . " Respektpunkte in Mülltonnen gefunden.")
 		} else if (RegExMatch(message_1, "^hast (\d+)g Marihuana$", msg_)) {
 			Loop % array_Trashcan.MaxIndex() {
-				if (IsPlayerInRangeOfPoint(array_Trashcan[A_Index][1], array_Trashcan[A_Index][2], array_Trashcan[A_Index][3], 5)) {
-					array_Trashcan[A_Index][5] := 30 * 60
-					SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
-				}
+				updateTrashcan(A_Index, 30*60)
 			}		
 		
 			drugs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashDrugs&value=" . numberFormat(msg_1))
 			iniWrite, %drugs%, ini/Stats.ini, Mülltonnen, drugs
-			
 			SendInfo("Du hast bereits " . cSecond . formatNumber(drugs) . cwhite . "g Drogen in Mülltonnen gefunden.")
-			
 			getItems()
 		} else if (RegExMatch(message_1, "hast (\d+) Materialien$", msg_)) {
 			Loop % array_Trashcan.MaxIndex() {
-				if (IsPlayerInRangeOfPoint(array_Trashcan[A_Index][1], array_Trashcan[A_Index][2], array_Trashcan[A_Index][3], 5)) {
-					array_Trashcan[A_Index][5] := 30 * 60
-					SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
-				}
+				updateTrashcan(A_Index, 30*60)
 			}			
-		
 			mats := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashMats&value=" . numberFormat(msg_1))
 			iniWrite, %mats%, ini/Stats.ini, Mülltonnen, mats
-			
 			SendInfo("Du hast bereits " . cSecond . formatNumber(mats) . cwhite . " Materialien in Mülltonnen gefunden.")
 		} else if (RegExMatch(message_1, "^hast eine Schlagwaffe \((.*)\)$", msg_)) {
 			Loop % array_Trashcan.MaxIndex() {
-				if (IsPlayerInRangeOfPoint(array_Trashcan[A_Index][1], array_Trashcan[A_Index][2], array_Trashcan[A_Index][3], 5)) {
-					array_Trashcan[A_Index][5] := 30 * 60
-					SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
-				}
+				updateTrashcan(A_Index, 30*60)
 			}			
-		
 			weaps := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=trashWeapon&value=1")
 			iniWrite, %weaps%, ini/Stats.ini, Mülltonnen, weaps
-			
 			SendInfo("Du hast bereits " . cSecond . formatNumber(weaps) . cwhite . " Waffen in Mülltonnen gefunden.")
 		} else {
 			Loop % array_Trashcan.MaxIndex() {
-				if (IsPlayerInRangeOfPoint(array_Trashcan[A_Index][1], array_Trashcan[A_Index][2], array_Trashcan[A_Index][3], 5)) {
-					array_Trashcan[A_Index][5] := 30 * 60
-					SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "30 Minuten" . cWhite . " gesetzt.")
-				}
+				updateTrashcan(A_Index, 30*60)
 			}					
 		}
 	} else if (RegExMatch(message, "^Der Spieler befindet sich in Gebäudekomplex (.*)$", message_)) {
@@ -12433,7 +12458,7 @@ handleChatMessage(message, index, arr) {
 			agent_ID := agent_1
 		}
 		
-		if (message_1 == getUserName() || agent_ID == agentID) {
+		if (message_1 == getUsername() || agent_ID == agentID) {
 			for index, grabName in grabList {
 				if (grabName == message_2) {
 					isArrested := true
@@ -12491,7 +12516,7 @@ handleChatMessage(message, index, arr) {
 			}
 		}
 	} else if (RegExMatch(message, "^\* (\S+) hat seine Kevlarweste (.*)$", message_)) {
-		if (getUserName() == message_1) {			
+		if (getUsername() == message_1) {			
 			if (inStr(message, "abgelegt")) {
 				isZivil := 1
 				
@@ -12508,7 +12533,7 @@ handleChatMessage(message, index, arr) {
 		isZivil := 0
 	} else if (RegExMatch(message, "^(\S+) sagt: (.+)", message_)) {
 		if (!tv) {
-			if (message_1 != getUserName()) {	
+			if (message_1 != getUsername()) {	
 				if (inStr(message_2, "ticket") || inStr(message_2, "tkt") || inStr(message_2, "tigget")) {
 					requestName := message_1
 					
@@ -12526,7 +12551,7 @@ handleChatMessage(message, index, arr) {
 		}
 	} else if (RegExMatch(message, "^\*\* (.*) \*\*$", message_)) {	
 		if (RegExMatch(message_1, "^(.*) (\S+): Der Spieler (\S+) \(ID: (\d+)\) (.*)\.$", dchat_)) {
-			if (dchat_2 != getUserName() && autoExecute) {
+			if (dchat_2 != getUsername() && autoExecute) {
 				wantedIA := dchat_3
 				wantedContracter := dchat_2
 				wantedIAReason := dchat_5
@@ -12534,7 +12559,7 @@ handleChatMessage(message, index, arr) {
 				SetTimer, WantedIATimer, 1
 			}
 		} else if (RegExMatch(message_1, "^(.*) (\S+): Ich konnte bei dem Spieler (\S+) \(ID: (\d+)\) (\S+) festgellen\.$", dchat_)) {
-			if (dchat_2 != getUserName() && autoExecute) {
+			if (dchat_2 != getUsername() && autoExecute) {
 				wantedIA := dchat_3
 				wantedContracter := dchat_2
 				wantedIAReason := dchat_5
@@ -12542,7 +12567,7 @@ handleChatMessage(message, index, arr) {
 				SetTimer, WantedIATimer, 1
 			}	
 		} else if (RegExMatch(message_1, "^(.+) (\S+): HQ: Bitte Zollstation (\S+) schließen!$", dchat_)) {
-			if (dchat_2 != getUserName()) {
+			if (dchat_2 != getUsername()) {
 				if (rank > 4) {
 					closeZoll := dchat_3
 					
@@ -12550,7 +12575,7 @@ handleChatMessage(message, index, arr) {
 				}
 			}
 		} else if (RegExMatch(message_1, "^(.+) (\S+): HQ: Bitte Zollstation (\S+) öffnen!$", dchat_)) {
-			if (dchat_2 != getUserName()) {		
+			if (dchat_2 != getUsername()) {		
 				if (rank > 4) {
 					openZoll := dchat_3
 					
@@ -12558,7 +12583,7 @@ handleChatMessage(message, index, arr) {
 				}
 			}
 		} else if (RegExMatch(message_1, "^(.+) (\S+): HQ: Verstärkung wird NICHT mehr benötigt!$", dchat_)) {
-			if (dchat_2 != getUserName()) {
+			if (dchat_2 != getUsername()) {
 				indexRemove := -1
 				
 				for index, entry in backups {
@@ -12576,7 +12601,7 @@ handleChatMessage(message, index, arr) {
 				}	
 			}
 		} else if (RegExMatch(message_3, "^(.+) (\S+): HQ: (\S+) hat mich in (.+) getötet, Backup NICHT mehr nötig!$", dchat_)) {
-			if (dchat_2 != getUserName()) {
+			if (dchat_2 != getUsername()) {
 				indexRemove := -1
 				
 				for index, entry in backups {
@@ -12594,7 +12619,7 @@ handleChatMessage(message, index, arr) {
 				}	
 			}
 		} else if (RegExMatch(message_3, "^(.+) (\S+): HQ: Ich bin in (.+) gestorben, Backup NICHT mehr nötigt!$", dchat_)) {
-			if (dchat_2 != getUserName()) {
+			if (dchat_2 != getUsername()) {
 				indexRemove := -1
 				
 				for index, entry in backups {
@@ -12613,14 +12638,14 @@ handleChatMessage(message, index, arr) {
 			}
 		}
 	} else if (RegExMatch(message, "^\*\*\(\( (.+) (\S+): An alle Einheiten: Einsatzziel ist (\S+) \(ID: (\d+)\)\. Alle SOFORT ausrücken! \)\)\*\*$", line_)) {
-		if (line_2 != getUserName()) {
+		if (line_2 != getUsername()) {
 			target := line_3
 			targetid := line_4
 			
 			SetTimer, TargetTimer, 1
 		}
 	} else if (RegExMatch(message, "^HQ: (.+) (\S+): An alle Einheiten: Einsatzziel ist (\S+) \(ID: (\d+)\)\. Alle SOFORT ausrücken!$", line_)) {
-		if (line_2 != getUserName()) {
+		if (line_2 != getUsername()) {
 			target := line_3
 			targetid := line_4
 			
@@ -12757,14 +12782,14 @@ handleChatMessage(message, index, arr) {
 		
 		hasEquip := 1
 	} else if (RegExMatch(message, "^\HQ: (.+) (\S+) hat eine Straßensperre in (.+) aufgebaut\.", line0_)) {
-		if (line0_2 == getUserName())  {
+		if (line0_2 == getUsername())  {
 			roadblocks := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=roadblock&value=1")
 			IniWrite, %roadblocks%, ini/Stats.ini, Allgemein, Roadblocks
 			
 			SendInfo("Du hast bereits " . csecond . formatNumber(roadblocks) . cwhite . " Straßensperren aufgebaut.")
 		}
 	} else if (RegExMatch(message, "^HQ: (.+) (\S+) hat (\S+) (\d+) (\S+) aus der Akte entfernt\.$", line0_)) {
-		if (line0_2 == getUserName()) {
+		if (line0_2 == getUsername()) {
 			if (line0_5 == "Strafpunkte") {
 				Pointsclear := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=pclear&value=" . numberFormat(line0_4))
 				IniWrite, %Pointsclear%, ini/Stats.ini, Vergaben, Pointsclear
@@ -12973,7 +12998,7 @@ handleChatMessage(message, index, arr) {
 			agent_ID := agent_1
 		}
 		
-		if (getUserName() == message_1 || agentID == agent_ID) {
+		if (getUsername() == message_1 || agentID == agent_ID) {
 			tazer:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=tazer&value=1")
 			IniWrite, %tazer%, ini/Stats.ini, Allgemein, Tazer
 		
@@ -13061,7 +13086,7 @@ handleChatMessage(message, index, arr) {
 				stopFinding()
 			}			
 			
-			if (line1_2 == getUserName()) {
+			if (line1_2 == getUsername()) {
 				Crimekills := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=suspect_kills&value=1")
 				IniWrite, %Crimekills%, ini/Stats.ini, Verhaftungen, Crimekills
 				
@@ -13164,7 +13189,7 @@ handleChatMessage(message, index, arr) {
 				stopFinding()
 			}
 				
-			if (line1_2 == getUserName()) {
+			if (line1_2 == getUsername()) {
 				if (line0_2 > 0) {
 					offlinePrison := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=oprison&value=1")
 					IniWrite, %offlinePrison%, ini/Stats.ini, Verhaftungen, Offlineprison
@@ -13235,7 +13260,7 @@ handleChatMessage(message, index, arr) {
 		
 		storeRobs.Push(storerob)
 	} else if (RegExMatch(message, "^(\S+) hat den Bankräuber (\S+) von (.+) getötet. Der Banküberfall ist gescheitert!$", message_)) {
-		if (getUserName() == message_1) {
+		if (getUsername() == message_1) {
 			indexRemove := -1
 			
 			for index, entry in bankrobs {
@@ -13351,7 +13376,7 @@ handleChatMessage(message, index, arr) {
 			}
 		}
 	} else if (RegExMatch(message, "^HQ: (.+) (\S+) \((\d+)\) benötigt Verstärkung in (.*)\.$", mdcChat_)) {
-		if (mdcChat_2 != getUserName()) {
+		if (mdcChat_2 != getUsername()) {
 			if (backupSound) {
 				SoundSetWaveVolume, 50
 				SoundPlay, %A_ScriptDir%/sounds/bk.mp3
@@ -13403,7 +13428,7 @@ handleChatMessage(message, index, arr) {
 			}
 		}
 	} else if (RegExMatch(message, "SMS: (.+), Sender: (\S+) \((\d+)\)", message_)) {
-		if (message_2 != getUserName()) {	
+		if (message_2 != getUsername()) {	
 			IniWrite, 1, ini/Settings.ini, items, mobilePhone
 	
 			if (infoOvEnabled) {
@@ -13417,7 +13442,7 @@ handleChatMessage(message, index, arr) {
 			}
 		}
 	} else if (RegExMatch(message, "\.\.\.(.+), Sender: (\S+) \((\d+)\)", message_)) {
-		if (message_2 != getUserName()) {
+		if (message_2 != getUsername()) {
 			IniWrite, 1, ini/Settings.ini, items, mobilePhone
 			
 			if (infoOvEnabled) {
@@ -13456,7 +13481,7 @@ handleChatMessage(message, index, arr) {
 			SoundPlay, Nonexistent.avi
 		}
 	} else if (RegExMatch(message, "\* (\S+) geht an sein Handy\.$", message_)) {
-		if (message_1 == getUserName()) {
+		if (message_1 == getUsername()) {
 			IniWrite, 1, ini/Settings.ini, items, mobilePhone
 			
 			if (infoOvEnabled) {
@@ -13469,7 +13494,6 @@ handleChatMessage(message, index, arr) {
 			}	
 		}
 	} else if (RegExMatch(message, "^Du hast dein Handy (\S+)\.$", message_)) {
-		SendChat("Ja")
 		if (inStr(message_1, "abgeschaltet")) {
 			IniWrite, 0, ini/Settings.ini, items, mobilePhone
 		} else if (inStr(message_1, "angeschaltet")) {
@@ -13519,7 +13543,7 @@ handleChatMessage(message, index, arr) {
 
 KillTimer:
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}	
 	
@@ -13666,7 +13690,7 @@ return
 
 MainTimer:
 {	
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}	
 	
@@ -13735,13 +13759,13 @@ MainTimer:
 	}
 	
 	if (afkInfo) {
-		if (!WinExist("GTA:SA:MP")) {
+		if (!WinExist(gta_title)) {
 			IsPlayerIngame := false
-		} else if (WinExist("GTA:SA:MP")) {
+		} else if (WinExist(gta_title)) {
 			IsPlayerIngame := true
 		}
 
-		if (!WinActive("GTA:SA:MP") || IsPlayerInMenu()) {
+		if (!WinActive(gta_title) || IsPlayerInMenu()) {
 			if (IsPlayerIngame) {
 				if (IsAFKStart == 0 && IsAFKEnd == 0) {
 					IsAFKStart := getUnixTimestamp(A_Now)
@@ -14075,7 +14099,7 @@ return
 
 WantedTimer:
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}		
 	
@@ -14136,7 +14160,7 @@ return
 
 SpamTimer:
 {		
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}		
 	
@@ -14149,7 +14173,7 @@ return
 
 TargetTimer:
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}		
 	
@@ -14173,7 +14197,7 @@ return
 
 WantedIATimer:
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}		
 	
@@ -14233,7 +14257,7 @@ return
 
 EscapeTimer:
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}	
 	
@@ -14253,7 +14277,7 @@ return
 
 HitmanTimer:
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}	
 	
@@ -14273,7 +14297,7 @@ return
 
 HelloTimer:
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}		
 	
@@ -14306,7 +14330,7 @@ return
 
 PaketTimer:
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}		
 	
@@ -14336,7 +14360,7 @@ return
 
 PartnerOverlayTimer:
 {
-	if (!WinActive("GTA:SA:MP")) {
+	if (!WinActive(gta_title)) {
 		return
 	}
 	
@@ -14367,7 +14391,7 @@ return
 
 AlertOverlayTimer:
 {
-	if (!WinActive("GTA:SA:MP")) {
+	if (!WinActive(gta_title)) {
 		return
 	}
 	
@@ -14434,13 +14458,13 @@ return
 
 PingOverlayTimer:
 {
-	if (!WinActive("GTA:SA:MP")) {
+	if (!WinActive(gta_title)) {
 		return
 	}
 	
 	if (pingOv) {	
 		playerFPS := getPlayerFPS()
-		playerPing := getPlayerPingById(getID())
+		playerPing := getPlayerPingById(getId() )
 		
 		pingString := ""
 		
@@ -14475,7 +14499,7 @@ return
 
 SpotifyOverlayTimer:
 {
-	if (!WinActive("GTA:SA:MP")) {
+	if (!WinActive(gta_title)) {
 		return
 	}
 	
@@ -14499,7 +14523,7 @@ return
 
 CooldownOverlayTimer:
 {
-	if (!WinActive("GTA:SA:MP")) {
+	if (!WinActive(gta_title)) {
 		return
 	}	
 	
@@ -14557,7 +14581,7 @@ return
 
 PartnerMoneyTimer:
 {	
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}		
 	
@@ -14595,7 +14619,7 @@ return
 
 UncuffTimer:
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}		
 	
@@ -14628,7 +14652,7 @@ return
 
 LottoTimer:
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}		
 	
@@ -14636,37 +14660,24 @@ LottoTimer:
 		if (A_Min == 0 && A_Hour != oldHour) {
 			SendChat("/lotto")
 			
-			if (getUserName() == "jacob.tremblay" || getUserName() == "Jaden.") {
-				oldHour := A_Hour
+			SendInfo("Möchtest du dir ein Lottoticket kaufen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
 			
+			oldHour := A_Hour
+			
+			KeyWait, X, D, T10
+			
+			if (!ErrorLevel && !isInChat() && !IsDialogOpen() && !IsPlayerInMenu()) {
 				if (!lottoNumber) {
 					Random, randomNumber, 1, 100
 					
 					SendChat("/lotto " . randomNumber)
 				} else if (lottoNumber > 100) {
-					SendChat("/lotto " . getId())
+					SendChat("/lotto " . getId() )
 				} else {
 					SendChat("/lotto " . lottoNumber)
-				}					
-			} else {
-				SendInfo("Möchtest du dir ein Lottoticket kaufen? Du kannst mit '" . csecond . "X" . cwhite . "' bestätigen.")
-				
-				oldHour := A_Hour
-				
-				KeyWait, X, D, T10
-				
-				if (!ErrorLevel && !isInChat() && !IsDialogOpen() && !IsPlayerInMenu()) {
-					if (!lottoNumber) {
-						Random, randomNumber, 1, 100
-						
-						SendChat("/lotto " . randomNumber)
-					} else if (lottoNumber > 100) {
-						SendChat("/lotto " . getId())
-					} else {
-						SendChat("/lotto " . lottoNumber)
-					}
-				}			
-			}
+				}
+			}			
+			
 		}
 	} else {
 		SetTimer, LottoTimer, off
@@ -14676,7 +14687,7 @@ return
 
 AutoFindTimer:
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}	
 	
@@ -14731,7 +14742,7 @@ return
 
 CountdownTimer:
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}	
 		
@@ -14769,7 +14780,7 @@ return
 
 TicketTimer:
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG()) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG()) {
 		return
 	}		
 	
@@ -14799,7 +14810,7 @@ return
 
 RespawnCarTimer:
 {
-	if (!WinExist("GTA:SA:MP") || !WinActive("GTA:SA:MP") || !isConnected() || !isConnectedToRPG() || !admin) {
+	if (!WinExist(gta_title) || !WinActive(gta_title) || !isConnected() || !isConnectedToRPG() || !admin) {
 		return
 	}	
 
@@ -14960,8 +14971,11 @@ findInfo(name) {
 	
 	SendInfo("Die Suche nach " . player . " (ID: " . playerID . ") wurde gestartet.")
 	Sleep, 200
-	
 	SendChat("/mdc " . player)
+	
+	playerToFindInput := player
+	autoFindMode := 1
+	findPlayer()
 }
 
 stopFinding(key = 0) {
@@ -14991,7 +15005,7 @@ findPlayer() {
 		if (passengers) {
 			driver := passengers[1]
 			
-			if (driver == -1 || driver == getId()) {
+			if (driver == -1 || driver == getId() ) {
 				autoFindMode := 1
 			} else {
 				autoFindMode := 2
@@ -15007,8 +15021,9 @@ findPlayer() {
 		autoFindMode := 1
 	}
 	
-	GoSub, AutoFindTimer
 	SetTimer, AutoFindTimer, 5500
+	GoSub, AutoFindTimer
+	
 	
 	if (showDriver && autoFindMode == 2) {
 		passengers := getSeatIDs()
@@ -15066,7 +15081,7 @@ giveWanteds(suspect, reason, amount) {
 		suspectLine0 := readChatLine(0)
 		suspectLine1 := readChatLine(1)
 		
-		if (inStr(suspectLine0 . suspectLine1, "Du kannst Beamte keine Wanteds eintrragen.") || inStr(suspectLine0 . suspectLine1, "Der Spieler befindet sich im Gefängnis.")) {
+		if (inStr(suspectLine0 . suspectLine1, "Du kannst Beamte keine Wanteds eintragen.") || inStr(suspectLine0 . suspectLine1, "Der Spieler befindet sich im Gefängnis.")) {
 			return false
 		}
 		
@@ -15168,7 +15183,10 @@ payPartnerMoney(money, stat) {
 	IniRead, paydayMoney, ini/Stats.ini, stats, paydayMoney, 0
 		
 	paydayMoney += money
-	partnerStake := round(money / (partners.Length() + 1), 0)
+	partnerStake := round((money / 1), 0)
+	if(partners.Length() > 0) {
+		partnerStake := round(money / (partners.Length()), 0)
+	}
 	
 	IniWrite, %paydayMoney%, ini/Stats.ini, stats, paydayMoney
 	IniRead, statMoney, ini/Stats.ini, Verhaftungen, Money, 0
@@ -15373,6 +15391,8 @@ check(name) {
 	global autoTake
 	global admin
 	global checkingPlayers
+	global username
+	global password
 	
 	pos := checkingPlayers.Push(getFullName(name))
 	
@@ -15470,6 +15490,7 @@ check(name) {
 			
 			SendChat("/take Materialien " . name)
 			
+			
 			if (matsFound) {
 				mats:= UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=mats&value=" . numberFormat(matsFound))
 				IniWrite, %mats%, ini/Stats.ini, Kontrollen, Mats
@@ -15481,6 +15502,7 @@ check(name) {
 				IniWrite, %matpackets%, ini/Stats.ini, Kontrollen, Matpackets
 				SendInfo("Du hast bereits " . csecond . formatNumber(matpackets) . cwhite . " Materialpakete weggenommen.")
 			} 
+			
 			
 			if (bombsFound) {
 				matbombs := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=matBombs&value=1")
@@ -15598,7 +15620,7 @@ useMegaphone(type) {
 			SendChat("/m << " . department . ", bleiben Sie SOFORT stehen >>")
 		}
 		
-		SendChat("/m << Letzte Mahnung, sollten Sie verweigern, wenden wir härte Maßnahmen an! >>")
+		SendChat("/m << Letzte Warnung, sollten Sie verweigern, wenden wir härte Maßnahmen an! >>")
 
 		SetTimer, ShotAllowedCar, 30000
 		SetTimer, ShotAllowedBike, 5000
@@ -15611,7 +15633,7 @@ useMegaphone(type) {
 		} else {
 			IniRead, department, ini/Settings.ini, settings, department, %A_Space%
 			SendChat("/m << " . playerToFindName . ", bleiben Sie SOFORT stehen! >>")
-			SendChat("/m << Letzte Mahnung, sollten Sie verweigern, wenden wir härte Maßnahmen an! >>")
+			SendChat("/m << Letzte Warnung, sollten Sie verweigern, wenden wir härte Maßnahmen an! >>")
 		
 			SetTimer, ShotAllowedCar, 30000
 			SetTimer, ShotAllowedBike, 5000
@@ -15826,7 +15848,7 @@ addControlsToStats(frisk_name) {
 	Loop, 5 {
 		chat := readChatLine(A_Index - 1)
 	
-		if (inStr(chat, "* " . getUserName() . " hat " . frisk_name . " nach Waffen durchsucht.")) {
+		if (inStr(chat, "* " . getUsername() . " hat " . frisk_name . " nach Waffen durchsucht.")) {
 			if (frisk_name != oldFrisk) {
 				controls := UrlDownloadToVar(baseURL . "api/stats?username=" . username . "&password=" . password . "&action=add&stat=controls&value=1")
 				IniWrite, %controls%, ini/Stats.ini, Kontrollen, controls
@@ -15850,7 +15872,18 @@ getItems() {
 	if (RegExMatch(getDialogText(), "(.*)Drogen: (\d+)g(.*)", drugs_)) {
 		IniWrite, % drugs_2, ini/Settings.ini, Items, drugs
 	}
+		
+	if (RegExMatch(getDialogText(), "(.*)Coins: (\d+)(.*)", coins_)) {
+		IniWrite, %coins_2%, ini/settings.ini, Items, coins
+	}
 	
+	if (infoOvEnabled) {
+		ov_Info(0)
+		ov_Info()
+	}
+	SendInput, {Enter}
+	SendChat("/inventory")
+	sleep, 200
 	if (inStr(getDialogText(), "Erste-Hilfe-Paket")) {
 		IniWrite, 1, ini/Settings.ini, Items, firstaid
 	} else {
@@ -15864,21 +15897,13 @@ getItems() {
 	}
 	
 	if (inStr(getDialogText(), "Lagerfeuer")) {	
-		if (RegExMatch(getDialogText(), "(.*)Lagerfeuer \((\d+)\)(.*)", campfire_)) {
-			iniWrite, % campfire_2, ini/Settings.ini, Items, campfire
+		if (RegExMatch(getDialogText(), "(.*)Lagerfeuer(\s+)(\d+)(.*)", campfire_)) {
+			iniWrite, %campfire_3%, ini/Settings.ini, Items, campfire
 		}
 	} else {
 		iniWrite, 0, ini/Settings.ini, Items, campfire	
 	}
-		
-	if (RegExMatch(getDialogText(), "(.*)Coins: (\d+)(.*)", coins_)) {
-		IniWrite, %coins_2%, ini/settings.ini, Items, coins
-	}
-	
-	if (infoOvEnabled) {
-		ov_Info(0)
-		ov_Info()
-	}
+	SendInput, {Enter}
 }
 
 reconnectRPG() {	
@@ -15949,6 +15974,7 @@ reconnectRPG() {
 	global localTimeout_ 		:= true
 	global garbageTimeout_		:= true 
 	global fishSellTimeout_		:= true
+	global trashEnter					:= false
 
 	global overlayEnabled		:= false
 	global spotifyOvEnabled		:= false 
@@ -16679,23 +16705,6 @@ weaponShort(id) {
 	return "einer"
 }
 
-getLocation() {
-	global
-	
-	zone := getPlayerZone()
-	city := getPlayerCity()
-	
-	if (!getPlayerInteriorID()) {
-		if (city == "" || city == "Unbekannt") {
-			return zone
-		} else {
-			return zone . ", " . city
-		}
-	} else {
-		return "Interior-ID " . getPlayerInteriorID()
-	}
-}
-
 forceStats() {
 	global
 
@@ -16705,26 +16714,36 @@ forceStats() {
 	unblockDialog()
 }
 
-setTrashTime(line) {
+setTrashTime(line, ttime) {
 	global
 	
 	Loop % array_Trashcan.MaxIndex() {
-		if (isPlayerInRangeOfPoint(array_Trashcan[A_Index][1], array_Trashcan[A_Index][2], array_Trashcan[A_Index][3], 5)) {
+		if (isPlayerInRangeOfPoint(array_Trashcan[A_Index]["posX"], array_Trashcan[A_Index]["posY"], array_Trashcan[A_Index]["posZ"], 20)) {
 			split := StrSplit(line, A_Space)
-			min := split[12]
+			min := ttime
 			
 			if (inStr(line, "Sekunden.")) {
 				min := 1
 			}
 			
-			array_Trashcan[A_Index][5] := 60 * min
+			array_Trashcan[A_Index]["blocked"] := 60 * min
 			
 			if (min == 1) {
-				SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . "eine Minute" . cWhite . " gesetzt.")
+				SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[A_Index]["id"] . cWhite . " wurde auf " . cSecond . "eine Minute" . cWhite . " gesetzt.")
 			} else {
-				SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[A_Index][6] . cWhite . " wurde auf " . cSecond . min . " Minuten" . cWhite . " gesetzt.")
+				SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[A_Index]["id"] . cWhite . " wurde auf " . cSecond . min . " Minuten" . cWhite . " gesetzt.")
 			}
+			UrlDownloadToVar(baseURL . "api/muelltonnen/updateTonne?id=" . array_Trashcan[A_Index]["id"] . "&updaterName=" . username . "&time=" . min*60)
 		}
+	}
+}
+
+updateTrashcan(index, time){
+	global
+	if (isPlayerInRangeOfPoint(array_Trashcan[A_Index]["posX"], array_Trashcan[A_Index]["posY"], array_Trashcan[A_Index]["posZ"], 20)) {
+		array_Trashcan[index]["blocked"] := time
+		SendInfo("Die Zeit von Mülltonne " . cSecond . array_Trashcan[index]["id"] . cWhite . " wurde auf " . cSecond . round((time/60)) " Minuten" . cWhite . " gesetzt!")
+		res:= UrlDownloadToVar(baseURL . "api/muelltonnen/updateTonne?id=" . array_Trashcan[index]["id"] . "&updaterName=" . username . "&time=" . time)
 	}
 }
 
@@ -16732,14 +16751,15 @@ onDialogResponse() {
 	global
 	
 	if (GetDialogCaption() == "Übersicht der Mülltonnen") {
-		if (!IsDialogButton1Selected() && !doubleClick) {
-			doubleClick := true
-			SetTimer, DoubleClickTimer, 250
+		if (!trashEnter) {
 			return
 		}
-		
-		SetCheckPoint(array_Trashcan[GetDialogIndex()][1], array_Trashcan[GetDialogIndex()][2], array_Trashcan[GetDialogIndex()][3], 5)
-		SendInfo("Mülltonne " . cSecond . array_Trashcan[GetDialogIndex()][6] . cWhite . " in " . cSecond . array_Trashcan[GetDialogIndex()][4] . cWhite . " wurde markiert.")
+		SetCheckPoint(array_Trashcan[GetDialogIndex()]["posX"], array_Trashcan[GetDialogIndex()]["posY"], array_Trashcan[GetDialogIndex()]["posZ"], 5)
+		zone := calculateZone(array_Trashcan[GetDialogIndex()]["posX"], array_Trashcan[GetDialogIndex()]["posY"], array_Trashcan[GetDialogIndex()]["posZ"])
+		city := calculateCity(array_Trashcan[GetDialogIndex()]["posX"], array_Trashcan[GetDialogIndex()]["posY"], array_Trashcan[GetDialogIndex()]["posZ"])
+		zc := zone . ", " . city
+		SendInfo("Mülltonne " . cSecond . array_Trashcan[GetDialogIndex()]["id"] . cWhite . " in " . cSecond . zc . cWhite . " wurde markiert.")
+		trashEnter := false
 	}
 }
 
@@ -16933,8 +16953,8 @@ sendLine(line, local := false) {
 	IniRead, pakcooldown, ini/Settings.ini, Cooldown, pakcooldown, 0
 	
 	line := StrReplace(line, "[name]", getUsername())
-	line := StrReplace(line, "[id]", getId())
-	line := StrReplace(line, "[ping]", getPlayerPingById(getId()))
+	line := StrReplace(line, "[id]", getId() )
+	line := StrReplace(line, "[ping]", getPlayerPingById(getId() ))
 	line := StrReplace(line, "[fps]", getPlayerFps())
 	line := StrReplace(line, "[zone]", getPlayerZone())
 	line := StrReplace(line, "[city]", getPlayerCity())
@@ -17067,8 +17087,8 @@ sendToHotkey(text, check = 0) {
 checkVars(String) {
 	global
 	
-	_userName := getUserName()
-	_userID := getId()
+	_userName := getUsername()
+	_userID := getId() 
 	_fps := getPlayerFPS()
 	_ping := getPlayerPingById(_userID)
 	_score := getPlayerScoreById(_userID)
@@ -17465,20 +17485,24 @@ destroyOverlay() {
 	destroyAllVisual()
 }
 
-/*
-- Wenn man jemanden findet und mit /afind direkt jemand neues Finden möchte hat mein nun keine Verzögerung mehr.
-- Wenn ein Hitman einen Verbrecher befreien möchte kann man dem flüchtigen nun Wanteds mit X ausstellen.
-- Wenn ein Hitman einen Verbrecher befreit hat kann man diesen Hitman Wanteds mit X ausstellen.
-- Wenn ein Hitman einen Verbrecher befreit erfolgt nun ein Countdown im Chat + SoundBeep
-- Das Overlay wird nun zerstört, wenn man den Keybinder startet (um doppel-Overlayanzeigen zu vermeiden).
-- Man kann sich mit '/heal' jetzt immer heilen, unabhängig davon, wie viel HP / AM man hat.
-- Wenn man sich nicht healen kann, wird dies am Healpoint direkt angezeigt. 
-- Wenn man nun an einer Tankstelle tankt, die ein Fixveh-Point hat, wird das Fahrzeug nun zusätzlich repariert.
-- Die Variable [AM] wurde hinzugefügt, welche die Armor des Spielers ausgibt.
-- Die Variable [MKILLS] wurde hinzugefügt, welche die Monats-Kills ausgibt.
-- Die Variable [MDEATHS] wurde hinzugefügt, welche die Monats-Tode ausgibt.
-- Die Variable [MKD] wurde hinzugefügt, welche die Monats-K/D ausgibt.
-- Die Variable [KILLPLACEFULL] wurde entfernt.
-- Die Variable [DEATHPLACEFULL] wurde entfernt.
-- Fehler behoben, dass die K/D falsch ausgerechnet wurde, wenn man 0 Tode hatte (Variablen [KD] & [DKD])
-- Weitere Fehler am Overlay behoben.
+loadTrashcans() {
+	global
+	trashCansRes := UrlDownloadToVar(baseURL . "api/muelltonnen/getMuelltonnen")
+	trashCans := JSON.load(trashCansRes)
+	
+	for newIndex, newEntry in trashCans {
+		contains := false
+	
+		for index, entry in array_Trashcan {
+			if (entry["id"] == newEntry["id"]) {
+				contains := true
+				entry["updaterName"] := newEntry["updaterName"]
+				entry["blocked"] := newEntry["blocked"]
+			}
+		}
+		
+		if (!contains) {
+			array_Trashcan.Push(newEntry)
+		}
+	}
+}

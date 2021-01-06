@@ -1,3 +1,18 @@
+﻿; #### SAMP UDF R15 ####
+; SAMP Version: 0.3.7
+; Written by Chuck_Floyd 
+; https://github.com/FrozenBrain
+; Modified by Suchty112
+; https://github.com/Suchty112
+; Modified by: paul-phoenix
+; https://github.com/paul-phoenix
+; Modified by: Agrippa1994
+; https://github.com/agrippa1994
+; Modified by: RawDev and ELon
+; Do not remove these lines.
+; ####################
+
+; ErrorLevels
 global ERROR_OK                     := 0
 global ERROR_PROCESS_NOT_FOUND      := 1
 global ERROR_OPEN_PROCESS           := 2
@@ -13,6 +28,7 @@ global ERROR_FREE_MEMORY            := 11
 global ERROR_WAIT_FOR_OBJECT        := 12
 global ERROR_CREATE_THREAD          := 13
 
+; GTA Addresses
 global ADDR_ZONECODE                := 0xA49AD4      ;Player Zone
 global ADDR_POSITION_X              := 0xB6F2E4      ;Player X Position
 global ADDR_POSITION_Y              := 0xB6F2E8      ;Player Y Position
@@ -42,6 +58,7 @@ global oweaponNames := ["Fist","Brass Knuckles","Golf Club","Nightstick","Knife"
 global oradiostationNames := ["Playback FM", "K Rose", "K-DST", "Bounce FM", "SF-UR", "Radio Los Santos", "Radio X", "CSR 103.9", "K-JAH West", "Master Sounds 98.3", "WCTR Talk Radio", "User Track Player", "Radio Off"]
 global oweatherNames := ["EXTRASUNNY_LA", "SUNNY_LA", "EXTRASUNNY_SMOG_LA", "SUNNY_SMOG_LA", "CLOUDY_LA", "SUNNY_SF", "EXTRASUNNY_SF", "CLOUDY_SF", "RAINY_SF", "FOGGY_SF", "SUNNY_VEGAS", "EXTRASUNNY_VEGAS", "CLOUDY_VEGAS", "EXTRASUNNY_COUNTRYSIDE", "SUNNY_COUNTRYSIDE", "CLOUDY_COUNTRYSIDE", "RAINY_COUNTRYSIDE", "EXTRASUNNY_DESERT", "SUNNY_DESERT", "SANDSTORM_DESERT", "UNDERWATER", "EXTRACOLOURS_1", "EXTRACOLOURS_2"]
 
+; SAMP Addresses
 global ADDR_SAMP_INCHAT_PTR             := 0x21a10c
 global ADDR_SAMP_INCHAT_PTR_OFF         := 0x55
 global ADDR_SAMP_USERNAME               := 0x219A6F
@@ -52,7 +69,7 @@ global ADDR_SAMP_CHATMSG_PTR            := 0x21a0e4
 global FUNC_SAMP_SHOWGAMETEXT           := 0x9c2c0
 global FUNC_SAMP_PLAYAUDIOSTR           := 0x62da0
 global FUNC_SAMP_STOPAUDIOSTR           := 0x629a0
-
+; ########################## Dialog Styles ##########################
 global DIALOG_STYLE_MSGBOX			:= 0
 global DIALOG_STYLE_INPUT 			:= 1
 global DIALOG_STYLE_LIST			:= 2
@@ -60,6 +77,8 @@ global DIALOG_STYLE_PASSWORD		:= 3
 global DIALOG_STYLE_TABLIST			:= 4
 global DIALOG_STYLE_TABLIST_HEADERS	:= 5
 
+
+; ######################### Dialog Structure #########################
 global SAMP_DIALOG_STRUCT_PTR					:= 0x21A0B8
 global SAMP_DIALOG_PTR1_OFFSET				:= 0x1C
 global SAMP_DIALOG_LINES_OFFSET 			:= 0x44C
@@ -98,8 +117,9 @@ global SAMP_PLAYER_MAX                      := 1004
 global CheckpointCheck 						:= 0xC7DEEA
 global rmaddrs 								:= [0xC7DEC8, 0xC7DECC, 0xC7DED0]
 
+; Sizes
 global SIZE_SAMP_CHATMSG := 0xFC
-
+; Internal
 global hGTA := 0x0
 global dwGTAPID := 0x0
 global dwSAMP := 0x0
@@ -116,7 +136,7 @@ global bInitZaC := 0
 global iRefreshScoreboard := 0
 global oScoreboardData := ""
 global iRefreshHandles := 0
-global iUpdateTick := 2500 
+global iUpdateTick := 2500 ;time in ms, used for getPlayerNameById etc. to refresh data
 
 ; ###############################################################################################################################
 ; # 														                                                                    #
@@ -154,17 +174,17 @@ global iUpdateTick := 2500
 ; ###############################################################################################################################
 ; # SAMP Dialog Funktionen (v0.3.7):																	                        #
 ; # --------------------------------------------------------------------------------------------------------------------------- #
-; #	- isDialogOpen() - Pr?? ob gerade ein Dialog angezeigt wird (gibt true oder false zur??	                        		#
+; #	- isDialogOpen() - Pr�ft, ob gerade ein Dialog angezeigt wird (gibt true oder false zur�ck)	                        		#
 ; #	- getDialogStyle() - Liest den Typ des (zuletzt) angezeigten Dialogs aus (0-5)                      						#
 ; #	- getDialogID() - Liest die ID des (zuletzt) angezeigten Dialogs aus (auch vom Server)	                        			#
 ; #	- setDialogID(id) - Setzt die ID des (zuletzt) angezeigten Dialogs auf [id]				                        			#
-; #	- getDialogIndex() - Liest die (zuletzt) ausgew?te Zeile des Dialogs aus 				                        			#
-; #	- getDialogCaption() - Liest die ?erschrift des (zuletzt) angezeigten Dialogs aus 			                        		#
+; #	- getDialogIndex() - Liest die (zuletzt) ausgew�hlte Zeile des Dialogs aus 				                        			#
+; #	- getDialogCaption() - Liest die �berschrift des (zuletzt) angezeigten Dialogs aus 			                        		#
 ; #	- getDialogText() - Liest den Text des (zuletzt) angezeigten Dialogs aus (auch bei Listen)                              	#
 ; #	- getDialogLineCount() - Liest die Anzahl der Zeilen/Items des (zuletzt) angezeigten Dialogs aus                        	#
 ; #	- getDialogLine(index) - Liest die Zeile an der Stelle [index] mittels getDialogText aus 		                        	#
-; #	- getDialogLines() - Liest die Zeilen mittels getDialogText aus (gibt ein Array zur??			                        	#
-; #	- isDialogButton1Selected() - Pr?? ob Button1 des Dialogs ausgew?t ist 						                        	#
+; #	- getDialogLines() - Liest die Zeilen mittels getDialogText aus (gibt ein Array zur�ck)			                        	#
+; #	- isDialogButton1Selected() - Pr�ft, ob Button1 des Dialogs ausgew�hlt ist 						                        	#
 ; # - getDialogStructPtr() - Liest den Base Pointer zur Dialogstruktur aus (intern genutzt)			                        	#
 ; #																									                        	#
 ; #	- showDialog(style, caption, text, button1, button2, id) - Zeigt einen Dialog an (nur lokal)	                        	#
@@ -310,6 +330,8 @@ global iUpdateTick := 2500
 ; # - __unicodeToAnsi(wString, nLen = 0)                                                                                        #
 ; ###############################################################################################################################
 
+; ##### SAMP-Funktionen #####
+
 IsSAMPAvailable() {
     if(!checkHandles())
         return false
@@ -371,6 +393,7 @@ getId() {
     return getPlayerIdByName(s)
 }
 
+
 SendChat(wText) {
      wText := "" wText
     
@@ -391,6 +414,7 @@ SendChat(wText) {
 }
 
 addChatMessage(wText) {
+    wText := "" wText
 
     if(!checkHandles())
         return false
@@ -403,9 +427,6 @@ addChatMessage(wText) {
     }
     
     callWithParams(hGTA, dwFunc, [["p", dwChatInfo], ["s", wText]], true)
-    SetChatLineRed(0, 0xFF)
-    SetChatLineGreen(0, 0xFF)
-    SetChatLineBlue(0, 0x00)
     
     ErrorLevel := ERROR_OK
     return true
@@ -538,7 +559,7 @@ getServerName() {
     if(!checkHandles())
         return -1
     
-    dwAdress := readMem(hGTA, dwSAMP + 0x21A0F8, 4, "int")
+    dwAdress := readMem(hGTA, dwSAMP + SAMP_INFO_OFFSET, 4, "int")
     if(ErrorLevel) {
         ErrorLevel := ERROR_READ_MEMORY
         return -1
@@ -562,7 +583,7 @@ getServerIP() {
     if(!checkHandles())
         return -1
     
-    dwAdress := readMem(hGTA, dwSAMP + 0x21A0F8, 4, "int")
+    dwAdress := readMem(hGTA, dwSAMP + SAMP_INFO_OFFSET, 4, "int")
     if(ErrorLevel) {
         ErrorLevel := ERROR_READ_MEMORY
         return -1
@@ -585,7 +606,7 @@ getServerPort() {
     if(!checkHandles())
         return -1
     
-    dwAdress := readMem(hGTA, dwSAMP + 0x21A0F8, 4, "int")
+    dwAdress := readMem(hGTA, dwSAMP + SAMP_INFO_OFFSET, 4, "int")
     if(ErrorLevel) {
         ErrorLevel := ERROR_READ_MEMORY
         return -1
@@ -629,6 +650,8 @@ getWeatherName() {
     }
     return ""
 }
+
+; ##### Extra-Player-Funktionen #####
 
 getTargetPed() {
 	if(!checkHandles())
@@ -827,7 +850,7 @@ getDist(pos1,pos2) {
 }
 
 getClosestPlayerPed() {
-    dist := 0x7fffffff            
+    dist := 0x7fffffff              ;max int32
     p := getStreamedInPlayersInfo()
 	if(!p)
 		return -1
@@ -849,7 +872,7 @@ getClosestPlayerPed() {
 }
 
 getClosestPlayerId() {
-    dist := 0x7fffffff              
+    dist := 0x7fffffff              ;max int32
     p := getStreamedInPlayersInfo()
 	if(!p)
 		return -1
@@ -870,24 +893,21 @@ getClosestPlayerId() {
 }
 
 CountOnlinePlayers() {
-    if(!checkHandles())
-        return -1
-    
-    dwOnline := readDWORD(hGTA, dwSAMP + 0x21A0B4)
-    if(ErrorLevel) {
-        ErrorLevel := ERROR_READ_MEMORY
-        return -1
-    }
-    
-    dwAddr := dwOnline + 0x4
-    OnlinePlayers := readDWORD(hGTA, dwAddr)
-    if(ErrorLevel) {
-        ErrorLevel := ERROR_READ_MEMORY
-        return -1
-    }
-    
-    ErrorLevel := ERROR_OK
-    return OnlinePlayers
+if(!checkHandles())
+return -1
+dwOnline := readDWORD(hGTA, dwSAMP + 0x21A0B4)
+if(ErrorLevel) {
+ErrorLevel := ERROR_READ_MEMORY
+return -1
+}
+dwAddr := dwOnline + 0x4
+OnlinePlayers := readDWORD(hGTA, dwAddr)
+if(ErrorLevel) {
+ErrorLevel := ERROR_READ_MEMORY
+return -1
+}
+ErrorLevel := ERROR_OK
+return OnlinePlayers
 }
 
 getPedCoordinates(dwPED) {
@@ -955,7 +975,6 @@ getTargetPos(dwId) {
 		if(oScoreboardData[dwId].HasKey("MPOS"))
 			return oScoreboardData[dwId].MPOS
 	}
-    
     return ""
 }
 
@@ -990,6 +1009,8 @@ getTargetPlayerSkinIdById(dwId) {
     ErrorLevel := ERROR_OK
     return SkinID
 }
+
+; ##### Extra-Player-Fahrzeug-Funktionenn #####
 
 getVehiclePointerByPed(dwPED) {
     dwPED += 0
@@ -1408,7 +1429,7 @@ getTargetVehicleSpeedByPed(dwPED) {
     fSpeedZ := readMem(hGTA, dwAddr + ADDR_VEHICLE_Z, 4, "float")
     
     fVehicleSpeed :=  sqrt((fSpeedX * fSpeedX) + (fSpeedY * fSpeedY) + (fSpeedZ * fSpeedZ))
-    fVehicleSpeed := (fVehicleSpeed * 100) * 1.43      
+    fVehicleSpeed := (fVehicleSpeed * 100) * 1.43           ;Der Wert "1.43" ist meistens auf jedem Server anders. Die Geschwindigkeit wird somit erhöht bzw. verringert
  
 	return fVehicleSpeed
 }
@@ -1424,10 +1445,11 @@ getTargetVehicleSpeedById(dwId) {
     fSpeedZ := readMem(hGTA, dwAddr + ADDR_VEHICLE_Z, 4, "float")
     
     fVehicleSpeed :=  sqrt((fSpeedX * fSpeedX) + (fSpeedY * fSpeedY) + (fSpeedZ * fSpeedZ))
-    fVehicleSpeed := (fVehicleSpeed * 100) * 1.43       
+    fVehicleSpeed := (fVehicleSpeed * 100) * 1.43           ;Der Wert "1.43" ist meistens auf jedem Server anders. Die Geschwindigkeit wird somit erhöht bzw. verringert
  
 	return fVehicleSpeed
 }
+; ##### Scoreboard-Funktionen #####
 
 getPlayerNameById(dwId) {
     dwId += 0
@@ -1555,12 +1577,13 @@ isNPCById(dwId) {
     return -1
 }
 
+; internal stuff
 updateScoreboardDataEx() {
     
     if(!checkHandles())
         return false
     
-    dwAddress := readDWORD(hGTA, dwSAMP + SAMP_INFO_OFFSET)          
+    dwAddress := readDWORD(hGTA, dwSAMP + SAMP_INFO_OFFSET)            ;g_SAMP
     if(ErrorLevel || dwAddress==0) {
         ErrorLevel := ERROR_READ_MEMORY
         return false
@@ -1568,7 +1591,7 @@ updateScoreboardDataEx() {
     
     dwFunc := dwSAMP + FUNC_UPDATESCOREBOARD
     
-    VarSetCapacity(injectData, 11, 0)
+    VarSetCapacity(injectData, 11, 0) ;mov + call + retn
     
     NumPut(0xB9, injectData, 0, "UChar")
     NumPut(dwAddress, injectData, 1, "UInt")
@@ -1594,6 +1617,7 @@ updateScoreboardDataEx() {
     
 }
 
+; internal stuff
 updateOScoreboardData() {
     if(!checkHandles())
         return 0
@@ -1797,6 +1821,10 @@ updateOScoreboardData() {
 }
 
 
+; ##### Sonstiges #####
+; written by David_Luchs %
+; returns nth message of chatlog (beggining from bottom)
+; -1 = error
 GetChatLine(Line, ByRef Output, timestamp=0, color=0){
 	chatindex := 0
 	FileRead, file, %A_MyDocuments%\GTA San Andreas User Files\SAMP\chatlog.txt
@@ -1820,6 +1848,7 @@ GetChatLine(Line, ByRef Output, timestamp=0, color=0){
 	return
 } 
 
+; ##### Spielerfunktionen #####
 getPlayerHealth() {
     if(!checkHandles())
         return -1
@@ -2045,6 +2074,8 @@ IsPlayerFreezed() {
     return IPF
 }
 
+; ##### Fahrzeugfunktionen #####
+
 isPlayerInAnyVehicle()
 {
     if(!checkHandles())
@@ -2211,6 +2242,7 @@ getVehicleLightState() {
     return (dwVal>0)
 }
 
+
 getVehicleEngineState() {
     if(!checkHandles())
         return -1
@@ -2233,6 +2265,7 @@ getVehicleEngineState() {
     ErrorLevel := ERROR_OK
     return (cVal==24 || cVal==56 || cVal==88 || cVal==120)
 }
+
 
 getVehicleLockState() {
     if(!checkHandles())
@@ -2320,7 +2353,7 @@ getVehicleSpeed() {
     fSpeedZ := readMem(hGTA, dwAddr + ADDR_VEHICLE_Z, 4, "float")
     
     fVehicleSpeed :=  sqrt((fSpeedX * fSpeedX) + (fSpeedY * fSpeedY) + (fSpeedZ * fSpeedZ))
-    fVehicleSpeed := (fVehicleSpeed * 100) * 1.43          
+    fVehicleSpeed := (fVehicleSpeed * 100) * 1.43           ;Der Wert "1.43" ist meistens auf jedem Server anders. Die Geschwindigkeit wird somit erhöht bzw. verringert
  
 	return fVehicleSpeed
 }
@@ -2358,6 +2391,7 @@ getPlayerRadiostationName() {
     return ""
 }
 
+; ##### Checkpointsachen #####
 setCheckpoint(fX, fY, fZ, fSize := 7) {
     if(!checkHandles())
         return false
@@ -2439,7 +2473,7 @@ CoordsFromRedmarker(){
     f%i% := readFloat(hGTA, v)
     return [f1, f2, f3]
 }
-
+; ##### Positionsbestimmung #####
 getCoordinates() {
     if(!checkHandles())
         return ""
@@ -2491,6 +2525,7 @@ GetPlayerPos(ByRef fX,ByRef fY,ByRef fZ) {
         ErrorLevel := ERROR_OK
 }
 
+; ######################### Dialog Functions #########################
 getDialogStructPtr() {
 	if (!checkHandles()) {
 		ErrorLevel := ERROR_INVALID_HANDLE
@@ -2767,7 +2802,7 @@ showDialog(style, caption, text, button1, button2 := "", id := 1) {
 	button1 := "" button1
 	button2 := "" button2
 
-	if (id < 0 || id > 32767 || style < 0 || style > 5 || StrLen(caption) > 64 || StrLen(text) > 4096 || StrLen(button1) > 10 || StrLen(button2) > 10)
+	if (id < 0 || id > 32767 || style < 0 || style > 5 || StrLen(caption) > 128 || StrLen(text) > 4096 || StrLen(button1) > 10 || StrLen(button2) > 10)
 		return false
 
 	if (!checkHandles())
@@ -2794,6 +2829,7 @@ showDialog(style, caption, text, button1, button2 := "", id := 1) {
 	if (ErrorLevel)
 		return false
 
+	;mov + 7 * push + call + retn
 	dwLen := 5 + 7 * 5 + 5 + 1
 	VarSetCapacity(injectData, dwLen, 0)
 
@@ -2832,6 +2868,7 @@ showDialog(style, caption, text, button1, button2 := "", id := 1) {
 
 	return true
 }
+
 
 initZonesAndCities() {
     AddCity("Las Venturas", 685.0, 476.093, -500.0, 3000.0, 3000.0, 500.0)
@@ -3277,6 +3314,16 @@ calculateCity(posX, posY, posZ) {
     return smallestCity
 }
 
+/*
+;do not work?
+getCurrentZonecode() {
+    if(!checkHandles())
+        return ""
+    
+    return readString(hGTA, ADDR_ZONECODE, 5)
+}
+*/
+
 AddZone(sName, x1, y1, z1, x2, y2, z2) {
     global
     zone%nZone%_name := sName
@@ -3334,7 +3381,6 @@ getPlayerCity()
 	aktPos := getCoordinates()
 	return calculateCity(aktPos[1], aktPos[2], aktPos[3])
 }
-
 AntiCrash(){
     If(!checkHandles())
         return false
@@ -3371,7 +3417,7 @@ writeMemory(hProcess,address,writevalue,length=4, datatype="int") {
   ErrorLevel := ERROR_OK
   return true
 }
-
+; ##### Sonstiges #####
 checkHandles() {
     if(iRefreshHandles+500>A_TickCount)
         return true
@@ -3385,10 +3431,11 @@ checkHandles() {
     return true
 }
 
+; internal stuff
 refreshGTA() {
-    newPID := getPID(gta_title) 
-    if (!newPID) {
-        if (hGTA) {
+    newPID := getPID(gta_title)
+    if(!newPID) {                            ; GTA not found
+        if(hGTA) {                            ; open handle
             virtualFreeEx(hGTA, pMemory, 0, 0x8000)
             closeProcess(hGTA)
             hGTA := 0x0
@@ -3400,9 +3447,9 @@ refreshGTA() {
         return false
     }
     
-    if (!hGTA || (dwGTAPID != newPID)) {
+    if(!hGTA || (dwGTAPID != newPID)) {        ; changed PID, closed handle
         hGTA := openProcess(newPID)
-        if (ErrorLevel) {
+        if(ErrorLevel) {                    ; openProcess fail
             dwGTAPID := 0
             hGTA := 0x0
             dwSAMP := 0x0
@@ -3417,24 +3464,19 @@ refreshGTA() {
     return true
 }
 
+; internal stuff
 refreshSAMP() {
-    if (dwSAMP)
+    if(dwSAMP)
         return true
     
-    ;applying bypass
     dwSAMP := sampcac_mode ? "0x" + sampdll_base_address : getModuleBaseAddress("samp.dll", hGTA)
-
-    if (!dwSAMP)
+    if(!dwSAMP)
         return false
-
-    versionByte := readMem(hGTA, dwSAMP + 0x1036, 1, "UChar")
-    sampVersion := versionByte == 0xD8 ? 1 : (versionByte == 0xA8 ? 2 : (versionByte == 0x78 ? 3 : 0))
-    if (!sampVersion)
-    	return false
-
+    
     return true
 }
 
+; internal stuff
 refreshMemory() {
     if(!pMemory) {
         pMemory     := virtualAllocEx(hGTA, 6144, 0x1000 | 0x2000, 0x40)
@@ -3452,12 +3494,14 @@ refreshMemory() {
     return true
 }
 
+; internal stuff
 getPID(szWindow) {
     local dwPID := 0
     WinGet, dwPID, PID, %szWindow%
     return dwPID
 }
 
+; internal stuff
 openProcess(dwPID, dwRights = 0x1F0FFF) {
     hProcess := DllCall("OpenProcess"
                         , "UInt", dwRights
@@ -3473,6 +3517,7 @@ openProcess(dwPID, dwRights = 0x1F0FFF) {
     return hProcess
 }
 
+; internal stuff
 closeProcess(hProcess) {
     if(hProcess == 0) {
         ErrorLevel := ERROR_INVALID_HANDLE
@@ -3485,6 +3530,7 @@ closeProcess(hProcess) {
     ErrorLevel := ERROR_OK
 }
 
+; internal stuff
 getModuleBaseAddress(sModule, hProcess) {
     if(!sModule) {
         ErrorLevel := ERROR_MODULE_NOT_FOUND
@@ -3533,6 +3579,7 @@ getModuleBaseAddress(sModule, hProcess) {
     return 0
 }
 
+; internal stuff
 readString(hProcess, dwAddress, dwLen) {
     if(!hProcess) {
         ErrorLevel := ERROR_INVALID_HANDLE
@@ -3558,6 +3605,7 @@ readString(hProcess, dwAddress, dwLen) {
     return sRead
 }
 
+; internal stuff
 readFloat(hProcess, dwAddress) {
     if(!hProcess) {
         ErrorLevel := ERROR_INVALID_HANDLE
@@ -3581,6 +3629,7 @@ readFloat(hProcess, dwAddress) {
     return NumGet(dwRead, 0, "Float")
 }
 
+; internal stuff
 readDWORD(hProcess, dwAddress) {
     if(!hProcess) {
         ErrorLevel := ERROR_INVALID_HANDLE
@@ -3603,6 +3652,7 @@ readDWORD(hProcess, dwAddress) {
     return NumGet(dwRead, 0, "UInt")
 }
 
+; internal stuff
 readMem(hProcess, dwAddress, dwLen=4, type="UInt") {
     if(!hProcess) {
         ErrorLevel := ERROR_INVALID_HANDLE
@@ -3625,6 +3675,7 @@ readMem(hProcess, dwAddress, dwLen=4, type="UInt") {
     return NumGet(dwRead, 0, type)
 }
 
+; internal stuff
 writeString(hProcess, dwAddress, wString) {
     if(!hProcess) {
         ErrorLevel := ERROR_INVALID_HANDLE
@@ -3651,6 +3702,7 @@ writeString(hProcess, dwAddress, wString) {
     return true
 }
 
+; internal stuff
 writeRaw(hProcess, dwAddress, pBuffer, dwLen) {
     if(!hProcess) {
         ErrorLevel := ERROR_INVALID_HANDLE
@@ -3673,12 +3725,14 @@ writeRaw(hProcess, dwAddress, pBuffer, dwLen) {
     return true
 }
 
+; internal stuff
 Memory_ReadByte(process_handle, address) {
 	VarSetCapacity(value, 1, 0)
 	DllCall("ReadProcessMemory", "UInt", process_handle, "UInt", address, "Str", value, "UInt", 1, "UInt *", 0)
 	return, NumGet(value, 0, "Byte")
 }
 
+; internal stuff
 callWithParams(hProcess, dwFunc, aParams, bCleanupStack = true) {
     if(!hProcess) {
         ErrorLevel := ERROR_INVALID_HANDLE
@@ -3748,6 +3802,7 @@ callWithParams(hProcess, dwFunc, aParams, bCleanupStack = true) {
     return true
 }
 
+; internal stuff
 virtualAllocEx(hProcess, dwSize, flAllocationType, flProtect) {
     if(!hProcess) {
         ErrorLevel := ERROR_INVALID_HANDLE
@@ -3770,6 +3825,7 @@ virtualAllocEx(hProcess, dwSize, flAllocationType, flProtect) {
     return dwRet
 }
 
+; internal stuff
 virtualFreeEx(hProcess, lpAddress, dwSize, dwFreeType) {
     if(!hProcess) {
         ErrorLevel := ERROR_INVALID_HANDLE
@@ -3791,6 +3847,7 @@ virtualFreeEx(hProcess, lpAddress, dwSize, dwFreeType) {
     return dwRet
 }
 
+; internal stuff
 createRemoteThread(hProcess, lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags, lpThreadId) {
     if(!hProcess) {
         ErrorLevel := ERROR_INVALID_HANDLE
@@ -3815,6 +3872,7 @@ createRemoteThread(hProcess, lpThreadAttributes, dwStackSize, lpStartAddress, lp
     return dwRet
 }
 
+; internal stuff
 waitForSingleObject(hThread, dwMilliseconds) {
     if(!hThread) {
         ErrorLevel := ERROR_INVALID_HANDLE
@@ -3834,6 +3892,7 @@ waitForSingleObject(hThread, dwMilliseconds) {
     return dwRet
 }
 
+; internal stuff
 __ansiToUnicode(sString, nLen = 0) {
    If !nLen
    {
@@ -3859,6 +3918,7 @@ __ansiToUnicode(sString, nLen = 0) {
     return wString
 }
 
+; internal stuff
 __unicodeToAnsi(wString, nLen = 0) {
    pString := wString + 1 > 65536 ? wString : &wString
 

@@ -1,4 +1,6 @@
-﻿
+﻿; ------------------- ;
+; Fahrzeug-Funktionen ;
+; ------------------- ;
 global SAMP_MAX_VEHICLES			:= 2000
 global SAMP_PPOOL_VEHICLE_OFFSET	:= 0x1C
 global VEHPOOL_iVehicleCount		:= 0x0
@@ -8,15 +10,12 @@ global iRefreshVeh					:= 0
 global oVehiclePoolData				:= []
 global iUpdateTickVeh				:= 1000
 
-
 getVehicleID() {
 	if (!checkHandles())
 		return -1
-	
 	vID := readMem(hGTA, readDWORD(hGTA, dwSAMP + 0x13C848) + 0x14, 2, "Short")
 	if (ErrorLevel || !vID || vID > 2000)
 		return -1
-	
 	return vID
 }
 
@@ -297,30 +296,26 @@ GetVehicleColor(ByRef int_ColorFirst, ByRef int_ColorSecond) {
 	return res
 }
 
+; -------------------- ;
+; TextLabel-Funktionen ;
+; -------------------- ;
 createTextLabel(sText, dwColor, fX, fY, fZ, fDrawDistance := 50.0, bTestLOS := 0, wPlayerID := 0xFFFF, wVehicleID := 0xFFFF) {
-	if (!checkHandles()) {
+	if (!checkHandles())
 		return -1
-	}
-	
 	dwAddress := readDWORD(hGTA, readDWORD(hGTA, readDWORD(hGTA, dwSAMP + SAMP_INFO_OFFSET) + SAMP_PPOOLS_OFFSET) + 0xC)
-	
 	Loop, 2048 {
 		wID := A_Index - 1
-	
 		if (!readDWORD(hGTA, dwAddress + 0xE800 + wID * 4)) {
 			return callWithParams2(hGTA, dwSAMP + 0x11C0, [["i", dwAddress], ["i", wID], ["s", sText], ["i", dwColor], ["f", fX], ["f", fY], ["f", fZ]
 				, ["f", fDrawDistance], ["i", bTestLOS], ["i", wPlayerID], ["i", wVehicleID]], false, true) ? wID : -1
 		}
 	}
-	
 	return -1
 }
 
 updateTextLabel(wID, sText, dwColor) {
-	if (wID < 0 || wID > 2047 || !checkHandles()) {
+	if (wID < 0 || wID > 2047 || !checkHandles())
 		return false
-	}
-	
 	dwAddress := readDWORD(hGTA, readDWORD(hGTA, readDWORD(hGTA, dwSAMP + SAMP_INFO_OFFSET) + SAMP_PPOOLS_OFFSET) + 0xC)
 	fX := readFloat(hGTA, dwAddress + wID * 0x1D + 0x8)
 	fY := readFloat(hGTA, dwAddress + wID * 0x1D + 0xC)
@@ -329,32 +324,26 @@ updateTextLabel(wID, sText, dwColor) {
 	bTestLOS := readMem(hGTA, dwAddress + wID * 0x1D + 0x18, 1, "Byte")
 	wPlayerID := readMem(hGTA, dwAddress + wID * 0x1D + 0x19, 2, "UShort")
 	wVehicleID := readMem(hGTA, dwAddress + wID * 0x1D + 0x1B, 2, "UShort")
-	
-	return callWithParams2(hGTA, dwSAMP + 0x11C0, [["i", dwAddress], ["i", wID], ["s", sText], ["i", dwColor], ["f", fX], ["f", fY], ["f", fZ], ["f", fDrawDistance], ["i", bTestLOS], ["i", wPlayerID], ["i", wVehicleID]], false, true)
+	return callWithParams2(hGTA, dwSAMP + 0x11C0, [["i", dwAddress], ["i", wID], ["s", sText], ["i", dwColor], ["f", fX], ["f", fY], ["f", fZ], ["f", fDrawDistance]
+		, ["i", bTestLOS], ["i", wPlayerID], ["i", wVehicleID]], false, true)
 }
 
 deleteTextLabel(ByRef wID) {
-	if (!checkHandles()) {
+	if (!checkHandles())
 		return false
-	}
-	
 	dwAddress := readDWORD(hGTA, readDWORD(hGTA, readDWORD(hGTA, dwSAMP + SAMP_INFO_OFFSET) + SAMP_PPOOLS_OFFSET) + 0xC)
 	if (callWithParams2(hGTA, dwSAMP + 0x12D0, [["i", dwAddress], ["i", wID]], false, true)) {
 		wID := -1
 		return true
 	}
-	
 	return false
 }
-
-
 
 global SAMP_3DTEXT					:= 0x12C7BC
 
 getLabelText() {
-	if (!checkHandles()) {
+	if (!checkHandles())
 		return -1
-	}
 	
 	ADDR_3DText := readDWORD(hGTA, dwSAMP + SAMP_3DTEXT)
 	TEXT_3DTEXT := readString(hGTA, ADDR_3DText, 512)
@@ -366,6 +355,7 @@ global iRefreshTL := 0
 global oTextLabelData := ""
 global iUpdateTickTL := 1000
 
+; internal stuff
 updateTextLabelData() {
 	if (!checkHandles())
 		return 0
@@ -671,7 +661,7 @@ restartGameEx() {
 	
 	dwAddress := readDWORD(hGTA, dwSAMP + SAMP_INFO_OFFSET) ;g_SAMP
 	
-	if (ErrorLevel || dwAddress == 0) {
+	if (ErrorLevel || dwAddress==0) {
 		ErrorLevel := ERROR_READ_MEMORY
 		return -1
 	}
@@ -698,6 +688,7 @@ restartGameEx() {
 		return false
 	
 	waitForSingleObject(hThread, 0xFFFFFFFF)
+	
 	return true
 }
 
@@ -760,6 +751,7 @@ disconnectEx() {
 		return false
 	
 	waitForSingleObject(hThread, 0xFFFFFFFF)
+	
 	return true
 }
  
@@ -780,9 +772,8 @@ setRestart() {
 
 restart() {
 	restartGameEx()
-	Sleep, 2000
 	disconnectEx()
-	Sleep, 2000
+	Sleep, 1000
 	setRestart()
 }
 
@@ -839,18 +830,20 @@ getKills() {
 	}
 	
 	pedLocal := readDWORD(hGTA, 0xB6F5F0)
+	
 	if (!pedLocal) {
 		return false
 	}
 	
 	peds := getPeds()
+	
 	if (!peds) {
 		return false
 	}
 	
 	data := []
 	
-	for index, object in peds {
+	For index, object in peds {
 		state := readMem(hGTA, object.PED + 0x530, 4, "UInt")
 		
 		if ((pedStates[object.PED] == 55 || pedStates[object.PED] == 54) == (state == 55 || state == 54)) {
@@ -862,8 +855,7 @@ getKills() {
 		if (object.PED && !object.ISNPC && (state == 55 || state == 54)) {
 			pedMurderer := readDWORD(hGTA, object.PED + 0x764)
 			murderer := false
-			
-			for index2, object2 in peds
+			For index2, object2 in peds
 			{
 				if (object2.PED == pedMurderer) {
 					murderer := object2
@@ -874,11 +866,10 @@ getKills() {
 			weapon := readMem(hGTA, object.PED + 0x760, 4, "UInt")
 			skin := readMem(hGTA, object.PED + 0x22, 2, "UShort")
 			
-			if (!murderer) {
+			if (!murderer)
 				data.Push({victim: object, weapon: weapon, skin: skin})
-			} else {
+			else
 				data.Push({victim: object, murderer: murderer, weapon: weapon, skin: skin})
-			}
 		}
 	}
 	
@@ -909,7 +900,8 @@ getPeds() {
 	
 	data.Push({LOCAL: true, ID: wID, PED: dwPed, ISNPC: false, NAME: sName})
 	
-	Loop % 1000 {
+	Loop % 1000
+	{
 		i := A_Index - 1
 		dwRemotePlayer := readDWORD(hGTA, dwAddress + 0x2E + i*4)
 		
@@ -945,7 +937,7 @@ global GAMETEXT_3					:= 0xBAAE40
 global GAMETEXT_4					:= 0xBAAEC0
 global GAMETEXT_5					:= 0xBAABC0
 
-getGameText(type = 1, length = 68) {
+getGameText(type = 1, length = 12) {
 	if (!checkHandles())
 		return ""
 	
@@ -1141,47 +1133,36 @@ Unzip(sZip, sUnz) {
 	}
 }
 
-; by Frank_Dilauro
-SetChatLineRed(count, red) {
-	checkHandles()
-	offset := 0x639C
-	dwAdress := readMem(hGTA, dwSAMP + 0x21A0E4, 4, "int")
+; ---------------- ;
+; Hilfs-Funktionen ;
+; ---------------- ;
+;~ PlayerInput(text) {
+	;~ global alternativePlayerInput
 	
-	Loop %count%
-		offset := offset - 0xFC
+	;~ if (alternativePlayerInput) {
+		;~ Sleep, 100
+		
+		;~ Suspend, On
+		;~ SendInput, t^a{backspace}/%text%
+		;~ Input, var, V, {Enter}{Esc}{LButton}
+		;~ SendInput, {End}+{Home}{Del}{Esc}
+		;~ Suspend, Off
+	;~ } else {
+		;~ KeyWait, Enter
+		
+		;~ SendInput, t^a{backspace}/%text%
+		;~ Input, var, V, {Enter}{Esc}{LButton}
+		;~ SendInput, {End}+{Home}{Del}{Esc}
+		
+		;~ KeyWait, Enter
+	;~ }
 	
-	WriteMemory_(hGTA, dwAdress, red, "char", 1, offset)
-}
+	;~ return var
+;~ }
 
-; by Frank_Dilauro
-SetChatLineGreen(count, green) {
-	checkHandles()
-	offset := 0x639B
-	dwAdress := readMem(hGTA, dwSAMP + 0x21A0E4, 4, "int")
-	
-	Loop %count%
-		offset := offset - 0xFC
-	
-	WriteMemory_(hGTA, dwAdress, green, "char", 1, offset)
-}
-
-SetChatLineBlue(count, blue) {
-	
-	checkHandles()
-	
-	offset := 0x639A
-	dwAdress := readMem(hGTA, dwSAMP + 0x21A0E4, 4, "int")
-	
-	Loop %count%
-		offset := offset - 0xFC
-	
-	WriteMemory_(hGTA, dwAdress, blue, "char", 1, offset)
-}
-
-WriteMemory_(hwnd, address, writevalue, datatype = "int", length = 4, offset = 0) {
-    VarSetCapacity(finalvalue, length, 0)
-    NumPut(writevalue, finalvalue, 0, datatype)
-    return DllCall("WriteProcessMemory", "Uint", hwnd, "Uint", address + offset,"Uint",&finalvalue,"Uint",length,"Uint",0)
+numberFormat(input_var) {
+	StringReplace, output, input_var,.,,All
+	return output
 }
 
 PlayerInput(info) {
@@ -1310,30 +1291,16 @@ getAttackWeapon(bReset := false) {
 	return weapon
 }
 
-isPlayerCrouch() {
-    if (!checkHandles()) {
-        return -1
-	}
-	
-    if (!CPed := readDWORD(hGTA, 0xB6F5F0)) {
-        return -1
-	}
-	
-    state := readMem(hGTA, CPed + 0x46F, 1, "byte")
-    if (state == 132) {
-        return 1
-	}
-	
-    if (state == 128) {
-        return 0
-	}
-	
-    return -1
-}
 
-numberFormat(input_var) {
-	StringReplace, output, input_var,.,,All
-	return output
+getLocation() {
+	zone := getPlayerZone()
+	city := getPlayerCity()
+	
+	if (city == "" || city == "Unbekannt") {
+		return zone
+	} else {
+		return zone . ", " . city
+	}
 }
 
 formatNumber(_number) {
@@ -1498,8 +1465,6 @@ getUserFriendlyHotkeyName(hk) {
 	hk := StrReplace(hk, "+", "UMSCHALT+")
 	hk := StrReplace(hk, "^", "STRG+")
 	hk := StrReplace(hk, "!", "ALT+")
-	hk := StrReplace(hk, ".", ". (Punkt)")
-	hk := StrReplace(hk, ",", ", (Komma)")
 	
 	return hk
 }
@@ -1536,6 +1501,129 @@ compareVersions(v1, v2) {
 	return 0
 }
 
+; -------------- ;
+; RPG-Funktionen ;
+; -------------- ;
+global fractions := {"": [0, "Zivilist"], "lspd": [1, "LSPD"], "fbi": [2, "FBI"], "lvpd": [3, "LVPD"], "lsmd": [4, "LSMD"], "russen": [5, "Russen Mafia"], "yakuza": [6, "Yakuza"], "regierung": [7, "Regierung"], "agency": [8, "Agency"], "news": [9, "San News"], "grove": [10, "Grove Street"], "ballas": [11, "Ballas"], "lcm": [12, "LCM"], "oamt": [13, "Ordnungsamt"], "gmbh": [14, "Transport GmbH"], "rifa": [15, "S.F. Rifa"], "vagos": [16, "Vagos"], "triaden": [17, "Triaden"], "safd": [19, "SAFD"]}
+
+getFraktionByID(id) {
+	fraction := ""
+	
+	for index, entry in fractions {
+		if (entry[1] == id) {
+			fraction := entry[2]
+			break
+		}
+	}
+	
+	return fraction
+}
+
+getFraktionColorByID(id) {
+	fractionColor := ""
+	
+	if (id == 1) {
+		fractionColor := "{217BFF}"
+	} else if (id == 2) {
+		fractionColor := "{0E00DC}"
+	} else if (id == 4) {
+		fractionColor := "{AA3333}"
+	} else if (id == 5) {
+		fractionColor := "{85847F}"
+	} else if (id == 6) {
+		fractionColor := "{FFFFFF}"
+	} else if (id == 10) {
+		fractionColor := "{078C09}"
+	} else if (id == 11) {
+		fractionColor := "{9300FF}"
+	} else if (id == 12) {
+		fractionColor := "{0046FF}"
+	} else if (id == 15) {
+		fractionColor := "{00DCFF}"
+	} else if (id == 16) {
+		fractionColor := "{FFFF00}"
+	} else if (id == 17) {
+		fractionColor := "{FF8000}"
+	}
+	
+	return fractionColor
+}
+
+getFraktionColorByName(name) {
+	fractionColor := ""
+	
+	if (InStr(name, "LSPD")) {
+		fractionColor := "{217BFF}"
+	} else if (InStr(name, "FBI")) {
+		fractionColor := "{0E00DC}"
+	} else if (InStr(name, "LVPD")) {
+		fractionColor := "{AA3333}"
+	} else if (InStr(name, "Russen")) {
+		fractionColor := "{85847F}"
+	} else if (InStr(name, "Yakuza")) {
+		fractionColor := "{FFFFFF}"
+	} else if (InStr(name, "Grove")) {
+		fractionColor := "{078C09}"
+	} else if (InStr(name, "Ballas")) {
+		fractionColor := "{9300FF}"
+	} else if (InStr(name, "Chickos")) {
+		fractionColor := "{0046FF}"
+	} else if (InStr(name, "Rifa")) {
+		fractionColor := "{00DCFF}"
+	} else if (InStr(name, "Vagos")) {
+		fractionColor := "{FFFF00}"
+	} else if (InStr(name, "Triaden")) {
+		fractionColor := "{FF8000}"
+	}
+	
+	return fractionColor
+}
+
+getFraktionNameShort(name) {
+	nameShort := ""
+	
+	if (InStr(name, "Russen")) {
+		nameShort := "Russen"
+	} else if (InStr(name, "Yakuza")) {
+		nameShort := "Yaku"
+	} else if (InStr(name, "Grove")) {
+		nameShort := "GS"
+	} else if (InStr(name, "Ballas")) {
+		nameShort := "Ballas"
+	} else if (InStr(name, "Chickos")) {
+		nameShort := "LCM"
+	} else if (InStr(name, "Rifa")) {
+		nameShort := "Rifa"
+	} else if (InStr(name, "Vagos")) {
+		nameShort := "Vagos"
+	} else if (InStr(name, "Triaden")) {
+		nameShort := "Triaden"
+	}
+	
+	return nameShort
+}
+
+getFraktionBySkinID(id) {
+	fraction := 0
+	skins := {5: [43, 111, 112, 113, 124, 125, 126, 127, 258, 272, 40], 6: [121, 122, 123, 186, 203, 204, 228, 169, 224], 10: [105, 106, 107, 269, 271, 65, 270], 11: [102, 103, 104, 293, 13], 12: [46, 47, 48, 98, 185, 223, 249, 214], 15: [114, 115, 116, 173, 174, 175, 184, 273, 195, 298], 16: [108, 109, 110, 292, 91], 17: [49, 117, 118, 120, 208, 263]}
+	
+	for fname, fskins in skins
+	{
+		for index, fskin in fskins
+		{
+			if (fskin == id) {
+				fraction := fname
+				break, 2
+			}
+		}
+	}
+	
+	return fraction
+}
+
+; ------------------ ;
+; Interne Funktionen ;
+; ------------------ ;
 callWithParams2(hProcess, dwFunc, aParams, bCleanupStack = true, bThisCall = false, bReturn = false, sDatatype = "Char") {
 	if (!hProcess || !dwFunc)
 		return false
@@ -1591,109 +1679,4 @@ callWithParams2(hProcess, dwFunc, aParams, bCleanupStack = true, bThisCall = fal
 	if (bReturn)
 		return readMem(hGTA, pParam1, 4, sDatatype)
 	return true
-}
-
-Convert(sFileFr = "", sFileTo = "", nQuality = "") {
-	
-	If	sFileTo  =
-		sFileTo := A_ScriptDir . "\screen.bmp"
-	
-	SplitPath, sFileTo, , sDirTo, sExtTo, sNameTo
-	
-	If Not	hGdiPlus := DllCall("LoadLibrary", "str", "gdiplus.dll")
-		Return	sFileFr+0 ? SaveHBITMAPToFile(sFileFr, sDirTo . "\" . sNameTo . ".bmp") : ""
-	
-	VarSetCapacity(si, 16, 0), si := Chr(1)
-	DllCall("gdiplus\GdiplusStartup", "UintP", pToken, "Uint", &si, "Uint", 0)
-	
-	If	!sFileFr
-	{
-		DllCall("OpenClipboard", "Uint", 0)
-		
-		If	 DllCall("IsClipboardFormatAvailable", "Uint", 2) && (hBM:=DllCall("GetClipboardData", "Uint", 2))
-			DllCall("gdiplus\GdipCreateBitmapFromHBITMAP", "Uint", hBM, "Uint", 0, "UintP", pImage)
-			DllCall("CloseClipboard")
-		}
-		
-		Else If	sFileFr Is Integer
-			DllCall("gdiplus\GdipCreateBitmapFromHBITMAP", "Uint", sFileFr, "Uint", 0, "UintP", pImage)
-		Else	DllCall("gdiplus\GdipLoadImageFromFile", "Uint", Unicode4Ansi(wFileFr,sFileFr), "UintP", pImage)
-			DllCall("gdiplus\GdipGetImageEncodersSize", "UintP", nCount, "UintP", nSize)
-		
-		VarSetCapacity(ci,nSize,0)
-		DllCall("gdiplus\GdipGetImageEncoders", "Uint", nCount, "Uint", nSize, "Uint", &ci)
-		
-		Loop, %	nCount
-			If	InStr(Ansi4Unicode(NumGet(ci,76*(A_Index-1)+44)), "." . sExtTo) {
-				pCodec := &ci+76*(A_Index-1)
-				Break
-			}
-			
-		If	InStr(".JPG.JPEG.JPE.JFIF", "." . sExtTo) && nQuality<>"" && pImage && pCodec
-		{
-			DllCall("gdiplus\GdipGetEncoderParameterListSize", "Uint", pImage, "Uint", pCodec, "UintP", nSize)
-			VarSetCapacity(pi,nSize,0)
-			DllCall("gdiplus\GdipGetEncoderParameterList", "Uint", pImage, "Uint", pCodec, "Uint", nSize, "Uint", &pi)
-			
-			Loop, %	NumGet(pi)
-				If	NumGet(pi,28*(A_Index-1)+20)=1 && NumGet(pi,28*(A_Index-1)+24)=6
-				{
-					pParam := &pi+28*(A_Index-1)
-					NumPut(nQuality,NumGet(NumPut(4,NumPut(1,pParam+0)+20)))
-					Break
-				}
-		}
-		
-		If	pImage
-		pCodec	? DllCall("gdiplus\GdipSaveImageToFile", "Uint", pImage, "Uint", Unicode4Ansi(wFileTo,sFileTo), "Uint", pCodec, "Uint", pParam) : DllCall("gdiplus\GdipCreateHBITMAPFromBitmap", "Uint", pImage, "UintP", hBitmap, "Uint", 0) . SetClipboardData(hBitmap), DllCall("gdiplus\GdipDisposeImage", "Uint", pImage)
-		DllCall("gdiplus\GdiplusShutdown" , "Uint", pToken)
-		DllCall("FreeLibrary", "Uint", hGdiPlus)
-}
-
-SaveHBITMAPToFile(hBitmap, sFile) {
-	DllCall("GetObject", "Uint", hBitmap, "int", VarSetCapacity(oi,84,0), "Uint", &oi)
-	hFile:=	DllCall("CreateFile", "Uint", &sFile, "Uint", 0x40000000, "Uint", 0, "Uint", 0, "Uint", 2, "Uint", 0, "Uint", 0)
-	DllCall("WriteFile", "Uint", hFile, "int64P", 0x4D42|14+40+NumGet(oi,44)<<16, "Uint", 6, "UintP", 0, "Uint", 0)
-	DllCall("WriteFile", "Uint", hFile, "int64P", 54<<32, "Uint", 8, "UintP", 0, "Uint", 0)
-	DllCall("WriteFile", "Uint", hFile, "Uint", &oi+24, "Uint", 40, "UintP", 0, "Uint", 0)
-	DllCall("WriteFile", "Uint", hFile, "Uint", NumGet(oi,20), "Uint", NumGet(oi,44), "UintP", 0, "Uint", 0)
-	DllCall("CloseHandle", "Uint", hFile)
-}
-
-Unicode4Ansi(ByRef wString, sString) {
-	nSize := DllCall("MultiByteToWideChar", "Uint", 0, "Uint", 0, "Uint", &sString, "int", -1, "Uint", 0, "int", 0)
-	VarSetCapacity(wString, nSize * 2)
-	DllCall("MultiByteToWideChar", "Uint", 0, "Uint", 0, "Uint", &sString, "int", -1, "Uint", &wString, "int", nSize)
-	Return	&wString
-}
-
-Ansi4Unicode(pString) {
-	nSize := DllCall("WideCharToMultiByte", "Uint", 0, "Uint", 0, "Uint", pString, "int", -1, "Uint", 0, "int",  0, "Uint", 0, "Uint", 0)
-	VarSetCapacity(sString, nSize)
-	DllCall("WideCharToMultiByte", "Uint", 0, "Uint", 0, "Uint", pString, "int", -1, "str", sString, "int", nSize, "Uint", 0, "Uint", 0)
-	Return	sString
-}
-
-SetClipboardData(hBitmap) {
-	DllCall("GetObject", "Uint", hBitmap, "int", VarSetCapacity(oi,84,0), "Uint", &oi)
-	hDIB :=	DllCall("GlobalAlloc", "Uint", 2, "Uint", 40+NumGet(oi,44))
-	pDIB :=	DllCall("GlobalLock", "Uint", hDIB)
-	DllCall("RtlMoveMemory", "Uint", pDIB, "Uint", &oi+24, "Uint", 40)
-	DllCall("RtlMoveMemory", "Uint", pDIB+40, "Uint", NumGet(oi,20), "Uint", NumGet(oi,44))
-	DllCall("GlobalUnlock", "Uint", hDIB)
-	DllCall("DeleteObject", "Uint", hBitmap)
-	DllCall("OpenClipboard", "Uint", 0)
-	DllCall("EmptyClipboard")
-	DllCall("SetClipboardData", "Uint", 8, "Uint", hDIB)
-	DllCall("CloseClipboard")
-}
-
-convertData(unix, format) {
-	
-	timeZone := (A_Now - A_NowUTC) / 10000
-	time += unix, s
-	time += timeZone, h
-	
-	FormatTime, output, %time%, %format%
-	return output
 }
